@@ -16,3 +16,16 @@ AI-Toolbox provides a collection of automation scripts that streamline the insta
 - Easy-to-use scripts for efficient software deployment.
 - Customizable for your specific workflow and preferences.
 - Regular updates and contributions from the community.
+
+## Installation
+
+AI-Toolbox may require specific prerequisites based on the AI application you intend to install. It will automatically handle the installation of these prerequisites if they are not already present on your system. Common prerequisites include:
+
+- [Winget](https://winget.dev/)
+- [Git](https://git-scm.com/)
+- [7-Zip](https://www.7-zip.org/)
+- [Miniconda](https://docs.conda.io/projects/miniconda/en/latest/index.html)
+- [FFmpeg](https://ffmpeg.org/)
+- [Node.js](https://nodejs.org/en)
+
+The specific prerequisites for each AI application are documented within their respective installation scripts. Please refer to the installation script for your chosen application for detailed requirements.
