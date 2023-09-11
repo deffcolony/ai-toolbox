@@ -1,10 +1,10 @@
 # ai-toolbox
 AI-Toolbox provides a collection of automation scripts and tools to streamline your AI workflows.
 
-[![GitHub Stars](https://img.shields.io/github/stars/deffcolony/AI-Toolbox.svg)](https://github.com/yourusername/AI-Toolbox/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/deffcolony/AI-Toolbox.svg)](https://github.com/yourusername/AI-Toolbox/network)
-[![GitHub Issues](https://img.shields.io/github/issues/deffcolony/AI-Toolbox.svg)](https://github.com/yourusername/AI-Toolbox/issues)
-[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/deffcolony/AI-Toolbox.svg)](https://github.com/yourusername/AI-Toolbox/pulls)
+[![GitHub Stars](https://img.shields.io/github/stars/deffcolony/AI-Toolbox.svg)](https://github.com/deffcolony/AI-Toolbox/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/deffcolony/AI-Toolbox.svg)](https://github.com/deffcolony/AI-Toolbox/network)
+[![GitHub Issues](https://img.shields.io/github/issues/deffcolony/AI-Toolbox.svg)](https://github.com/deffcolony/AI-Toolbox/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/deffcolony/AI-Toolbox.svg)](https://github.com/deffcolony/AI-Toolbox/pulls)
 
 Simplify AI Application Installation with Automation.
 
