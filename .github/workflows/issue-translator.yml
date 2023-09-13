@@ -1,0 +1,14 @@
+# Will translate any issues opened in foraign language, and add the English translation as a comment 
+- name: 🎯 Issue Translator
+  # You may pin to the exact commit or the version.
+  # uses: usthe/issues-translate-action@ac9866e08b906c9a893aaa747696eb4168801443
+  uses: usthe/issues-translate-action@v2.6
+  with:
+    # The issue comment bot GITHUB_TOKEN.
+    BOT_GITHUB_TOKEN: # optional
+    # The issue comment bot github login name.
+    BOT_LOGIN_NAME: # optional
+    # Is need modify issue title, true or false, default false.
+    IS_MODIFY_TITLE: # optional
+    # Custom bot note message.
+    CUSTOM_BOT_NOTE: # optional
