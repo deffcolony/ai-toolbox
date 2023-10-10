@@ -18,8 +18,6 @@ REM python ./launch.py --lowvram
 REM 
 REM # Use this if you are running on an AMD GPU
 REM python ./launch.py --precision full --no-half
-
-title stable-difussion-webui menu
 setlocal
 
 REM ANSI Escape Code for Colors
@@ -94,43 +92,50 @@ if %errorlevel% neq 0 (
 )
 
 
-REM Menu Frontend
-:menu
+REM home Frontend
+:home
+title SD Web UI [HOME]
 cls
+echo %blue_fg_strong%/ Home %reset%
+echo -------------------------------------
 echo What would you like to do?
-color 7
-echo 1. Install Stable Diffusion web UI
-echo 2. Run Stable Diffusion web UI
-echo 3. Run Stable Diffusion web UI with addons
-echo 4. Exit
+echo 1. Install SD web UI
+echo 2. Run SD web UI
+echo 3. Run SD web UI + addons
+echo 4. Run SD web UI + share
+echo 5. Exit
 
 
 set "choice="
-set /p "choice=Choose Your Destiny (default is 1): "
+set /p "choice=Choose Your Destiny: "
 
 REM Default to choice 1 if no input is provided
-if not defined choice set "choice=1"
+REM Disable REM below to enable default choise
+REM if not defined choice set "choice=1"
 
-REM Menu - Backend
+REM home - Backend
 if "%choice%"=="1" (
     call :installsdw
 ) else if "%choice%"=="2" (
-    call :runsdwclean
+    call :runsdw
 ) else if "%choice%"=="3" (
     call :runsdwaddons
 ) else if "%choice%"=="4" (
+    call :runsdwshare
+) else if "%choice%"=="5" (
     exit
 ) else (
     color 6
     echo WARNING: Invalid number. Please insert a valid number.
     pause
-    goto :menu
+    goto :home
 )
 
 
 :installsdw
+title SD Web UI [INSTALL]
 cls
-echo %blue_fg_strong%/ Installer / Stable Diffusion web UI%reset%
+echo %blue_fg_strong%/ Home / Install SD web UI%reset%
 echo ---------------------------------------------------------------
 echo %blue_fg_strong%[INFO]%reset% Installing Stable Diffusion web UI...
 echo --------------------------------
@@ -156,10 +161,13 @@ git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
 
 echo %green_fg_strong%Stable Diffusion web UI installed successfully.%reset%
 pause
-goto :menu
+goto :home
 
-:runsdwclean
-cd stable-diffusion-webui
+:runsdw
+title SD web UI
+cls
+echo %blue_fg_strong%/ Home / Run SD web UI%reset%
+echo ---------------------------------------------------------------
 
 REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
@@ -168,12 +176,16 @@ REM Activate the sillytavernextras environment
 call conda activate stablediffusionwebui
 
 REM Start stablediffusionwebui clean
-start cmd /k python ./launch.py
-goto :menu
+cd /d "%~dp0stable-diffusion-webui"
+start cmd /k python launch.py
+goto :home
 
 
 :runsdwaddons
-cd stable-diffusion-webui
+title SD web UI [ADDONS]
+cls
+echo %blue_fg_strong%/ Home / Run SD web UI + addons%reset%
+echo ---------------------------------------------------------------
 
 REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
@@ -182,5 +194,36 @@ REM Activate the sillytavernextras environment
 call conda activate stablediffusionwebui
 
 REM Start stablediffusionwebui with desired configurations
-start cmd /k python ./launch.py --autolaunch --api --listen --port 7900 --xformers --reinstall-xformers --theme dark
-goto :menu
+cd /d "%~dp0stable-diffusion-webui"
+start cmd /k python launch.py --autolaunch --api --listen --port 7900 --xformers --reinstall-xformers --theme dark
+goto :home
+
+
+:runsdwshare
+title SD web UI [SHARE]
+cls
+echo %blue_fg_strong%/ Home / Run SD web UI + share%reset%
+echo ---------------------------------------------------------------
+
+REM Run conda activate from the Miniconda installation
+call "%miniconda_path%\Scripts\activate.bat"
+echo %blue_fg_strong%[INFO]%reset% Running SD web UI + share...
+
+REM Activate the stablediffusionwebui environment
+call conda activate stablediffusionwebui
+
+cls
+echo %blue_fg_strong%/ Home / SD web UI + share%reset%
+echo ---------------------------------------------------------------
+
+REM Prompt user for username
+set /p username=Enter a username: 
+
+REM Prompt user for password creation
+powershell -command "$password = Read-Host 'Enter a password' -AsSecureString; $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password); $password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR); Write-Output $password" > temp_pass.txt
+set /p password=<temp_pass.txt
+del temp_pass.txt
+cd /d "%~dp0stable-diffusion-webui"
+start cmd /k python launch.py --autolaunch --xformers --reinstall-xformers --always-batch-cond-uncond --share --port 7900 --gradio-auth %username%:%password% --always-batch-cond-uncond --theme dark
+goto :home
+
