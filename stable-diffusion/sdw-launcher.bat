@@ -42,6 +42,14 @@ set "winget_path=%userprofile%\AppData\Local\Microsoft\WindowsApps"
 REM Environment Variables (TOOLBOX Install Extras)
 set "miniconda_path=%userprofile%\miniconda"
 
+REM Define the paths and filenames for the shortcut creation
+set "shortcutTarget=%~dp0sdw-launcher.bat"
+set "iconFile=%~dp0sdw.ico"
+set "desktopPath=%userprofile%\Desktop"
+set "shortcutName=sdw-launcher.lnk"
+set "startIn=%~dp0"
+set "comment=Stable Diffusion Web UI Launcher"
+
 
 REM Check if Winget is installed; if not, then install it
 winget --version > nul 2>&1
@@ -163,7 +171,24 @@ REM Clone the stable-diffusion-webui Extras repository
 git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
 
 echo %green_fg_strong%Stable Diffusion web UI installed successfully.%reset%
-pause
+
+REM Ask if the user wants to create a shortcut
+set /p create_shortcut=Do you want to create a shortcut on the desktop? [Y/n] 
+if /i "%create_shortcut%"=="Y" (
+
+    REM Create the shortcut
+    echo %blue_fg_strong%[INFO]%reset% Creating shortcut...
+    %SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe -Command ^
+        "$WshShell = New-Object -ComObject WScript.Shell; " ^
+        "$Shortcut = $WshShell.CreateShortcut('%desktopPath%\%shortcutName%'); " ^
+        "$Shortcut.TargetPath = '%shortcutTarget%'; " ^
+        "$Shortcut.IconLocation = '%iconFile%'; " ^
+        "$Shortcut.WorkingDirectory = '%startIn%'; " ^
+        "$Shortcut.Description = '%comment%'; " ^
+        "$Shortcut.Save()"
+    echo %green_fg_strong%Shortcut created on the desktop.%reset%
+    pause
+)
 goto :home
 
 :runsdw

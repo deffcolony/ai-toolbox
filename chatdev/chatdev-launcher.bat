@@ -27,6 +27,14 @@ set "winget_path=%userprofile%\AppData\Local\Microsoft\WindowsApps"
 REM Environment Variables (TOOLBOX Install Extras)
 set "miniconda_path=%userprofile%\miniconda"
 
+REM Define the paths and filenames for the shortcut creation
+set "shortcutTarget=%~dp0chatdev-launcher.bat"
+REM set "iconFile=%SystemRoot%\System32\SHELL32.dll,153"
+set "desktopPath=%userprofile%\Desktop"
+set "shortcutName=chatdev-launcher.lnk"
+set "startIn=%~dp0"
+set "comment=ChatDev Launcher"
+
 
 REM Check if Winget is installed; if not, then install it
 winget --version > nul 2>&1
@@ -73,7 +81,8 @@ echo What would you like to do?
 echo 1. Install ChatDev
 echo 2. Configure ChatDev
 echo 3. Run ChatDev webui
-echo 4. Exit
+echo 4. Update
+echo 5. Exit
 
 
 set "choice="
@@ -91,6 +100,8 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="3" (
     call :runchatdev
 ) else if "%choice%"=="4" (
+    call :updatechatdev
+) else if "%choice%"=="5" (
     exit
 ) else (
     color 6
@@ -133,7 +144,23 @@ REM Install Python dependencies from requirements files
 pip install -r requirements.txt
 
 echo %green_fg_strong%ChatDev Installed Successfully.%reset%
-pause
+
+REM Ask if the user wants to create a shortcut
+set /p create_shortcut=Do you want to create a shortcut on the desktop? [Y/n] 
+if /i "%create_shortcut%"=="Y" (
+
+    REM Create the shortcut
+    echo %blue_fg_strong%[INFO]%reset% Creating shortcut...
+    %SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe -Command ^
+        "$WshShell = New-Object -ComObject WScript.Shell; " ^
+        "$Shortcut = $WshShell.CreateShortcut('%desktopPath%\%shortcutName%'); " ^
+        "$Shortcut.TargetPath = '%shortcutTarget%'; " ^
+        "$Shortcut.WorkingDirectory = '%startIn%'; " ^
+        "$Shortcut.Description = '%comment%'; " ^
+        "$Shortcut.Save()"
+    echo %green_fg_strong%Shortcut created on the desktop.%reset%
+    pause
+)
 endlocal
 goto :home
 
@@ -177,9 +204,33 @@ goto :home
 :runchatdev
 title ChatDev
 cls
-echo %blue_fg_strong%/ Run ChatDev%reset%
+echo %blue_fg_strong%/ Home / Run ChatDev%reset%
 echo ---------------------------------------------------------------
 echo %blue_fg_strong%[INFO]%reset% ChatDev has been launched.
 cd /d "%~dp0ChatDev"
 start cmd /k python online_log/app.py
+goto :home
+
+
+:updatesdw
+title ChatDev [UPDATE]
+cls
+echo %blue_fg_strong%/ Home / Update%reset%
+echo ---------------------------------------------------------------
+echo Updating...
+cd /d "%~dp0ChatDev"
+REM Check if git is installed
+git --version > nul 2>&1
+if %errorlevel% neq 0 (
+    echo %red_fg_strong%[ERROR] git command not found in PATH. Skipping update.%reset%
+    echo %red_bg%Please make sure Git is installed and added to your PATH.%reset%
+    echo %blue_bg%To install Git go to Toolbox%reset%
+) else (
+    call git pull --rebase --autostash
+    if %errorlevel% neq 0 (
+        REM incase there is still something wrong
+        echo There were errors while updating. Please download the latest version manually.
+    )
+)
+pause
 goto :home
