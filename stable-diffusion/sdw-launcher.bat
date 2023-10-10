@@ -103,7 +103,8 @@ echo 1. Install SD web UI
 echo 2. Run SD web UI
 echo 3. Run SD web UI + addons
 echo 4. Run SD web UI + share
-echo 5. Exit
+echo 5. Update
+echo 6. Exit
 
 
 set "choice="
@@ -123,6 +124,8 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="4" (
     call :runsdwshare
 ) else if "%choice%"=="5" (
+    call :updatesdw
+) else if "%choice%"=="6" (
     exit
 ) else (
     color 6
@@ -227,3 +230,25 @@ cd /d "%~dp0stable-diffusion-webui"
 start cmd /k python launch.py --autolaunch --xformers --reinstall-xformers --always-batch-cond-uncond --share --port 7900 --gradio-auth %username%:%password% --always-batch-cond-uncond --theme dark
 goto :home
 
+:updatesdw
+title SD web UI [UPDATE]
+cls
+echo %blue_fg_strong%/ Home / Update%reset%
+echo ---------------------------------------------------------------
+echo Updating...
+cd /d "%~dp0stable-diffusion-webui"
+REM Check if git is installed
+git --version > nul 2>&1
+if %errorlevel% neq 0 (
+    echo %red_fg_strong%[ERROR] git command not found in PATH. Skipping update.%reset%
+    echo %red_bg%Please make sure Git is installed and added to your PATH.%reset%
+    echo %blue_bg%To install Git go to Toolbox%reset%
+) else (
+    call git pull --rebase --autostash
+    if %errorlevel% neq 0 (
+        REM incase there is still something wrong
+        echo There were errors while updating. Please download the latest version manually.
+    )
+)
+pause
+goto :home
