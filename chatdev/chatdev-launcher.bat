@@ -31,7 +31,7 @@ REM Define the paths and filenames for the shortcut creation
 set "shortcutTarget=%~dp0chatdev-launcher.bat"
 REM set "iconFile=%SystemRoot%\System32\SHELL32.dll,153"
 set "desktopPath=%userprofile%\Desktop"
-set "shortcutName=chatdev-launcher.lnk"
+set "shortcutName=ChatDev-Launcher.lnk"
 set "startIn=%~dp0"
 set "comment=ChatDev Launcher"
 

@@ -2,9 +2,7 @@
 REM --------------------------------------------
 REM This script was created by: Deffcolony
 REM --------------------------------------------
-REM Github: https://github.com/KillianLucas/open-interpreter
-
-title open-interpreter menu
+REM Github: https://github.com/microsoft/autogen
 setlocal
 
 REM ANSI Escape Code for Colors
@@ -28,6 +26,14 @@ set "winget_path=%userprofile%\AppData\Local\Microsoft\WindowsApps"
 
 REM Environment Variables (TOOLBOX Install Extras)
 set "miniconda_path=%userprofile%\miniconda"
+
+REM Define the paths and filenames for the shortcut creation
+set "shortcutTarget=%~dp0autogen-launcher.bat"
+REM set "iconFile=%SystemRoot%\System32\SHELL32.dll,153"
+set "desktopPath=%userprofile%\Desktop"
+set "shortcutName=AutoGen-Launcher.lnk"
+set "startIn=%~dp0"
+set "comment=AutoGen Launcher"
 
 
 REM Check if Winget is installed; if not, then install it
@@ -65,79 +71,137 @@ if %ff_path_exists% neq 0 (
 )
 
 
-REM Menu Frontend
-:menu
+REM home Frontend
+:home
+title autogen [HOME]
 cls
+echo %blue_fg_strong%/ Home%reset%
+echo -------------------------------------
 echo What would you like to do?
-color 7
-echo 1. Install Open-Interpreter
-echo 2. Run Open-Interpreter
-echo 3. Exit
+echo 1. Install autogen
+echo 2. Configure autogen
+echo 3. Run autogen
+echo 4. Update
+echo 5. Exit
 
 
 set "choice="
-set /p "choice=Choose Your Destiny (default is 1): "
+set /p "choice=Choose Your Destiny: "
 
 REM Default to choice 1 if no input is provided
-if not defined choice set "choice=1"
+REM Disable REM below to enable default choise
+REM if not defined choice set "choice=1"
 
-REM Menu - Backend
+REM home - Backend
 if "%choice%"=="1" (
-    call :installoi
+    call :installautogen
 ) else if "%choice%"=="2" (
-    call :runoi
+    call :configureautogen
 ) else if "%choice%"=="3" (
+    call :runautogen
+) else if "%choice%"=="4" (
+    call :updateautogen
+) else if "%choice%"=="5" (
     exit
 ) else (
     color 6
     echo WARNING: Invalid number. Please insert a valid number.
     pause
-    goto :menu
+    goto :home
 )
 
 
-:installoi
+:installautogen
+title autogen [INSTALL]
 cls
-echo %blue_fg_strong%/ Installer / Open-Interpreter%reset%
+echo %blue_fg_strong%/ Home / Install autogen%reset%
 echo ---------------------------------------------------------------
 echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
 
-echo %blue_fg_strong%[INFO]%reset% Installing Open-Interpreter...
+echo %blue_fg_strong%[INFO]%reset% Installing autogen...
 
 winget install -e --id Anaconda.Miniconda3
 
 REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
 
-REM Create a Conda environment named openinterpreter
-call conda create -n openinterpreter -y 
+REM Create a Conda environment named autogen
+call conda create -n autogen -y 
 
-REM Activate the openinterpreter environment
-call conda activate openinterpreter
+REM Activate the autogen environment
+call conda activate autogen
 
-REM Install Python 3.11 and Git in the openinterpreter environment
+REM Install Python 3.11 and Git in the autogen environment
 call conda install python=3.11.4 git -y
 
-pip install llama-cpp-python
-pip install open-interpreter
+REM Create & Navigate to the autogen directory
+mkdir autogen && cd autogen
 
-echo %green_fg_strong%Open-Interpreter Installed Successfully.%reset%
-pause
+REM Install AutoGen package from pip
+pip install pyautogen
+
+echo %green_fg_strong%autogen Installed Successfully.%reset%
+
+REM Ask if the user wants to create a shortcut
+set /p create_shortcut=Do you want to create a shortcut on the desktop? [Y/n] 
+if /i "%create_shortcut%"=="Y" (
+
+    REM Create the shortcut
+    echo %blue_fg_strong%[INFO]%reset% Creating shortcut...
+    %SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe -Command ^
+        "$WshShell = New-Object -ComObject WScript.Shell; " ^
+        "$Shortcut = $WshShell.CreateShortcut('%desktopPath%\%shortcutName%'); " ^
+        "$Shortcut.TargetPath = '%shortcutTarget%'; " ^
+        "$Shortcut.WorkingDirectory = '%startIn%'; " ^
+        "$Shortcut.Description = '%comment%'; " ^
+        "$Shortcut.Save()"
+    echo %green_fg_strong%Shortcut created on the desktop.%reset%
+    pause
+)
 endlocal
-goto :menu
+goto :home
 
-:runoi
+
+:configureautogen
+title autogen [CONFIGURE]
 cls
-echo %blue_fg_strong%/ Run Open-Interpreter%reset%
+echo %blue_fg_strong%/ Home / Configure autogen%reset%
 echo ---------------------------------------------------------------
 
 REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
-echo %blue_fg_strong%[INFO]%reset% Running Open-Interpreter...
+echo %blue_fg_strong%[INFO]%reset% Running autogen...
 
-REM Activate the openinterpreter environment
-call conda activate openinterpreter
+REM Activate the autogen environment
+call conda activate autogen
 
-call interpreter
+cls
+echo %blue_fg_strong%/ Home / Configure autogen%reset%
+echo ---------------------------------------------------------------
+
+echo COMMING SOON
 pause
-goto :menu
+goto :home
+
+
+:runautogen
+title autogen
+cls
+echo %blue_fg_strong%/ Home / Run autogen%reset%
+echo ---------------------------------------------------------------
+echo %blue_fg_strong%[INFO]%reset% autogen has been launched.
+cd /d "%~dp0autogen"
+start cmd /k python app.py
+goto :home
+
+
+:updateautogen
+title autogen [UPDATE]
+cls
+echo %blue_fg_strong%/ Home / Update%reset%
+echo ---------------------------------------------------------------
+echo Updating...
+cd /d "%~dp0autogen"
+pip install --upgrade pyautogen
+pause
+goto :home
