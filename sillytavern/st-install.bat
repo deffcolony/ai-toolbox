@@ -2,7 +2,6 @@
 REM --------------------------------------------
 REM This script was created by: Deffcolony
 REM --------------------------------------------
-title SillyTavern Installer
 setlocal
 
 REM ANSI Escape Code for Colors
@@ -25,14 +24,14 @@ REM Environment Variables (winget)
 set "winget_path=%userprofile%\AppData\Local\Microsoft\WindowsApps"
 
 REM Environment Variables (TOOLBOX Install Extras)
-set "miniconda_path=%userprofile%\miniconda"
+set "miniconda_path=%userprofile%\miniconda3"
 
 REM Define the paths and filenames for the shortcut creation
-set "shortcutTarget=SillyTavern\st-launcher.bat"
-set "iconFile=SillyTavern\public\st-launcher.ico"
+set "shortcutTarget=%~dp0st-launcher.bat"
+set "iconFile=%~dp0SillyTavern\public\st-launcher.ico"
 set "desktopPath=%userprofile%\Desktop"
-set "shortcutName=ST Launcher.lnk"
-set "startIn=SillyTavern"
+set "shortcutName=ST-Launcher.lnk"
+set "startIn=%~dp0"
 set "comment=SillyTavern Launcher"
 
 
@@ -106,6 +105,7 @@ if exist "%LOCALAPPDATA%\Microsoft\WindowsApps\python3.exe" (
 
 REM Installer - Frontend
 :installer
+title SillyTavern [INSTALLER]
 cls
 echo %blue_fg_strong%/ Installer%reset%
 echo -------------------------------------
@@ -139,6 +139,7 @@ if "%choice%"=="1" (
 
 
 :installstextras
+title SillyTavern [INSTALL ST + EXTRAS]
 cls
 echo %blue_fg_strong%/ Installer / SillyTavern + Extras%reset%
 echo ---------------------------------------------------------------
@@ -164,7 +165,7 @@ pause
 winget install -e --id Microsoft.VCRedist.2015+.x64
 winget install -e --id Microsoft.VCRedist.2015+.x86
 
-REM Run conda activate from the Miniconda installation
+REM Run conda activate from the Miniconda3 installation
 call "%miniconda_path%\Scripts\activate.bat"
 
 REM Create a Conda environment named sillytavernextras
@@ -188,26 +189,28 @@ pip install -r requirements-rvc.txt
 echo %cyan_fg_strong%Yes, If you are seeing errors about Numpy and Librosa then that is completely normal. If facebook updates their fairseq library to python 3.11 then this error will not appear anymore.%reset%
 echo %green_fg_strong%SillyTavern + Extras has been successfully installed.%reset%
 
+REM Ask if the user wants to create a shortcut
 set /p create_shortcut=Do you want to create a shortcut on the desktop? [Y/n] 
-setlocal enabledelayedexpansion
-if "%create_shortcut%"=="" set "create_shortcut=Y"
 if /i "%create_shortcut%"=="Y" (
 
-    REM Create the PowerShell command to create the shortcut
-    powershell.exe -Command "New-Object -ComObject WScript.Shell | ForEach-Object { $shortcut = $_.CreateShortcut('!desktopPath!\!shortcutName!'); $shortcut.TargetPath = '!cd!\!shortcutTarget!'; $shortcut.IconLocation = '!cd!\!iconFile!'; $shortcut.WorkingDirectory = '!cd!\!startIn!'; $shortcut.Description = '!comment!'; $shortcut.Save() }"
-
-    echo %green_fg_strong%Desktop shortcut created.%reset%
-) else if /i "%create_shortcut%"=="N" (
-    echo You chose not to create a desktop shortcut.
-    REM Add code here for the installation without a shortcut.
-) else (
-    echo Invalid choice. Please enter Y or N.
+    REM Create the shortcut
+    echo %blue_fg_strong%[INFO]%reset% Creating shortcut...
+    %SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe -Command ^
+        "$WshShell = New-Object -ComObject WScript.Shell; " ^
+        "$Shortcut = $WshShell.CreateShortcut('%desktopPath%\%shortcutName%'); " ^
+        "$Shortcut.TargetPath = '%shortcutTarget%'; " ^
+        "$Shortcut.WorkingDirectory = '%startIn%'; " ^
+        "$Shortcut.Description = '%comment%'; " ^
+        "$Shortcut.Save()"
+    echo %green_fg_strong%Shortcut created on the desktop.%reset%
+    pause
 )
 endlocal
 goto :installer
 
 
 :installsillytavern
+title SillyTavern [INSTALL ST]
 cls
 echo %blue_fg_strong%/ Installer / SillyTavern%reset%
 echo ---------------------------------------------------------------
@@ -238,6 +241,7 @@ goto :installer
 
 
 :installextras
+title SillyTavern [INSTALL EXTRAS]
 cls
 echo %blue_fg_strong%/ Installer / Extras%reset%
 echo ---------------------------------------------------------------
