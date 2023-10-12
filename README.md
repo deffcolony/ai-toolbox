@@ -21,7 +21,14 @@ AI-Toolbox provides a collection of automation scripts that streamline the insta
 
 ## Features
 
-- Automated installation of popular AI applications.
+- Automated installation of the following AI applications:
+  * [autogen](https://github.com/microsoft/autogen)
+  * [chatdev](https://github.com/OpenBMB/ChatDev)
+  * [open-interpreter](https://github.com/KillianLucas/open-interpreter)
+  * [mangio-rvc](https://github.com/Mangio621/Mangio-RVC-Fork)
+  * [sillytavern](https://github.com/SillyTavern/SillyTavern)
+  * [stable-diffusion](https://github.com/AUTOMATIC1111/stable-diffusion-webui)
+
 - Easy-to-use scripts for efficient software deployment.
 - Customizable for your specific workflow and preferences.
 - Regular updates and contributions from the community.
