@@ -180,7 +180,7 @@ echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
 
     REM Remove Mangio-RVC 7z archive
     del "%~dp0Mangio-RVC-%version%_INFER_TRAIN.7z"
-
+goto :home
 
 :rungoweb
 title Mangio RVC [GO-WEB]
@@ -198,7 +198,7 @@ echo ---------------------------------------------------------------
         echo ERROR: File not found. Check the log file at %logfile% for more information.
         pause
     )
-
+goto :home
 
 :rungorealtime
 title Mangio RVC [GO-REALTIME-GUI]
