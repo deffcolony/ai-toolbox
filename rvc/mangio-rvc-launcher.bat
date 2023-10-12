@@ -40,6 +40,8 @@ set "logfile=%~dp0install-logs.log"
 REM Environment Variables (winget)
 set "winget_path=%userprofile%\AppData\Local\Microsoft\WindowsApps"
 
+REM Environment Variables (7z)
+set "zip7_install_path=%ProgramFiles%\7-Zip"
 
 REM Clear log file
 echo. > "%logfile%"
@@ -79,14 +81,14 @@ if %ff_path_exists% neq 0 (
 )
 
 REM Check if 7-Zip is installed; if not, then install it
-7z --version > nul 2>&1
+7z > nul 2>&1
 if %errorlevel% neq 0 (
     echo %yellow_fg_strong%[WARN] 7-Zip is not installed on this system.%reset%
     echo %blue_fg_strong%[INFO]%reset% Installing 7-Zip using Winget...
     winget install -e --id 7zip.7zip
     echo %green_fg_strong%7-Zip installed.%reset%
 ) else (
-    echo %blue_fg_strong%[INFO]%reset% 7-Zip is already installed.
+    echo %blue_fg_strong%[INFO] 7-Zip is already installed.%reset%
 )
 
 rem Get the current PATH value from the registry
@@ -111,8 +113,7 @@ reg add "HKCU\Environment" /v PATH /t REG_EXPAND_SZ /d "%new_path%" /f
 rem Update the PATH value for the current session
 setx PATH "%new_path%"
 
-echo %green_fg_strong%7-Zip is installed.%reset%
-pause
+
 REM home Frontend
 :home
 title Mangio RVC [HOME]
