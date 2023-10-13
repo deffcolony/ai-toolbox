@@ -189,7 +189,7 @@ title autogen
 cls
 echo %blue_fg_strong%/ Home / Run autogen%reset%
 echo ---------------------------------------------------------------
-echo %blue_fg_strong%[INFO]%reset% autogen has been launched.
+echo %blue_fg_strong%[INFO]%reset% AutoGen has been launched.
 
 REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
@@ -198,7 +198,7 @@ REM Activate the autogen environment
 call conda activate autogen
 
 REM Start SillyTavern Extras with desired configurations
-echo %blue_fg_strong%[INFO]%reset% Extras has been launched.
+echo %blue_fg_strong%[INFO]%reset% AutoGen has been launched.
 cd /d "%~dp0autogen"
 start cmd /k python app.py
 goto :home
