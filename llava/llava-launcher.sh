@@ -1,13 +1,13 @@
 #!/usr/bin/bash
 #
-# LLaVA Installer Script v0.0.3
+# LLaVA Launcher v0.0.3
 # Created by: Deffcolony
 #
 # Description:
 # This script installs LLaVA to your Linux system.
 #
 # Usage:
-# chmod +x sdw-install.sh && ./sdw-install.sh
+# chmod +x llava-launcher.sh && ./llava-launcher.sh
 #
 # In automated environments, you may want to run as root.
 # If using curl, we recommend using the -fsSL flags.
@@ -89,7 +89,7 @@ install-llava() {
     echo -e "${cyan_fg_strong}This may take a while. Please be patient.${reset}"
 
     git clone https://github.com/haotian-liu/LLaVA.git
-
+    cd LLaVA
     # Download the Miniconda installer script
     wget https://repo.anaconda.com/miniconda/$miniconda_installer -P /tmp
     chmod +x /tmp/$miniconda_installer
@@ -106,14 +106,13 @@ install-llava() {
     # Create and activate the Conda environment
     conda config --set auto_activate_base false
     conda init bash
-    conda create -n llava -y
+    conda create -n llava python=3.10 -y
     conda activate llava
-    conda install python=3.10 git -y
     pip install --upgrade pip
-    pip install torch
     pip install -e .
+    pip install torch
     pip install ninja
-    pip install flash-attn --no-build-isolation
+#    pip install flash-attn --no-build-isolation
 
     # Cleanup the Downloaded file
     rm -rf /tmp/$miniconda_installer
@@ -155,6 +154,28 @@ update-llava() {
 }
 
 
+# Function to delete LLaVA
+delete-llava() {
+    script_name=$(basename "$0")
+    excluded_folders="backups"
+    excluded_files="$script_name"
+
+    # Confirm with the user before proceeding
+    echo
+    echo -e "\e[41m╔════ DANGER ZONE ══════════════════════════════════════════════════════════════╗\e[0m"
+    echo -e "\e[41m║ WARNING: This will delete all LLaVA data                                      ║\e[0m"
+    echo -e "\e[41m║ If you want to keep any data, make sure to create a backup before proceeding. ║\e[0m"
+    echo -e "\e[41m╚═══════════════════════════════════════════════════════════════════════════════╝\e[0m"
+    echo
+    read -p "Are you sure you want to proceed? [Y/N] " confirmation
+    if [ "$confirmation" = "Y" ] || [ "$confirmation" = "y" ]; then
+        rm -rf LLaVA
+        conda remove --name llava --all -y
+    else
+        echo "Action canceled."
+    installer
+    fi
+}
 
 # Function for the installer menu
 installer() {
@@ -165,7 +186,8 @@ installer() {
     echo "1. Install LLaVA"
     echo "2. Run LLaVA"
     echo "3. Update"
-    echo "4. Exit"
+    echo "4. Delete LLaVA"
+    echo "5. Exit"
 
     read -p "Choose Your Destiny (default is 1): " choice
 
@@ -182,6 +204,8 @@ installer() {
     elif [ "$choice" = "3" ]; then
         update-llava
     elif [ "$choice" = "4" ]; then
+        delete-llava
+    elif [ "$choice" = "5" ]; then
         exit
     else
         echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
@@ -193,7 +217,6 @@ installer() {
 # Detect the package manager and execute the appropriate installation
 if command -v apt-get &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Debian/Ubuntu-based system.${reset}"
-    read -p "Press Enter to continue..."
     # Debian/Ubuntu
     install_git
     installer
@@ -221,4 +244,3 @@ else
     echo -e "${red_fg_strong}[ERROR] Unsupported package manager. Cannot detect Linux distribution.${reset}"
     exit 1
 fi
-
