@@ -666,9 +666,11 @@ call :printModule "4. caption (--enable-modules=caption)" %caption_trigger%
 call :printModule "5. summarize (--enable-modules=summarize)" %summarize_trigger%
 echo 6. Back to Toolbox
 
+set "python_command="
+
 set /p module_choices=Choose modules to enable/disable (1-5): 
 
-REM Handle the user's module choices
+REM Handle the user's module choices and construct the Python command
 for %%i in (%module_choices%) do (
     if "%%i"=="1" (
         if "%coqui_trigger%"=="true" (
@@ -676,30 +678,35 @@ for %%i in (%module_choices%) do (
         ) else (
             set "coqui_trigger=true"
         )
+        set "python_command= --enable-modules=coqui-tts --coqui-gpu --cuda-device=0"
     ) else if "%%i"=="2" (
         if "%rvc_trigger%"=="true" (
             set "rvc_trigger=false"
         ) else (
             set "rvc_trigger=true"
         )
+        set "python_command= --enable-modules=rvc --rvc-save-file --max-content-length=1000"
     ) else if "%%i"=="3" (
         if "%talkinghead_trigger%"=="true" (
             set "talkinghead_trigger=false"
         ) else (
             set "talkinghead_trigger=true"
         )
+        set "python_command= --enable-modules=talkinghead"
     ) else if "%%i"=="4" (
         if "%caption_trigger%"=="true" (
             set "caption_trigger=false"
         ) else (
             set "caption_trigger=true"
         )
+        set "python_command= --enable-modules=caption"
     ) else if "%%i"=="5" (
         if "%summarize_trigger%"=="true" (
             set "summarize_trigger=false"
         ) else (
             set "summarize_trigger=true"
         )
+        set "python_command= --enable-modules=summarize"
     ) else if "%%i"=="6" (
         goto :toolbox
     )
@@ -711,6 +718,13 @@ echo rvc_trigger=%rvc_trigger%>>"%~dp0modules.txt"
 echo talkinghead_trigger=%talkinghead_trigger%>>"%~dp0modules.txt"
 echo caption_trigger=%caption_trigger%>>"%~dp0modules.txt"
 echo summarize_trigger=%summarize_trigger%>>"%~dp0modules.txt"
+
+REM Save the constructed Python command to modules.txt for testing
+echo start cmd /k python server.py %python_command%>>"%~dp0modules.txt"
+
+REM Construct and execute the Python command
+REM start cmd /k python server.py %python_command%
+
 goto :editextrasmodules
 
 :reinstallextras
