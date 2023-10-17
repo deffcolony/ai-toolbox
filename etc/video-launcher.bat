@@ -69,8 +69,9 @@ cls
 echo %blue_fg_strong%/ Home%reset%
 echo -------------------------------------
 echo What would you like to do?
-echo 1. Start the program
-echo 2. Exit
+echo 1. Run Local Videos
+echo 2. Run Online Videos 
+echo 3. Exit
 
 
 set "choice="
@@ -82,8 +83,10 @@ REM if not defined choice set "choice=1"
 
 REM home - Backend
 if "%choice%"=="1" (
-    call :startvideo
+    call :runlocal
 ) else if "%choice%"=="2" (
+    call :runonline
+) else if "%choice%"=="3" (
     exit
 ) else (
     color 6
@@ -92,18 +95,12 @@ if "%choice%"=="1" (
     goto :home
 )
 
-:startvideo
-title Video Launcher [PROGRAM]
+:runlocal
+title Video Launcher [LOCAL]
 cls
-echo %blue_fg_strong%/ Home / Program%reset%
+echo %blue_fg_strong%/ Home / Run Local Videos%reset%
 echo -------------------------------------
-
-:numTimesInput
-title Video Launcher [PROGRAM]
-cls
-echo %blue_fg_strong%/ Home / Program%reset%
-echo -------------------------------------
-set /p "numTimes=%cyan_fg_strong%How many times do you want to open the video:%reset% "
+set /p "numTimes=%cyan_fg_strong%How many videos do you need:%reset% "
 
 REM Check if the input is a valid number
 echo %numTimes%| findstr /R "^[0-9]*$" >nul
@@ -111,13 +108,38 @@ if errorlevel 1 (
     echo %yellow_fg_strong%Please enter a valid number.%reset%
     pause
     cls
-    goto :numTimesInput
+    goto :runlocal
 )
 
 set /p "videoFile=%cyan_fg_strong%Enter filename of video (including extension):%reset% "
 
 for /l %%i in (1, 1, %numTimes%) do (
     powershell -Command "Start-Process -FilePath 'C:\Program Files\VideoLAN\VLC\vlc.exe' -ArgumentList '%videoFile%'"
+)
+goto :home
+
+
+:runonline
+title Video Launcher [ONLINE]
+cls
+echo %blue_fg_strong%/ Home / Run Online Videos%reset%
+echo -------------------------------------
+set /p "numTimes=%cyan_fg_strong%How many browser tabs do you need:%reset% "
+
+REM Check if the input is a valid number
+echo %numTimes%| findstr /R "^[0-9]*$" >nul
+if errorlevel 1 (
+    echo %yellow_fg_strong%Please enter a valid number.%reset%
+    pause
+    cls
+    goto :runonline
+)
+
+set /p "videoLink=%cyan_fg_strong%Enter YouTube link:%reset% "
+
+REM Create a loop to open multiple tabs
+for /l %%i in (1, 1, %numTimes%) do (
+    start "" "%videoLink%"
 )
 
 goto :home
