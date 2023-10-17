@@ -61,6 +61,7 @@ talkinghead_trigger="false"
 caption_trigger="false"
 summarize_trigger="false"
 
+
 # Function to install Git
 install_git() {
     if ! command -v git &> /dev/null; then
@@ -114,6 +115,7 @@ fi
 
 # Function for the home
 home() {
+    echo -e "\033]0;SillyTavern [HOME]\007"
     clear
     echo -e "${blue_fg_strong}/ Home${reset}"
     echo "-------------------------------------"
@@ -127,8 +129,8 @@ home() {
     echo "7. Exit"
 
     echo "======== VERSION STATUS ========"
-    echo "SillyTavern branch: $current_branch"
-    echo "Update Status: $update_status"
+    echo -e "SillyTavern branch: ${cyan_fg_strong}$current_branch${reset}"
+    echo -e "Update Status: $update_status"
     echo "================================"
 
     read -p "Choose Your Destiny (default is 1): " choice
@@ -172,39 +174,85 @@ check_nodejs() {
     fi
 }
 
+
+
 # Function to start SillyTavern
 start_sillytavern() {
     check_nodejs
     echo -e "${blue_fg_strong}[INFO]${reset} SillyTavern has been launched."
-    cd "$(dirname "$0")/SillyTavern" || exit 1
-    start cmd /k start.bat
+
+    # Define an array of possible terminal emulators
+    terminal_emulators=("x-terminal-emulator" "gnome-terminal" "xfce4-terminal" "xterm")
+
+    # Iterate through the array and use the first available terminal emulator
+    chosen_emulator=""
+    for emulator in "${terminal_emulators[@]}"; do
+        if command -v "$emulator" &>/dev/null; then
+            chosen_emulator="$emulator"
+            break
+        fi
+    done
+
+    # Check if a terminal emulator was found
+    if [ -n "$chosen_emulator" ]; then
+        cd "$(dirname "$0")./SillyTavern" || exit 1
+        "$chosen_emulator" -e "./start.sh"
+    else
+        echo -e "${red_fg_strong}[ERROR]${reset} No terminal emulator found."
+    fi
+
     home
 }
 
 # Function to start SillyTavern with Extras
 start_sillytavern_with_extras() {
     check_nodejs
-    echo -e "${blue_fg_strong}[INFO]${reset} SillyTavern has been launched."
-    cd "$(dirname "$0")/SillyTavern" || exit 1
-    start cmd /k start.bat
+    echo -e "${blue_fg_strong}[INFO]${reset} SillyTavern with Extras has been launched."
 
-    # Run conda activate from the Miniconda installation
-    source "$miniconda_path/Scripts/activate"
+    # Define an array of possible terminal emulators
+    terminal_emulators=("x-terminal-emulator" "gnome-terminal" "xfce4-terminal" "xterm")
 
-    # Activate the sillytavernextras environment
-    conda activate sillytavernextras
+    # Iterate through the array and use the first available terminal emulator
+    chosen_emulator=""
+    for emulator in "${terminal_emulators[@]}"; do
+        if command -v "$emulator" &>/dev/null; then
+            chosen_emulator="$emulator"
+            break
+        fi
+    done
 
-    # Start SillyTavern Extras with desired configurations
-    echo -e "${blue_fg_strong}[INFO]${reset} Extras has been launched."
-    cd "$(dirname "$0")/SillyTavern-extras" || exit 1
-    start cmd /k python server.py --coqui-gpu --rvc-save-file --cuda-device=0 --max-content-length=1000 --enable-modules=talkinghead,chromadb,caption,summarize,rvc,coqui-tts
+    # Check if a terminal emulator was found
+    if [ -n "$chosen_emulator" ]; then
+        # Change the working directory to the "SillyTavern" folder, assuming it's located in the same directory as the script
+        cd "$(dirname "$0")./SillyTavern" || exit 1
+
+        # Use the chosen terminal emulator to execute the "start.sh" script in a new terminal window
+        "$chosen_emulator" -e "./start.sh"
+
+        # Run conda activate from the Miniconda installation
+        source "$miniconda_path/Scripts/activate"
+
+        # Activate the sillytavernextras environment
+        conda activate sillytavernextras
+
+        # Change the working directory to the "SillyTavern-extras" folder
+        cd "$(dirname "$0")./SillyTavern-extras" || exit 1
+
+        # Start SillyTavern Extras with desired configurations
+        python server.py --coqui-gpu --rvc-save-file --cuda-device=0 --max-content-length=1000 --enable-modules=talkinghead,chromadb,caption,summarize,rvc,coqui-tts
+    else
+        echo -e "${red_fg_strong}[ERROR]${reset} No terminal emulator found."
+    fi
+
     home
 }
 
+
 # Function to update
 update() {
+    echo -e "\033]0;SillyTavern [UPDATE]\007"
     echo "Updating..."
-    cd "$(dirname "$0")/SillyTavern" || exit 1
+    cd "$(dirname "$0")./SillyTavern" || exit 1
 
     # Check if Git is installed
     if git --version > /dev/null 2>&1; then
@@ -225,6 +273,7 @@ update() {
 
 
 create_backup() {
+    echo -e "\033]0;SillyTavern [CREATE-BACKUP]\007"
     # Define the backup file name with a formatted date and time
     formatted_date=$(date +'%Y-%m-%d_%H%M')
     backup_file="backups/backup_$formatted_date.tar.gz"
@@ -260,6 +309,7 @@ create_backup() {
 
 
 restore_backup() {
+    echo -e "\033]0;SillyTavern [RESTORE-BACKUP]\007"
     # List available backups
     echo "List of available backups:"
     echo "========================"
@@ -301,6 +351,7 @@ restore_backup() {
 
 # Function for backup
 backup_menu() {
+    echo -e "\033]0;SillyTavern [BACKUP]\007"
     clear
     echo -e "${blue_fg_strong}/ Home / Backup${reset}"
     echo "-------------------------------------"
@@ -345,6 +396,7 @@ switch_staging_st() {
 
 # Function for switching branches
 switch_branch_menu() {
+    echo -e "\033]0;SillyTavern [SWITCH-BRANCE]\007"
     clear
     echo -e "${blue_fg_strong}/ Home / Switch Branch${reset}"
     echo "-------------------------------------"
@@ -355,8 +407,8 @@ switch_branch_menu() {
 
     current_branch=$(git branch --show-current)
     echo "======== VERSION STATUS ========"
-    echo "SillyTavern branch: ${cyan_fg_strong}$current_branch${reset}"
-    echo "Extras branch: ${cyan_fg_strong}$current_branch${reset}"
+    echo -e "SillyTavern branch: ${cyan_fg_strong}$current_branch${reset}"
+    echo -e "Extras branch: ${cyan_fg_strong}$current_branch${reset}"
     echo "================================"
 
     read -p "Choose Your Destiny: " branch_choice
@@ -546,6 +598,7 @@ reinstallextras() {
 }
 
 toolbox() {
+    echo -e "\033]0;SillyTavern [TOOLBOX]\007"
     clear
     echo -e "${blue_fg_strong}/ Home / Toolbox${reset}"
     echo "-------------------------------------"
@@ -581,7 +634,6 @@ toolbox() {
 # Detect the package manager and execute the appropriate installation
 if command -v apt-get &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Debian/Ubuntu-based system.${reset}"
-    read -p "Press Enter to continue..."
     # Debian/Ubuntu
     install_git
     install_nodejs_npm

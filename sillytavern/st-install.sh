@@ -21,7 +21,7 @@
 # Note: Modify the script as needed to fit your requirements.
 # ----------------------------------------------------------
 
-title="SillyTavern Installer"
+echo -e "\033]0;SillyTavern Installer\007"
 
 # ANSI Escape Code for Colors
 reset="\033[0m"
@@ -49,6 +49,31 @@ shortcutName="ST Launcher.desktop"
 startIn="SillyTavern"
 comment="SillyTavern Launcher"
 
+
+# Function to install D-Bus
+install_dbus() {
+    if command -v apt-get &>/dev/null; then
+        echo -e "${blue_fg_strong}[INFO] Installing D-Bus on Debian/Ubuntu.${reset}"
+        sudo apt update
+        sudo apt install -y dbus dbus-x11
+    elif command -v yum &>/dev/null; then
+        echo -e "${blue_fg_strong}[INFO] Installing D-Bus on Red Hat/Fedora.${reset}"
+        sudo yum install -y dbus dbus-x11
+    elif command -v apk &>/dev/null; then
+        echo -e "${blue_fg_strong}[INFO] Installing D-Bus on Alpine Linux.${reset}"
+        sudo apk update
+        sudo apk add dbus dbus-x11
+    elif command -v pacman &>/dev/null; then
+        echo -e "${blue_fg_strong}[INFO] Installing D-Bus on Arch Linux.${reset}"
+        sudo pacman -Syu dbus dbus-x11
+    elif command -v emerge &>/dev/null; then
+        echo -e "${blue_fg_strong}[INFO] Installing D-Bus on Gentoo Linux.${reset}"
+        sudo emerge dbus dbus-x11
+    else
+        echo -e "${red_fg_strong}[ERROR] Unsupported package manager. Cannot install D-Bus.${reset}"
+        exit 1
+    fi
+}
 
 # Function to install Git
 install_git() {
@@ -154,6 +179,7 @@ install_nodejs_npm() {
 
 # Function to install SillyTavern + Extras
 installstextras() {
+    echo -e "\033]0;SillyTavern [INSTALL-ST-EXTRAS]\007"
     clear
     echo -e "${blue_fg_strong}/ Installer / SillyTavern + Extras${reset}"
     echo "---------------------------------------------------------------"
@@ -211,6 +237,7 @@ installstextras() {
 
 # Function to install SillyTavern
 installsillytavern() {
+    echo -e "\033]0;SillyTavern [INSTALL-ST]\007"
     clear
     echo -e "${blue_fg_strong}/ Installer / SillyTavern${reset}"
     echo "---------------------------------------------------------------"
@@ -228,6 +255,7 @@ installsillytavern() {
 
 # Function to install Extras
 installextras() {
+    echo -e "\033]0;SillyTavern [INSTALL-EXTRAS]\007"
     clear
     echo -e "${blue_fg_strong}/ Installer / Extras${reset}"
     echo "---------------------------------------------------------------"
@@ -277,6 +305,7 @@ installextras() {
 
 # Function for the installer menu
 installer() {
+    echo -e "\033]0;SillyTavern [INSTALLER]\007"
     clear
     echo -e "${blue_fg_strong}/ Installer${reset}"
     echo "-------------------------------------"
@@ -312,32 +341,36 @@ installer() {
 # Detect the package manager and execute the appropriate installation
 if command -v apt-get &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Debian/Ubuntu-based system.${reset}"
-    read -p "Press Enter to continue..."
     # Debian/Ubuntu
+    install_dbus
     install_git
     install_nodejs_npm
     installer
 elif command -v yum &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Red Hat/Fedora-based system.${reset}"
     # Red Hat/Fedora
+    install_dbus
     install_git
     install_nodejs_npm
     installer
 elif command -v apk &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Alpine Linux-based system.${reset}"
     # Alpine Linux
+    install_dbus
     install_git
     install_nodejs_npm
     installer
 elif command -v pacman &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Arch Linux-based system.${reset}"
     # Arch Linux
+    install_dbus
     install_git
     install_nodejs_npm
     installer
 elif command -v emerge &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Gentoo Linux-based system. Now you are the real CHAD${reset}"
     # Gentoo Linux
+    install_dbus
     install_git
     install_nodejs_npm
     installer
