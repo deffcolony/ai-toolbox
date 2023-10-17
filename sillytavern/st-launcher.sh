@@ -181,25 +181,8 @@ start_sillytavern() {
     check_nodejs
     echo -e "${blue_fg_strong}[INFO]${reset} SillyTavern has been launched."
 
-    # Define an array of possible terminal emulators
-    terminal_emulators=("x-terminal-emulator" "gnome-terminal" "xfce4-terminal" "xterm")
-
-    # Iterate through the array and use the first available terminal emulator
-    chosen_emulator=""
-    for emulator in "${terminal_emulators[@]}"; do
-        if command -v "$emulator" &>/dev/null; then
-            chosen_emulator="$emulator"
-            break
-        fi
-    done
-
-    # Check if a terminal emulator was found
-    if [ -n "$chosen_emulator" ]; then
-        cd "$(dirname "$0")./SillyTavern" || exit 1
-        "$chosen_emulator" -e "./start.sh"
-    else
-        echo -e "${red_fg_strong}[ERROR]${reset} No terminal emulator found."
-    fi
+    # Start a terminal emulator for "start.sh" (adjust the command as needed)
+    x-terminal-emulator -e "cd $(dirname "$0")./SillyTavern && ./start.sh" &
 
     home
 }
@@ -207,43 +190,20 @@ start_sillytavern() {
 # Function to start SillyTavern with Extras
 start_sillytavern_with_extras() {
     check_nodejs
-    echo -e "${blue_fg_strong}[INFO]${reset} SillyTavern with Extras has been launched."
+    echo -e "${blue_fg_strong}[INFO]${reset} SillyTavern has been launched."
 
-    # Define an array of possible terminal emulators
-    terminal_emulators=("x-terminal-emulator" "gnome-terminal" "xfce4-terminal" "xterm")
+    # Start a terminal emulator for "start.sh" (adjust the command as needed)
+    x-terminal-emulator -e "cd $(dirname "$0")./SillyTavern && ./start.sh" &
 
-    # Iterate through the array and use the first available terminal emulator
-    chosen_emulator=""
-    for emulator in "${terminal_emulators[@]}"; do
-        if command -v "$emulator" &>/dev/null; then
-            chosen_emulator="$emulator"
-            break
-        fi
-    done
+    # Run conda activate from the Miniconda installation
+    source "$miniconda_path/Scripts/activate"
 
-    # Check if a terminal emulator was found
-    if [ -n "$chosen_emulator" ]; then
-        # Change the working directory to the "SillyTavern" folder, assuming it's located in the same directory as the script
-        cd "$(dirname "$0")./SillyTavern" || exit 1
+    # Activate the sillytavernextras environment
+    conda activate sillytavernextras
 
-        # Use the chosen terminal emulator to execute the "start.sh" script in a new terminal window
-        "$chosen_emulator" -e "./start.sh"
-
-        # Run conda activate from the Miniconda installation
-        source "$miniconda_path/Scripts/activate"
-
-        # Activate the sillytavernextras environment
-        conda activate sillytavernextras
-
-        # Change the working directory to the "SillyTavern-extras" folder
-        cd "$(dirname "$0")./SillyTavern-extras" || exit 1
-
-        # Start SillyTavern Extras with desired configurations
-        python server.py --coqui-gpu --rvc-save-file --cuda-device=0 --max-content-length=1000 --enable-modules=talkinghead,chromadb,caption,summarize,rvc,coqui-tts
-    else
-        echo -e "${red_fg_strong}[ERROR]${reset} No terminal emulator found."
-    fi
-
+    # Start a second terminal for the Python server (adjust the command as needed)
+    gnome-terminal -- bash -c "cd $(dirname "$0")./SillyTavern-extras && python server.py --coqui-gpu --rvc-save-file --cuda-device=0 --max-content-length=1000 --enable-modules=talkinghead,chromadb,caption,summarize,rvc,coqui-tts; read -p 'PRESS ENTER TO CLOSE'" &
+    echo -e "${blue_fg_strong}[INFO]${reset} Extras have been launched."
     home
 }
 
@@ -251,12 +211,12 @@ start_sillytavern_with_extras() {
 # Function to update
 update() {
     echo -e "\033]0;SillyTavern [UPDATE]\007"
-    echo "Updating..."
+    echo -e "${blue_fg_strong}[INFO]${reset} Updating..."
     cd "$(dirname "$0")./SillyTavern" || exit 1
 
     # Check if Git is installed
     if git --version > /dev/null 2>&1; then
-        call git pull --rebase --autostash
+        git pull --rebase --autostash
         if [ $? -ne 0 ]; then
             # In case there are errors while updating
             echo "There were errors while updating. Please download the latest version manually."
@@ -320,7 +280,7 @@ restore_backup() {
     for file in backups/backup_*.tar.gz; do
         backup_count=$((backup_count + 1))
         backup_files+=("$file")
-        echo "$backup_count. ${cyan_fg_strong}$(basename "$file")${reset}"
+        echo -e "$backup_count. ${cyan_fg_strong}$(basename "$file")${reset}"
     done
     
     echo "========================"
