@@ -194,15 +194,8 @@ start_sillytavern_with_extras() {
 
     # Start a terminal emulator for "start.sh" (adjust the command as needed)
     x-terminal-emulator -e "cd $(dirname "$0")./SillyTavern && ./start.sh" &
+    x-terminal-emulator -e "cd $(dirname "$0")./SillyTavern-extras && ./start.sh" &
 
-    # Run conda activate from the Miniconda installation
-    source "$miniconda_path/Scripts/activate"
-
-    # Activate the sillytavernextras environment
-    conda activate sillytavernextras
-
-    # Start a second terminal for the Python server (adjust the command as needed)
-    gnome-terminal -- bash -c "cd $(dirname "$0")./SillyTavern-extras && python server.py --coqui-gpu --rvc-save-file --cuda-device=0 --max-content-length=1000 --enable-modules=talkinghead,chromadb,caption,summarize,rvc,coqui-tts; read -p 'PRESS ENTER TO CLOSE'" &
     echo -e "${blue_fg_strong}[INFO]${reset} Extras have been launched."
     home
 }

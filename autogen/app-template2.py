@@ -2,9 +2,10 @@ import autogen
 
 config_list = [
     {
+        "model": "TheBloke_MythoMax-L2-13B-GPTQ", # The name of your running model.
+        "api_base": "http://127.0.0.1:5001/v1", # The local address of the api.
         "api_type": "open_ai",
-        "api_base": "ws://127.0.0.1:5005/api/v1/stream",
-        "api_key": "NULL"
+        "api_key": "sk-111111111111111111111111111111111111111111111111", # Just a placeholder.
     }
 ]
 

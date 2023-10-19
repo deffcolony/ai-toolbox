@@ -1,0 +1,3 @@
+Choose a template then rename the python file to: app.py
+
+You can then modify the app.py by editing the code
