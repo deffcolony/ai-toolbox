@@ -79,10 +79,11 @@ echo %blue_fg_strong%/ Home%reset%
 echo -------------------------------------
 echo What would you like to do?
 echo 1. Install textgen
-echo 2. Configure textgen
-echo 3. Run textgen
-echo 4. Update
-echo 5. Exit
+echo 2. Run textgen
+echo 3. Run textgen + addons
+echo 4. Run textgen + share
+echo 5. Update
+echo 6. Exit
 
 
 set "choice="
@@ -96,12 +97,14 @@ REM home - Backend
 if "%choice%"=="1" (
     call :installtextgen
 ) else if "%choice%"=="2" (
-    call :configuretextgen
-) else if "%choice%"=="3" (
     call :runtextgen
+) else if "%choice%"=="3" (
+    call :runtextgenaddons
 ) else if "%choice%"=="4" (
-    call :updatetextgen
+    call :runtextgenshare
 ) else if "%choice%"=="5" (
+    call :updatetextgen
+) else if "%choice%"=="6" (
     exit
 ) else (
     color 6
@@ -137,9 +140,9 @@ call conda install python=3.10 -y
 
 cd /d "%~dp0text-generation-webui/extensions/openai"
 
-REM Install openai extension
+REM Install openai + xformers
 pip install -r requirements.txt
-
+pip install xformers
 echo %green_fg_strong%textgen Installed Successfully.%reset%
 
 REM Ask if the user wants to create a shortcut
@@ -189,7 +192,6 @@ title textgen
 cls
 echo %blue_fg_strong%/ Home / Run textgen%reset%
 echo ---------------------------------------------------------------
-echo %blue_fg_strong%[INFO]%reset% textgen has been launched.
 
 REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
@@ -200,8 +202,57 @@ call conda activate textgen
 REM Start textgen with desired configurations
 echo %blue_fg_strong%[INFO]%reset% textgen has been launched.
 cd /d "%~dp0text-generation-webui"
-start cmd /k start_windows.bat --extensions openai --listen --listen-port 7910 --loader ExLlama_HF --model TheBloke_MythoMax-L2-13B-GPTQ
+start cmd /k start_windows.bat --api --listen --listen-port 7910 --loader ExLlama_HF
+goto :home
+
+:runtextgenaddons
+title textgen [ADDONS]
+cls
+echo %blue_fg_strong%/ Home / Run textgen + addons%reset%
+echo ---------------------------------------------------------------
+
+REM Run conda activate from the Miniconda installation
+call "%miniconda_path%\Scripts\activate.bat"
+
+REM Activate the textgen environment
+call conda activate textgen
+
+REM Start textgen with desired configurations
+echo %blue_fg_strong%[INFO]%reset% textgen has been launched.
+cd /d "%~dp0text-generation-webui"
+start cmd /k start_windows.bat --api --listen --listen-port 7910 --loader ExLlama_HF --model TheBloke_MythoMax-L2-13B-GPTQ 
+REM start cmd /k start_windows.bat --extensions openai --listen --listen-port 7910 --loader ExLlama_HF --model TheBloke_MythoMax-L2-13B-GPTQ --xformers
 REM You can add more flags like this --api --listen --listen-port 7910
+goto :home
+
+:runtextgenshare
+title textgen [SHARE]
+cls
+echo %blue_fg_strong%/ Home / textgen + share%reset%
+echo ---------------------------------------------------------------
+
+REM Run conda activate from the Miniconda installation
+call "%miniconda_path%\Scripts\activate.bat"
+echo %blue_fg_strong%[INFO]%reset% Running textgen + share...
+
+REM Activate the textgen environment
+call conda activate textgen
+
+cls
+echo %blue_fg_strong%/ Home / textgen + share%reset%
+echo ---------------------------------------------------------------
+
+REM Prompt user for username
+set /p username=Enter a username: 
+
+REM Prompt user for password creation
+powershell -command "$password = Read-Host 'Enter a password' -AsSecureString; $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password); $password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR); Write-Output $password" > temp_pass.txt
+set /p password=<temp_pass.txt
+del temp_pass.txt
+cd /d "%~dp0text-generation-webui"
+start cmd /k python one_click.py --gradio-auth %username%:%password% --api --listen --listen-port 7910 --loader ExLlama_HF --model TheBloke_MythoMax-L2-13B-GPTQ --share
+REM start cmd /k start_windows.bat --extensions openai --listen --listen-port 7910 --loader ExLlama_HF --model TheBloke_MythoMax-L2-13B-GPTQ
+REM You can add more flags like this --api --listen --listen-port 7910 --loader ExLlama_HF --model TheBloke_MythoMax-L2-13B-GPTQ --share --xformers
 goto :home
 
 
