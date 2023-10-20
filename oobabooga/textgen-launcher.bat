@@ -193,6 +193,29 @@ cls
 echo %blue_fg_strong%/ Home / Run textgen%reset%
 echo ---------------------------------------------------------------
 
+cd /d "%~dp0text-generation-webui"
+
+REM config for portable miniconda
+set INSTALL_DIR=%cd%\installer_files
+set CONDA_ROOT_PREFIX=%cd%\installer_files\conda
+set INSTALL_ENV_DIR=%cd%\installer_files\env
+
+REM environment isolation for portable miniconda
+set PYTHONNOUSERSITE=1
+set PYTHONPATH=
+set PYTHONHOME=
+set "CUDA_PATH=%INSTALL_ENV_DIR%"
+set "CUDA_HOME=%CUDA_PATH%"
+
+REM check if conda environment even exists
+if not exist "%INSTALL_ENV_DIR%\python.exe" ( echo. && echo Conda environment is empty. && pause )
+
+REM activate portable miniconda env
+call "%CONDA_ROOT_PREFIX%\condabin\conda.bat" activate "%INSTALL_ENV_DIR%"
+pip install xformers
+call "%CONDA_ROOT_PREFIX%\condabin\conda.bat" deactivate "%INSTALL_ENV_DIR%"
+
+
 REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
 
@@ -202,14 +225,37 @@ call conda activate textgen
 REM Start textgen with desired configurations
 echo %blue_fg_strong%[INFO]%reset% textgen has been launched.
 cd /d "%~dp0text-generation-webui"
-start cmd /k start_windows.bat --api --listen --listen-port 7910 --loader ExLlama_HF
+start cmd /k start_windows.bat --api --listen --listen-port 7910 --loader ExLlama_HF --xformers
 goto :home
+
 
 :runtextgenaddons
 title textgen [ADDONS]
 cls
 echo %blue_fg_strong%/ Home / Run textgen + addons%reset%
 echo ---------------------------------------------------------------
+cd /d "%~dp0text-generation-webui"
+
+REM config for portable miniconda
+set INSTALL_DIR=%cd%\installer_files
+set CONDA_ROOT_PREFIX=%cd%\installer_files\conda
+set INSTALL_ENV_DIR=%cd%\installer_files\env
+
+REM environment isolation for portable miniconda
+set PYTHONNOUSERSITE=1
+set PYTHONPATH=
+set PYTHONHOME=
+set "CUDA_PATH=%INSTALL_ENV_DIR%"
+set "CUDA_HOME=%CUDA_PATH%"
+
+REM check if conda environment even exists
+if not exist "%INSTALL_ENV_DIR%\python.exe" ( echo. && echo Conda environment is empty. && pause )
+
+REM activate portable miniconda env
+call "%CONDA_ROOT_PREFIX%\condabin\conda.bat" activate "%INSTALL_ENV_DIR%"
+pip install xformers
+call "%CONDA_ROOT_PREFIX%\condabin\conda.bat" deactivate "%INSTALL_ENV_DIR%"
+
 
 REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
@@ -220,15 +266,16 @@ call conda activate textgen
 REM Start textgen with desired configurations
 echo %blue_fg_strong%[INFO]%reset% textgen has been launched.
 cd /d "%~dp0text-generation-webui"
-start cmd /k start_windows.bat --api --listen --listen-port 7910 --loader ExLlama_HF --model TheBloke_MythoMax-L2-13B-GPTQ 
+start cmd /k start_windows.bat --extensions openai --listen --listen-port 7910 --loader ExLlama_HF --model TheBloke_MythoMax-L2-13B-GPTQ --xformers
 REM start cmd /k start_windows.bat --extensions openai --listen --listen-port 7910 --loader ExLlama_HF --model TheBloke_MythoMax-L2-13B-GPTQ --xformers
 REM You can add more flags like this --api --listen --listen-port 7910
 goto :home
 
+
 :runtextgenshare
 title textgen [SHARE]
 cls
-echo %blue_fg_strong%/ Home / textgen + share%reset%
+echo %blue_fg_strong%/ Home / Run textgen + share%reset%
 echo ---------------------------------------------------------------
 
 REM Run conda activate from the Miniconda installation
@@ -239,7 +286,7 @@ REM Activate the textgen environment
 call conda activate textgen
 
 cls
-echo %blue_fg_strong%/ Home / textgen + share%reset%
+echo %blue_fg_strong%/ Home / Run textgen + share%reset%
 echo ---------------------------------------------------------------
 
 REM Prompt user for username
@@ -276,5 +323,25 @@ if %errorlevel% neq 0 (
         echo There were errors while updating. Please download the latest version manually.
     )
 )
+
+REM config for portable miniconda
+set INSTALL_DIR=%cd%\installer_files
+set CONDA_ROOT_PREFIX=%cd%\installer_files\conda
+set INSTALL_ENV_DIR=%cd%\installer_files\env
+
+REM environment isolation for portable miniconda
+set PYTHONNOUSERSITE=1
+set PYTHONPATH=
+set PYTHONHOME=
+set "CUDA_PATH=%INSTALL_ENV_DIR%"
+set "CUDA_HOME=%CUDA_PATH%"
+
+REM check if conda environment was actually created
+if not exist "%INSTALL_ENV_DIR%\python.exe" ( echo. && echo Conda environment is empty. && pause )
+
+REM activate installer env
+call "%CONDA_ROOT_PREFIX%\condabin\conda.bat" activate "%INSTALL_ENV_DIR%"
+pip install --upgrade xformers
+call "%CONDA_ROOT_PREFIX%\condabin\conda.bat" deactivate "%INSTALL_ENV_DIR%"
 pause
 goto :home
