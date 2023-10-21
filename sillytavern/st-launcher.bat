@@ -108,7 +108,7 @@ if %errorlevel% neq 0 (
 )
 
 REM Change the current directory to 'sillytavern' folder
-cd /d "SillyTavern"
+cd /d "%~dp0SillyTavern"
 
 REM Check for updates
 git fetch origin
@@ -124,6 +124,7 @@ set "update_status=%green_fg_strong%Up to Date%reset%"
 
 REM Home - frontend
 :home
+title SillyTavern [HOME]
 cls
 echo %blue_fg_strong%/ Home%reset%
 echo -------------------------------------
@@ -217,7 +218,8 @@ goto :home
 
 
 :update
-echo Updating...
+title SillyTavern [UPDATE]
+echo %blue_fg_strong%[INFO]%reset% Updating SillyTavern...
 cd /d "%~dp0SillyTavern"
 REM Check if git is installed
 git --version > nul 2>&1
@@ -232,27 +234,48 @@ if %errorlevel% neq 0 (
         echo There were errors while updating. Please download the latest version manually.
     )
 )
+
+REM Check if SillyTavern-extras directory exists
+if not exist "%~dp0SillyTavern-extras" (
+    echo %red_fg_strong%[ERROR] SillyTavern-extras directory not found. Skipping extras update.%reset%
+    pause
+    goto :home
+)
+
+cd /d "%~dp0SillyTavern-extras"
+echo %blue_fg_strong%[INFO]%reset% Updating SillyTavern-extras...
+
+REM Check if git is installed
+git --version > nul 2>&1
+if %errorlevel% neq 0 (
+    echo %red_fg_strong%[ERROR] git command not found in PATH. Skipping update.%reset%
+    echo %red_bg%Please make sure Git is installed and added to your PATH.%reset%
+    echo %blue_bg%To install Git go to Toolbox%reset%
+) else (
+    call git pull --rebase --autostash
+    if %errorlevel% neq 0 (
+        REM in case there are errors while updating
+        echo There were errors while updating. Please download the latest version manually.
+    )
+)
 pause
 goto :home
 
-
 REM Switch Brance - frontend
 :switchbrance_menu
+title SillyTavern [SWITCH-BRANCE]
 cls
 echo %blue_fg_strong%/ Home / Switch Branch%reset%
 echo -------------------------------------
 echo What would you like to do?
 echo 1. Switch to Release - SillyTavern
 echo 2. Switch to Staging - SillyTavern
-echo 3. Switch to Main - Extras
-echo 4. Switch to Neo - Extras
-echo 5. Back to Home
+echo 3. Back to Home
 
 REM Get the current Git branch
 for /f %%i in ('git branch --show-current') do set current_branch=%%i
 echo ======== VERSION STATUS =========
 echo SillyTavern branch: %cyan_fg_strong%%current_branch%%reset%
-echo Extras branch: %cyan_fg_strong%%current_branch%%reset%
 echo =================================
 set /p brance_choice=Choose Your Destiny: 
 
@@ -262,10 +285,6 @@ if "%brance_choice%"=="1" (
 ) else if "%brance_choice%"=="2" (
     call :switch_staging_st
 ) else if "%brance_choice%"=="3" (
-    call :switch_main_ste
-) else if "%brance_choice%"=="4" (
-    call :switch_neo_ste
-) else if "%brance_choice%"=="5" (
     goto :home
 ) else (
     color 6
@@ -277,6 +296,7 @@ if "%brance_choice%"=="1" (
 
 :switch_release_st
 echo %blue_fg_strong%[INFO]%reset% Switching to release branch...
+cd /d "%~dp0SillyTavern"
 git switch release
 pause
 goto :switchbrance_menu
@@ -284,29 +304,16 @@ goto :switchbrance_menu
 
 :switch_staging_st
 echo %blue_fg_strong%[INFO]%reset% Switching to staging branch...
+cd /d "%~dp0SillyTavern"
 git switch staging
 pause
 goto :switchbrance_menu
 
 
-:switch_main_ste
-echo %blue_fg_strong%[INFO]%reset% Switching to main branch...
-cd SillyTavern-extras
-git switch main
-pause
-goto :switchbrance_menu
-
-
-:switch_neo_ste
-echo %blue_fg_strong%[INFO]%reset% Switching to neo branch...
-cd SillyTavern-extras
-git switch neo
-pause
-goto :switchbrance_menu
-
 
 REM Backup - Frontend
 :backup_menu
+title SillyTavern [BACKUP]
 REM Check if 7-Zip is installed
 7z > nul 2>&1
 if %errorlevel% neq 0 (
@@ -342,8 +349,9 @@ if "%backup_choice%"=="1" (
 )
 
 :create_backup
+title SillyTavern [CREATE-BACKUP]
 REM Create a backup using 7zip
-7z a "backups\backup_.7z" ^
+7z a "%~dp0SillyTavern-backups\backup_.7z" ^
     "public\assets\*" ^
     "public\Backgrounds\*" ^
     "public\Characters\*" ^
@@ -387,19 +395,19 @@ set "minute=0!minute!"
 set "formatted_date=%month:~-2%-%day:~-2%-%year%_%hour:~-2%%minute:~-2%"
 
 REM Rename the backup file with the formatted date and time
-rename "backups\backup_.7z" "backup_%formatted_date%.7z"
+rename "%~dp0SillyTavern-backups\backup_.7z" "backup_%formatted_date%.7z"
 
 endlocal
 
 
-echo %green_fg_strong%Backup created successfully!%reset%
+echo %green_fg_strong%Backup created at %~dp0SillyTavern-backups%reset%
 pause
 endlocal
 goto :backup_menu
 
 
 :restore_backup
-REM Restore a backup using 7zip
+title SillyTavern [RESTORE-BACKUP]
 
 echo List of available backups:
 echo =========================
@@ -407,7 +415,7 @@ echo =========================
 setlocal enabledelayedexpansion
 set "backup_count=0"
 
-for %%F in ("backups\backup_*.7z") do (
+for %%F in ("%~dp0SillyTavern-backups\backup_*.7z") do (
     set /a "backup_count+=1"
     set "backup_files[!backup_count!]=%%~nF"
     echo !backup_count!. %cyan_fg_strong%%%~nF%reset%
@@ -421,7 +429,7 @@ if "%restore_choice%" geq "1" (
         set "selected_backup=!backup_files[%restore_choice%]!"
         echo Restoring backup !selected_backup!...
         REM Extract the contents of the "public" folder directly into the existing "public" folder
-        7z x "backups\!selected_backup!.7z" -o"temp" -aoa
+        7z x "%~dp0SillyTavern-backups\!selected_backup!.7z" -o"temp" -aoa
         xcopy /y /e "temp\public\*" "public\"
         rmdir /s /q "temp"
         echo %green_fg_strong%!selected_backup! restored successfully.%reset%
@@ -439,6 +447,7 @@ goto :backup_menu
 
 REM Toolbox - Frontend
 :toolbox
+title SillyTavern [TOOLBOX]
 cls
 echo %blue_fg_strong%/ Home / Toolbox%reset%
 echo -------------------------------------
@@ -481,6 +490,7 @@ if "%toolbox_choice%"=="1" (
 
 
 :install7zip
+title SillyTavern [INSTALL-7Z]
 echo %blue_fg_strong%[INFO]%reset% Installing 7-Zip...
 winget install -e --id 7zip.7zip
 
@@ -512,6 +522,7 @@ exit
 
 
 :installffmpeg
+title SillyTavern [INSTALL-FFMPEG]
 REM Check if 7-Zip is installed
 7z > nul 2>&1
 if %errorlevel% neq 0 (
@@ -572,6 +583,7 @@ exit
 
 
 :installnodejs
+title SillyTavern [INSTALL-NODEJS]
 echo %blue_fg_strong%[INFO]%reset% Installing Node.js...
 winget install -e --id OpenJS.NodeJS
 echo %green_fg_strong%Node.js is installed. Please restart the Launcher.%reset%
@@ -583,6 +595,7 @@ rundll32.exe sysdm.cpl,EditEnvironmentVariables
 goto :toolbox
 
 :reinstallsillytavern
+title SillyTavern [REINSTALL-ST]
 setlocal enabledelayedexpansion
 chcp 65001 > nul
 REM Define the names of items to be excluded
@@ -651,6 +664,7 @@ if "%2"=="true" (
 exit /b
 
 :editextrasmodules
+title SillyTavern [EDIT-MODULES]
 REM editextrasmodules - Frontend
 cls
 echo %blue_fg_strong%/ Home / Toolbox / Edit Extras Modules%reset%
@@ -728,6 +742,7 @@ REM start cmd /k python server.py %python_command%
 goto :editextrasmodules
 
 :reinstallextras
+title SillyTavern [REINSTALL-EXTRAS]
 setlocal enabledelayedexpansion
 chcp 65001 > nul
 REM Define the names of items to be excluded
