@@ -4,7 +4,7 @@
 # Created by: Deffcolony
 #
 # Description:
-# This script installs VLC player to your Linux system.
+# This script installs MPV player to your Linux system.
 #
 # Usage:
 # chmod +x video-launcher.sh && ./video-launcher.sh
@@ -38,36 +38,36 @@ red_bg="\033[41m"
 blue_bg="\033[44m"
 
 
-# Function to install VLC
-install_vlc() {
-    if ! command -v vlc &> /dev/null; then
-        echo -e "${yellow_fg_strong}[WARN] VLC is not installed on this system.${reset}"
+# Function to install MPV
+install_mpv() {
+    if ! command -v mpv &> /dev/null; then
+        echo -e "${yellow_fg_strong}[WARN] MPV is not installed on this system.${reset}"
 
         if command -v apt-get &>/dev/null; then
             # Debian/Ubuntu-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing VLC using apt..."
-            sudo apt-get update
-            sudo apt-get install -y vlc
+            echo -e "${blue_fg_strong}[INFO]${reset} Installing MPV using apt..."
+            sudo apt update
+            sudo apt install -y mpv
         elif command -v yum &>/dev/null; then
             # Red Hat/Fedora-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing VLC using dnf..."
-            sudo dnf install -y vlc
+            echo -e "${blue_fg_strong}[INFO]${reset} Installing MPV using dnf..."
+            sudo dnf install -y mpv
         elif command -v zypper &>/dev/null; then
             # openSUSE-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing VLC using zypper..."
-            sudo zypper install -y vlc
+            echo -e "${blue_fg_strong}[INFO]${reset} Installing MPV using zypper..."
+            sudo zypper install -y mpv
         elif command -v pacman &>/dev/null; then
             # Arch Linux-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing VLC using pacman..."
-            sudo pacman -S --noconfirm vlc
+            echo -e "${blue_fg_strong}[INFO]${reset} Installing MPV using pacman..."
+            sudo pacman -S --noconfirm mpv
         else
             echo -e "${red_fg_strong}[ERROR] Unsupported Linux distribution.${reset}"
             exit 1
         fi
 
-        echo -e "${green_fg_strong}VLC is installed.${reset}"
+        echo -e "${green_fg_strong}MPV is installed.${reset}"
     else
-        echo -e "${blue_fg_strong}[INFO] VLC is already installed.${reset}"
+        echo -e "${blue_fg_strong}[INFO] MPV is already installed.${reset}"
     fi
 }
 
@@ -89,7 +89,7 @@ runlocal() {
     read -p "Enter filename of video (including extension): " videoFile
 
     for ((i=1; i<=$numTimes; i++)); do
-        vlc "$videoFile"
+        mpv "$videoFile"
     done
 
     home
@@ -156,27 +156,27 @@ home() {
 if command -v apt-get &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Debian/Ubuntu-based system.${reset}"
     # Debian/Ubuntu
-    install_vlc
+    install_mpv
     home
 elif command -v yum &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Red Hat/Fedora-based system.${reset}"
     # Red Hat/Fedora
-    install_vlc
+    install_mpv
     home
 elif command -v apk &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Alpine Linux-based system.${reset}"
     # Alpine Linux
-    install_vlc
+    install_mpv
     home
 elif command -v pacman &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Arch Linux-based system.${reset}"
     # Arch Linux
-    install_vlc
+    install_mpv
     home
 elif command -v emerge &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Gentoo Linux-based system. Now you are the real CHAD${reset}"
     # Gentoo Linux
-    install_vlc
+    install_mpv
     home
 else
     echo -e "${red_fg_strong}[ERROR] Unsupported package manager. Cannot detect Linux distribution.${reset}"
