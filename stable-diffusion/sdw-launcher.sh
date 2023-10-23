@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 #
-# Stable Diffusion web UI Installer Script v0.0.3
+# Stable Diffusion web UI
 # Created by: Deffcolony
 #
 # Description:
@@ -20,12 +20,11 @@
 # ----------------------------------------------------------
 # Note: Modify the script as needed to fit your requirements.
 # ----------------------------------------------------------
-
-title="stable-difussion-webui menu"
+echo -e "\033]0;Stable Difussion Web UI\007"
 
 # ANSI Escape Code for Colors
 reset="\033[0m"
-white_fg_strong="\033[90m"
+white_fg_strong="\033[90m" 
 red_fg_strong="\033[91m"
 green_fg_strong="\033[92m"
 yellow_fg_strong="\033[93m"
@@ -82,8 +81,9 @@ install_git() {
 
 # Function to install Stable Diffusion web UI
 installsdw() {
+    echo -e "\033]0;SD Web UI [INSTALL-SDW]\007"
     clear
-    echo -e "${blue_fg_strong}/ Installer / Stable Diffusion web UI${reset}"
+    echo -e "${blue_fg_strong}/ Home / Stable Diffusion web UI${reset}"
     echo "---------------------------------------------------------------"
     echo -e "${blue_fg_strong}[INFO]${reset} Installing Stable Diffusion web UI..."
     echo -e "${cyan_fg_strong}This may take a while. Please be patient.${reset}"
@@ -114,39 +114,42 @@ installsdw() {
     rm -rf /tmp/$miniconda_installer
     echo -e "${green_fg_strong}Stable Diffusion web UI installed successfully.${reset}"
     read -p "Press Enter to continue..."
-    installer
+    home
 }
 
 
 
 # Function to run Stable Diffusion web UI
 runsdwclean() {
+    echo -e "\033]0;SD Web UI\007"
     clear
     cd stable-diffusion-webui
     source $miniconda_path/etc/profile.d/conda.sh
     conda activate stablediffusionwebui
     python ./launch.py
-    installer
+    home
 }
 
 
 # Function to run Stable Diffusion web UI with addons
 runsdwaddons() {
+    echo -e "\033]0;SD Web UI [ADDONS]\007"
     clear
     cd stable-diffusion-webui
     source $miniconda_path/etc/profile.d/conda.sh
     conda activate stablediffusionwebui
     python ./launch.py --autolaunch --api --listen --port 7900 --xformers --reinstall-xformers --theme dark
-    installer
+    home
 }
 
 
 
 
-# Function for the installer menu
-installer() {
+# Function for the home menu
+home() {
+    echo -e "\033]0;SD Web UI [HOME]\007"
     clear
-    echo -e "${blue_fg_strong}/ Installer${reset}"
+    echo -e "${blue_fg_strong}/ Home${reset}"
     echo "-------------------------------------"
     echo "What would you like to do?"
     echo "1. Install Stable Diffusion web UI"
@@ -161,7 +164,7 @@ installer() {
       choice=1
     fi
 
-    # Installer - Backend
+    # Home - Backend
     if [ "$choice" = "1" ]; then
         installsdw
     elif [ "$choice" = "2" ]; then
@@ -173,37 +176,36 @@ installer() {
     else
         echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
         read -p "Press Enter to continue..."
-        installer
+        home
     fi
 }
 
 # Detect the package manager and execute the appropriate installation
 if command -v apt-get &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Debian/Ubuntu-based system.${reset}"
-    read -p "Press Enter to continue..."
     # Debian/Ubuntu
     install_git
-    installer
+    home
 elif command -v yum &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Red Hat/Fedora-based system.${reset}"
     # Red Hat/Fedora
     install_git
-    installer
+    home
 elif command -v apk &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Alpine Linux-based system.${reset}"
     # Alpine Linux
     install_git
-    installer
+    home
 elif command -v pacman &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Arch Linux-based system.${reset}"
     # Arch Linux
     install_git
-    installer
+    home
 elif command -v emerge &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Gentoo Linux-based system. Now you are the real CHAD${reset}"
     # Gentoo Linux
     install_git
-    installer
+    home
 else
     echo -e "${red_fg_strong}[ERROR] Unsupported package manager. Cannot detect Linux distribution.${reset}"
     exit 1

@@ -12,8 +12,7 @@ REM
 REM This script is intended for use on Windows systems. Please
 REM report any issues or bugs on the GitHub repository.
 REM
-REM GitHub: https://github.com/deffcolony/rvc-easy-home
-REM Issues: https://github.com/deffcolony/rvc-easy-home/issues
+REM Github: https://github.com/Mangio621/Mangio-RVC-Fork
 setlocal
 
 REM ANSI Escape Code for Colors
