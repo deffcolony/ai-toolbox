@@ -7,7 +7,7 @@
 # This script installs textgen web UI to your Linux system.
 #
 # Usage:
-# chmod +x sdw-install.sh && ./sdw-install.sh
+# chmod +x textgen-launcher.sh && ./textgen-launcher.sh 
 #
 # In automated environments, you may want to run as root.
 # If using curl, we recommend using the -fsSL flags.
