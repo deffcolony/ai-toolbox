@@ -207,7 +207,7 @@ update_llava() {
     log_message "INFO" "upgrading pip requirements..."
     pip install -e .
 
-    log_message "INFO" "LLaVA has been updated successfully."
+    log_message "INFO" "${green_fg_strong}LLaVA has been updated successfully.${reset}"
     read -p "Press Enter to continue..."
     home
 }
@@ -222,10 +222,10 @@ uninstall_llava() {
 
     # Confirm with the user before proceeding
     echo
-    echo -e "\e[41m╔════ DANGER ZONE ══════════════════════════════════════════════════════════════╗\e[0m"
-    echo -e "\e[41m║ WARNING: This will delete all LLaVA data                                      ║\e[0m"
-    echo -e "\e[41m║ If you want to keep any data, make sure to create a backup before proceeding. ║\e[0m"
-    echo -e "\e[41m╚═══════════════════════════════════════════════════════════════════════════════╝\e[0m"
+    echo -e "${red_bg}╔════ DANGER ZONE ══════════════════════════════════════════════════════════════╗${reset}"
+    echo -e "${red_bg}║ WARNING: This will delete all LLaVA data                                      ║${reset}"
+    echo -e "${red_bg}║ If you want to keep any data, make sure to create a backup before proceeding. ║${reset}"
+    echo -e "${red_bg}╚═══════════════════════════════════════════════════════════════════════════════╝${reset}"
     echo
     read -p "Are you sure you want to proceed? [Y/N] " confirmation
     if [ "$confirmation" = "Y" ] || [ "$confirmation" = "y" ]; then

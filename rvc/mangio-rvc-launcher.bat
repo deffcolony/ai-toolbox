@@ -1,5 +1,5 @@
 @echo off
-REM RVC-Launcher v0.0.2
+REM RVC-Launcher
 REM Created by: Deffcolony
 REM
 REM Description:
@@ -15,6 +15,8 @@ REM
 REM Github: https://github.com/Mangio621/Mangio-RVC-Fork
 setlocal
 
+title Mangio RVC Launcher
+
 REM ANSI Escape Code for Colors
 set "reset=[0m"
 
@@ -29,12 +31,13 @@ set "cyan_fg_strong=[96m"
 
 REM Normal Background Colors
 set "red_bg=[41m"
+set "yellow_bg=[43m"
 set "blue_bg=[44m"
 
 REM Environment Variables
 set "version=v23.7.0"
 set "dir=%~dp0Mangio-RVC-%version%_INFER_TRAIN\Mangio-RVC-%version%\"
-set "logfile=%~dp0install-logs.log"
+REM set "logfile=%~dp0install-logs.log"
 
 REM Environment Variables (winget)
 set "winget_path=%userprofile%\AppData\Local\Microsoft\WindowsApps"
@@ -42,17 +45,24 @@ set "winget_path=%userprofile%\AppData\Local\Microsoft\WindowsApps"
 REM Environment Variables (7z)
 set "zip7_install_path=%ProgramFiles%\7-Zip"
 
+
+REM Log your messages test window
+REM echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Something has been launched.
+REM echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] something is not installed on this system.%reset%
+REM echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] An error occurred during the process.%reset%
+REM pause
+
 REM Clear log file
-echo. > "%logfile%"
+REM echo. > "%logfile%"
 
 REM Check if Winget is installed; if not, then install it
 winget --version > nul 2>&1
 if %errorlevel% neq 0 (
-    echo %yellow_fg_strong%[WARN] Winget is not installed on this system.%reset%
-    echo %blue_fg_strong%[INFO]%reset% Installing Winget...
+    echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Winget is not installed on this system.%reset%
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Winget...
     bitsadmin /transfer "Microsoft.DesktopAppInstaller_8wekyb3d8bbwe" /download /priority FOREGROUND "https://github.com/microsoft/winget-cli/releases/download/v1.5.2201/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
     start "" "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-    echo %green_fg_strong%Winget is now installed.%reset%
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Winget installed successfully.%reset%
 ) else (
     echo %blue_fg_strong%[INFO] Winget is already installed.%reset%
 )
@@ -73,7 +83,7 @@ if %ff_path_exists% neq 0 (
 
     rem Update the PATH value for the current session
     setx PATH "%new_path%" > nul
-    echo %green_fg_strong%winget added to PATH.%reset%
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%winget successfully added to PATH.%reset%
 ) else (
     set "new_path=%current_path%"
     echo %blue_fg_strong%[INFO] winget already exists in PATH.%reset%
@@ -82,10 +92,10 @@ if %ff_path_exists% neq 0 (
 REM Check if 7-Zip is installed; if not, then install it
 7z > nul 2>&1
 if %errorlevel% neq 0 (
-    echo %yellow_fg_strong%[WARN] 7-Zip is not installed on this system.%reset%
-    echo %blue_fg_strong%[INFO]%reset% Installing 7-Zip using Winget...
+    echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] 7-Zip is not installed on this system.%reset%
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing 7-Zip using Winget...
     winget install -e --id 7zip.7zip
-    echo %green_fg_strong%7-Zip installed.%reset%
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%7-Zip successfully installed.%reset%
 ) else (
     echo %blue_fg_strong%[INFO] 7-Zip is already installed.%reset%
 )
@@ -100,7 +110,7 @@ set "zip7_path_exists=%errorlevel%"
 rem Append the new paths to the current PATH only if they don't exist
 if %zip7_path_exists% neq 0 (
     set "new_path=%current_path%;%zip7_install_path%"
-    echo %green_fg_strong%7-Zip added to PATH.%reset%
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%7-Zip successfully added to PATH.%reset%
 ) else (
     set "new_path=%current_path%"
     echo %blue_fg_strong%[INFO] 7-Zip already exists in PATH.%reset%
@@ -154,7 +164,7 @@ title Mangio RVC [INSTALL]
 cls
 echo %blue_fg_strong%/ Home / Install Mangio RVC%reset%
 echo ---------------------------------------------------------------
-echo %blue_fg_strong%[INFO]%reset% Installing Mangio RVC...
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Mangio RVC...
 echo --------------------------------
 echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
 
@@ -163,19 +173,17 @@ echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
     "https://huggingface.co/MangioRVC/Mangio-RVC-Huggingface/resolve/main/Mangio-RVC-%version%_INFER_TRAIN.7z" ^
     "%~dp0Mangio-RVC-%version%_INFER_TRAIN.7z" || (
         color 4
-        echo [%date% %time%] ERROR: Download failed >>"%logfile%"
-        echo Download failed. Check the log file at %logfile% for more information.
+        echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Download failed.. Please try again.%reset%
         pause
-        exit /b 1
+        goto :home
     )
 
     REM Extract Mangio-RVC 7z archive
     "%ProgramFiles%\7-Zip\7z.exe" x "%~dp0Mangio-RVC-%version%_INFER_TRAIN.7z" -o"%~dp0Mangio-RVC-%version%_INFER_TRAIN" || (
         color 4
-        echo [%date% %time%] ERROR: Extraction failed >>"%logfile%"
-        echo Extraction failed. 7-Zip is not installed!
+        echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Extraction failed.. Please try again%reset%
         pause
-        exit /b 1
+        goto :home
     )
 
     REM Remove Mangio-RVC 7z archive
@@ -188,15 +196,14 @@ cls
 echo %blue_fg_strong%/ Home / Run go-web.bat%reset%
 echo ---------------------------------------------------------------
     if exist "%dir%\go-web.bat" (
-        color a
-        echo [%date% %time%] INFO: Starting RVC webui... >>"%logfile%"
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Starting RVC webui...
         cd "%dir%"
         powershell.exe -nologo -noprofile -command "Start-Process '%dir%\go-web.bat'
+        goto :home
     ) else (
-        color 4
-        echo [%date% %time%] ERROR: File not found: %dir%\go-web.bat >>"%logfile%"
-        echo ERROR: File not found. Check the log file at %logfile% for more information.
+        echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] File not found: %dir%\go-web.bat%reset%
         pause
+        goto :home
     )
 goto :home
 
@@ -206,14 +213,13 @@ cls
 echo %blue_fg_strong%/ Home / Run go-realtime-gui.bat%reset%
 echo ---------------------------------------------------------------
     if exist "%dir%\go-realtime-gui.bat" (
-        color a
-        echo [%date% %time%] INFO: Starting RVC realtime gui... >>"%logfile%"
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Starting RVC realtime gui...
         cd "%dir%"
         powershell.exe -nologo -noprofile -command "Start-Process '%dir%\go-realtime-gui.bat'
+        goto :home
     ) else (
-        color 4
-        echo [%date% %time%] ERROR: File not found: %dir%\go-realtime-gui.bat >>"%logfile%"
-        echo ERROR: File not found. Check the log file at %logfile% for more information.
+        echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] File not found: %dir%\go-realtime-gui.bat%reset%
         pause
+        goto :home
     )
 goto :home
