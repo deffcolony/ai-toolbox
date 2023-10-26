@@ -23,7 +23,7 @@
 # Note: Modify the script as needed to fit your requirements.
 # ----------------------------------------------------------
 
-title="LLaVA [HOME]"
+echo -e "\033]0;LLaVA Launcher\007"
 
 # ANSI Escape Code for Colors
 reset="\033[0m"
@@ -38,44 +38,75 @@ cyan_fg_strong="\033[96m"
 # Normal Background Colors
 red_bg="\033[41m"
 blue_bg="\033[44m"
+green_bg="\033[42m"
+yellow_bg="\033[0;103m"
+
 
 # Environment Variables (TOOLBOX Install Extras)
 miniconda_path="$HOME/miniconda"
 miniconda_installer="Miniconda3-latest-Linux-x86_64.sh"
 
+# Function to log messages with timestamps and colors
+log_message() {
+    # This is only time
+    current_time=$(date +'%H:%M:%S')
+    # This is with date and time 
+    # current_time=$(date +'%Y-%m-%d %H:%M:%S')
+    case "$1" in
+        "INFO")
+            echo -e "${blue_bg}[$current_time]${reset} ${blue_fg_strong}[INFO]${reset} $2"
+            ;;
+        "WARN")
+            echo -e "${yellow_bg}[$current_time]${reset} ${yellow_fg_strong}[WARN]${reset} $2"
+            ;;
+        "ERROR")
+            echo -e "${red_bg}[$current_time]${reset} ${red_fg_strong}[ERROR]${reset} $2"
+            ;;
+        *)
+            echo -e "${blue_bg}[$current_time]${reset} ${blue_fg_strong}[DEBUG]${reset} $2"
+            ;;
+    esac
+}
+
+# Log your messages test window
+#log_message "INFO" "Something has been launched."
+#log_message "WARN" "${yellow_fg_strong}Something is not installed on this system.${reset}"
+#log_message "ERROR" "${red_fg_strong}An error occurred during the process.${reset}"
+#log_message "DEBUG" "This is a debug message."
+#read -p "Press Enter to continue..."
 
 # Function to install Git
 install_git() {
     if ! command -v git &> /dev/null; then
-        echo -e "${yellow_fg_strong}[WARN] Git is not installed on this system.${reset}"
+        log_message "WARN" "${yellow_fg_strong}Git is not installed on this system${reset}"
 
         if command -v apt-get &>/dev/null; then
             # Debian/Ubuntu-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using apt..."
+            log_message "INFO" "Installing Git using apt..."
             sudo apt-get update
             sudo apt-get install -y git
         elif command -v yum &>/dev/null; then
             # Red Hat/Fedora-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using yum..."
+            log_message "INFO" "Installing Git using yum..."
             sudo yum install -y git
         elif command -v apk &>/dev/null; then
             # Alpine Linux-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using apk..."
+            log_message "INFO" "Installing Git using apk..."
             sudo apk add git
         elif command -v pacman &>/dev/null; then
             # Arch Linux-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using pacman..."
+            log_message "INFO" "Installing Git using pacman..."
             sudo pacman -S --noconfirm git
         elif command -v emerge &>/dev/null; then
             # Gentoo Linux-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using emerge..."
+            log_message "INFO" "Installing Git using emerge..."
             sudo emerge --ask dev-vcs/git
         else
-            echo -e "${red_fg_strong}[ERROR] Unsupported Linux distribution.${reset}"
+            log_message "ERROR" "${red_fg_strong}Unsupported Linux distribution.${reset}"
             exit 1
         fi
 
-        echo -e "${green_fg_strong}Git is installed.${reset}"
+        log_message "INFO" "${green_fg_strong}Git is installed.${reset}"
     else
         echo -e "${blue_fg_strong}[INFO] Git is already installed.${reset}"
     fi
@@ -84,41 +115,48 @@ install_git() {
 
 # Function to install LLaVA
 install_llava() {
+    echo -e "\033]0;LLaVA [INSTALL]\007"
     clear
     echo -e "${blue_fg_strong}/ Home / Install LLaVA ${reset}"
     echo "---------------------------------------------------------------"
-    echo -e "${blue_fg_strong}[INFO]${reset} Installing LLaVA..."
     echo -e "${cyan_fg_strong}This may take a while. Please be patient.${reset}"
 
+    log_message "INFO" "Installing LLaVA..."
     git clone https://github.com/haotian-liu/LLaVA.git
     cd LLaVA
-    # Download the Miniconda installer script
+
+    log_message "INFO" "Downloading Miniconda installer script..."
     wget https://repo.anaconda.com/miniconda/$miniconda_installer -P /tmp
     chmod +x /tmp/$miniconda_installer
 
-    # Run the installer script
+    log_message "INFO" "Running Miniconda installer script..."
     bash /tmp/$miniconda_installer -b -u -p $miniconda_path
 
-    # Update PATH to include Miniconda
+    log_message "INFO" "Updating PATH to include Miniconda..."
     export PATH="$miniconda_path/bin:$PATH"
 
-    # Activate Conda environment
+    log_message "INFO" "Activating Conda environment..."
     source $miniconda_path/etc/profile.d/conda.sh
 
-    # Create and activate the Conda environment
+    log_message "INFO" "Creating and activating the Conda environment..."
     conda config --set auto_activate_base false
     conda init bash
     conda create -n llava python=3.10 -y
     conda activate llava
+
+    log_message "INFO" "Upgrading pip..."
     pip install --upgrade pip
+
+    log_message "INFO" "Installing pip requirements..."
     pip install -e .
     pip install torch
     pip install ninja
-#    pip install flash-attn --no-build-isolation
+    # Add more pip installations as needed
 
-    # Cleanup the Downloaded file
+    log_message "INFO" "Cleaning up downloaded files..."
     rm -rf /tmp/$miniconda_installer
-    echo -e "${green_fg_strong}LLaVA installed successfully.${reset}"
+
+    log_message "INFO" "${green_fg_strong}LLaVA installed successfully.${reset}"
     read -p "Press Enter to continue..."
     home
 }
@@ -127,37 +165,57 @@ install_llava() {
 
 # Function to run LLaVA
 run_llava() {
+    log_message "INFO" "Running LLaVA..."
+
     clear
     cd LLaVA
+
+    log_message "INFO" "Activating Conda environment..."
     source $miniconda_path/etc/profile.d/conda.sh
     conda activate llava
+
+    log_message "INFO" "Starting LLaVA controller..."
     python -m llava.serve.controller --host 0.0.0.0 --port 10000
+
+    log_message "INFO" "Starting LLaVA model worker..."
     python -m llava.serve.model_worker --host 0.0.0.0 --controller http://localhost:10000 --port 40000 --worker http://localhost:40000 --model-path liuhaotian/llava-v1.5-13b
+
+    log_message "INFO" "Setting up Gradio server..."
     export GRADIO_SERVER_NAME="0.0.0.0"
     export GRADIO_SERVER_PORT="3000"
     python -m llava.serve.gradio_web_server --controller http://localhost:10000 --model-list-mode reload
+
+    log_message "INFO" "LLaVA is now running."
     home
 }
 
 
-
 # Function to update LLaVA
 update_llava() {
+    echo -e "\033]0;LLaVA [UPDATE]\007"
     clear
     echo -e "${blue_fg_strong}/ Home / Update${reset}"
     echo "---------------------------------------------------------------"
-    echo -e "${blue_fg_strong}[INFO]${reset} Updating LLaVA..."
-    echo -e "${cyan_fg_strong}This may take a while. Please be patient.${reset}"
+
     cd LLaVA
+    log_message "INFO" "Updating LLaVA..."
     git pull
+
+    log_message "INFO" "Uninstalling the 'transformers' package..."
     pip uninstall transformers
+
+    log_message "INFO" "upgrading pip requirements..."
     pip install -e .
+
+    log_message "INFO" "LLaVA has been updated successfully."
+    read -p "Press Enter to continue..."
     home
 }
 
 
 # Function to delete LLaVA
 uninstall_llava() {
+    echo -e "\033]0;LLaVA [UNINSTALL]\007"
     script_name=$(basename "$0")
     excluded_folders="backups"
     excluded_files="$script_name"
@@ -171,16 +229,25 @@ uninstall_llava() {
     echo
     read -p "Are you sure you want to proceed? [Y/N] " confirmation
     if [ "$confirmation" = "Y" ] || [ "$confirmation" = "y" ]; then
+        log_message "INFO" "Removing the LLaVA directory..."
         rm -rf LLaVA
+
+        log_message "INFO" "Removing the Conda environment 'llava'..."
         conda remove --name llava --all -y
+
+        log_message "INFO" "${green_fg_strong}LLaVA uninstalled successfully.${reset}"
+        read -p "Press Enter to continue..."
+        home
     else
-        echo "Action canceled."
-    home
+        log_message "INFO" "Action canceled."
+        read -p "Press Enter to continue..."
+        home
     fi
 }
 
 # Function for the installer menu
 home() {
+    echo -e "\033]0;LLaVA [HOME]\007"
     clear
     echo -e "${blue_fg_strong}/ Home${reset}"
     echo "-------------------------------------"
@@ -243,6 +310,6 @@ elif command -v emerge &>/dev/null; then
     install_git
     home
 else
-    echo -e "${red_fg_strong}[ERROR] Unsupported package manager. Cannot detect Linux distribution.${reset}"
+    log_message "ERROR" "${red_fg_strong}Unsupported package manager. Cannot detect Linux distribution.${reset}"
     exit 1
 fi

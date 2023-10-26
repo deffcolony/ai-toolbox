@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 #
-# SillyTavern Launcher Script v0.0.1
+# SillyTavern Launcher
 # Created by: Deffcolony
 #
 # Description:
@@ -15,8 +15,10 @@
 # This script is intended for use on Linux systems. Please
 # report any issues or bugs on the GitHub repository.
 #
-# GitHub: https://github.com/SillyTavern/SillyTavern-Launcher
-# Issues: https://github.com/SillyTavern/SillyTavern-Launcher/issues
+# App Github: https://github.com/SillyTavern/SillyTavern.git
+#
+# GitHub: https://github.com/deffcolony/ai-toolbox
+# Issues: https://github.com/deffcolony/ai-toolbox/issues
 # ----------------------------------------------------------
 # Note: Modify the script as needed to fit your requirements.
 # ----------------------------------------------------------
