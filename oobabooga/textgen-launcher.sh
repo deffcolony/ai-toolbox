@@ -15,6 +15,8 @@
 # This script is intended for use on Linux systems. Please
 # report any issues or bugs on the GitHub repository.
 #
+# App Github: https://github.com/oobabooga/text-generation-webui.git
+#
 # GitHub: https://github.com/deffcolony/ai-toolbox
 # Issues: https://github.com/deffcolony/ai-toolbox/issues
 # ----------------------------------------------------------
@@ -80,7 +82,7 @@ install_git() {
 
 
 # Function to install textgen web UI
-installtextgen() {
+install_textgen() {
     echo -e "\033]0;textgen [INSTALL]\007"
     clear
     echo -e "${blue_fg_strong}/ Home / textgen web UI${reset}"
@@ -126,7 +128,7 @@ installtextgen() {
 
 
 # Function to run textgen web UI
-runtextgen() {
+run_textgen() {
     echo -e "\033]0;textgen\007"
     clear
     echo -e "${blue_fg_strong}/ Home / Run textgen${reset}"
@@ -172,7 +174,7 @@ runtextgen() {
 
 
 # Function to run textgen web UI with addons
-runtextgenaddons() {
+run_textgen_addons() {
     echo -e "\033]0;textgen [ADDONS]\007"
     clear
     echo -e "${blue_fg_strong}/ Home / Run textgen + addons${reset}"
@@ -217,7 +219,28 @@ runtextgenaddons() {
 }
 
 
+# Function to delete textgen
+uninstall_textgen() {
+    script_name=$(basename "$0")
+    excluded_folders="backups"
+    excluded_files="$script_name"
 
+    # Confirm with the user before proceeding
+    echo
+    echo -e "\e[41m╔════ DANGER ZONE ══════════════════════════════════════════════════════════════╗\e[0m"
+    echo -e "\e[41m║ WARNING: This will delete all oobabooga textgen data                          ║\e[0m"
+    echo -e "\e[41m║ If you want to keep any data, make sure to create a backup before proceeding. ║\e[0m"
+    echo -e "\e[41m╚═══════════════════════════════════════════════════════════════════════════════╝\e[0m"
+    echo
+    read -p "Are you sure you want to proceed? [Y/N] " confirmation
+    if [ "$confirmation" = "Y" ] || [ "$confirmation" = "y" ]; then
+        rm -rf textgen
+        conda remove --name textgen --all -y
+    else
+        echo "Action canceled."
+    home
+    fi
+}
 
 # Function for the home menu
 home() {
@@ -229,7 +252,8 @@ home() {
     echo "1. Install textgen web UI"
     echo "2. Run textgen web UI"
     echo "3. Run textgen web UI with addons"
-    echo "4. Exit"
+    echo "4. Uninstall textgen web UI"
+    echo "5. Exit"
 
     read -p "Choose Your Destiny (default is 1): " choice
 
@@ -240,12 +264,14 @@ home() {
 
     # Home - Backend
     if [ "$choice" = "1" ]; then
-        installtextgen
+        install_textgen
     elif [ "$choice" = "2" ]; then
-        runtextgen
+        run_textgen
     elif [ "$choice" = "3" ]; then
-        runtextgenaddons
+        run_textgen_addons
     elif [ "$choice" = "4" ]; then
+        uninstall_textgen
+    elif [ "$choice" = "5" ]; then
         exit
     else
         echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"

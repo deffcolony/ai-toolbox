@@ -381,7 +381,7 @@ switch_branch_menu() {
 }
 
 # Function to edit environment variables
-editenvironment() {
+edit_environment() {
     # Open the environment variables file for editing
     if [ -f ~/.bashrc ]; then
         # Use your preferred text editor (e.g., nano, vim, or gedit)
@@ -402,7 +402,7 @@ editenvironment() {
 }
 
 # Function to reinstall SillyTavern
-reinstallsillytavern() {
+reinstall_sillytavern() {
     local script_name=$(basename "$0")
     local excluded_folders="backups"
     local excluded_files="$script_name"
@@ -466,7 +466,7 @@ reinstallsillytavern() {
 }
 
 # Function to reinstall SillyTavern Extras
-reinstallextras() {
+reinstall_extras() {
     local script_name=$(basename "$0")
     local excluded_folders="backups"
     local excluded_files="$script_name"
@@ -568,13 +568,13 @@ toolbox() {
     read -p "Choose Your Destiny: " toolbox_choice
 
     case $toolbox_choice in
-        1) install7zip ;;
-        2) installffmpeg ;;
-        3) installnodejs ;;
-        4) editenvironment ;;
-        5) editextrasmodules ;;
-        6) reinstallsillytavern ;;
-        7) reinstallextras ;;
+        1) install_7zip ;;
+        2) install_ffmpeg ;;
+        3) install_nodejs ;;
+        4) edit_environment ;;
+        5) edit_extras_modules ;;
+        6) reinstall_sillytavern ;;
+        7) reinstall_extras ;;
         8) home ;;
         *) echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
            read -p "Press Enter to continue..."

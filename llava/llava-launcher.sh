@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 #
-# LLaVA Launcher v0.0.3
+# LLaVA Launcher
 # Created by: Deffcolony
 #
 # Description:
@@ -14,6 +14,8 @@
 #
 # This script is intended for use on Linux systems. Please
 # report any issues or bugs on the GitHub repository.
+#
+# App Github: https://github.com/haotian-liu/LLaVA.git
 #
 # GitHub: https://github.com/deffcolony/ai-toolbox
 # Issues: https://github.com/deffcolony/ai-toolbox/issues
@@ -81,7 +83,7 @@ install_git() {
 
 
 # Function to install LLaVA
-install-llava() {
+install_llava() {
     clear
     echo -e "${blue_fg_strong}/ Home / Install LLaVA ${reset}"
     echo "---------------------------------------------------------------"
@@ -118,13 +120,13 @@ install-llava() {
     rm -rf /tmp/$miniconda_installer
     echo -e "${green_fg_strong}LLaVA installed successfully.${reset}"
     read -p "Press Enter to continue..."
-    installer
+    home
 }
 
 
 
 # Function to run LLaVA
-run-llava() {
+run_llava() {
     clear
     cd LLaVA
     source $miniconda_path/etc/profile.d/conda.sh
@@ -134,13 +136,13 @@ run-llava() {
     export GRADIO_SERVER_NAME="0.0.0.0"
     export GRADIO_SERVER_PORT="3000"
     python -m llava.serve.gradio_web_server --controller http://localhost:10000 --model-list-mode reload
-    installer
+    home
 }
 
 
 
 # Function to update LLaVA
-update-llava() {
+update_llava() {
     clear
     echo -e "${blue_fg_strong}/ Home / Update${reset}"
     echo "---------------------------------------------------------------"
@@ -150,12 +152,12 @@ update-llava() {
     git pull
     pip uninstall transformers
     pip install -e .
-    installer
+    home
 }
 
 
 # Function to delete LLaVA
-delete-llava() {
+uninstall_llava() {
     script_name=$(basename "$0")
     excluded_folders="backups"
     excluded_files="$script_name"
@@ -173,12 +175,12 @@ delete-llava() {
         conda remove --name llava --all -y
     else
         echo "Action canceled."
-    installer
+    home
     fi
 }
 
 # Function for the installer menu
-installer() {
+home() {
     clear
     echo -e "${blue_fg_strong}/ Home${reset}"
     echo "-------------------------------------"
@@ -186,7 +188,7 @@ installer() {
     echo "1. Install LLaVA"
     echo "2. Run LLaVA"
     echo "3. Update"
-    echo "4. Delete LLaVA"
+    echo "4. Uninstall LLaVA"
     echo "5. Exit"
 
     read -p "Choose Your Destiny (default is 1): " choice
@@ -196,21 +198,21 @@ installer() {
       choice=1
     fi
 
-    # Installer - Backend
+    # home - Backend
     if [ "$choice" = "1" ]; then
-        install-llava
+        install_llava
     elif [ "$choice" = "2" ]; then
-        run-llava
+        run_llava
     elif [ "$choice" = "3" ]; then
-        update-llava
+        update_llava
     elif [ "$choice" = "4" ]; then
-        delete-llava
+        uninstall_llava
     elif [ "$choice" = "5" ]; then
         exit
     else
         echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
         read -p "Press Enter to continue..."
-        installer
+        home
     fi
 }
 
@@ -219,27 +221,27 @@ if command -v apt-get &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Debian/Ubuntu-based system.${reset}"
     # Debian/Ubuntu
     install_git
-    installer
+    home
 elif command -v yum &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Red Hat/Fedora-based system.${reset}"
     # Red Hat/Fedora
     install_git
-    installer
+    home
 elif command -v apk &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Alpine Linux-based system.${reset}"
     # Alpine Linux
     install_git
-    installer
+    home
 elif command -v pacman &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Arch Linux-based system.${reset}"
     # Arch Linux
     install_git
-    installer
+    home
 elif command -v emerge &>/dev/null; then
     echo -e "${blue_fg_strong}[INFO] Detected Gentoo Linux-based system. Now you are the real CHAD${reset}"
     # Gentoo Linux
     install_git
-    installer
+    home
 else
     echo -e "${red_fg_strong}[ERROR] Unsupported package manager. Cannot detect Linux distribution.${reset}"
     exit 1

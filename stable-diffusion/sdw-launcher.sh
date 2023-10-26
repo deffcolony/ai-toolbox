@@ -1,19 +1,21 @@
 #!/usr/bin/bash
 #
-# Stable Diffusion web UI
+# Stable Diffusion web UI Launcher
 # Created by: Deffcolony
 #
 # Description:
 # This script installs Stable Diffusion web UI to your Linux system.
 #
 # Usage:
-# chmod +x sdw-install.sh && ./sdw-install.sh
+# chmod +x sdw-launcher.sh && ./sdw-launcher.sh
 #
 # In automated environments, you may want to run as root.
 # If using curl, we recommend using the -fsSL flags.
 #
 # This script is intended for use on Linux systems. Please
 # report any issues or bugs on the GitHub repository.
+#
+# App Github: https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
 #
 # GitHub: https://github.com/deffcolony/ai-toolbox
 # Issues: https://github.com/deffcolony/ai-toolbox/issues
@@ -80,7 +82,7 @@ install_git() {
 
 
 # Function to install Stable Diffusion web UI
-installsdw() {
+install_sdw() {
     echo -e "\033]0;SD Web UI [INSTALL-SDW]\007"
     clear
     echo -e "${blue_fg_strong}/ Home / Stable Diffusion web UI${reset}"
@@ -120,7 +122,7 @@ installsdw() {
 
 
 # Function to run Stable Diffusion web UI
-runsdwclean() {
+run_sdw() {
     echo -e "\033]0;SD Web UI\007"
     clear
     cd stable-diffusion-webui
@@ -132,7 +134,7 @@ runsdwclean() {
 
 
 # Function to run Stable Diffusion web UI with addons
-runsdwaddons() {
+run_sdw_addons() {
     echo -e "\033]0;SD Web UI [ADDONS]\007"
     clear
     cd stable-diffusion-webui
@@ -143,7 +145,28 @@ runsdwaddons() {
 }
 
 
+# Function to delete Stable Difussion Web UI
+uninstall_sdw() {
+    script_name=$(basename "$0")
+    excluded_folders="backups"
+    excluded_files="$script_name"
 
+    # Confirm with the user before proceeding
+    echo
+    echo -e "\e[41m╔════ DANGER ZONE ══════════════════════════════════════════════════════════════╗\e[0m"
+    echo -e "\e[41m║ WARNING: This will delete all Stable Difussion Web UI data                    ║\e[0m"
+    echo -e "\e[41m║ If you want to keep any data, make sure to create a backup before proceeding. ║\e[0m"
+    echo -e "\e[41m╚═══════════════════════════════════════════════════════════════════════════════╝\e[0m"
+    echo
+    read -p "Are you sure you want to proceed? [Y/N] " confirmation
+    if [ "$confirmation" = "Y" ] || [ "$confirmation" = "y" ]; then
+        rm -rf stable-diffusion-webui
+        conda remove --name stablediffusionwebui --all -y
+    else
+        echo "Action canceled."
+    home
+    fi
+}
 
 # Function for the home menu
 home() {
@@ -155,7 +178,8 @@ home() {
     echo "1. Install Stable Diffusion web UI"
     echo "2. Run Stable Diffusion web UI"
     echo "3. Run Stable Diffusion web UI with addons"
-    echo "4. Exit"
+    echo "4. Uninstall Stable Diffusion web UI"
+    echo "5. Exit"
 
     read -p "Choose Your Destiny (default is 1): " choice
 
@@ -166,12 +190,14 @@ home() {
 
     # Home - Backend
     if [ "$choice" = "1" ]; then
-        installsdw
+        install_sdw
     elif [ "$choice" = "2" ]; then
-        runsdwclean
+        run_sdw
     elif [ "$choice" = "3" ]; then
-        runsdwaddons
+        run_sdw_addons
     elif [ "$choice" = "4" ]; then
+        uninstall_sdw
+    elif [ "$choice" = "5" ]; then
         exit
     else
         echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
