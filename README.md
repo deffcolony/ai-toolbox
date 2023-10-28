@@ -1,25 +1,28 @@
+<a name="readme-top"></a>
+
+<div align="center">
+
+<img height="160" src="https://i.imgur.com/Kq8vWym.png">
+
 <h1 align="center">AI-Toolbox - Streamline your AI workflows.</h1>
-<p align="center">
-  <img src='https://i.imgur.com/Kq8vWym.png' width=120>
-</p>
 
 <p align="center">
     【English | <a href="README-Chinese.md">Chinese</a> | <a href="README-Japanese.md">Japanese</a> | <a href="README-Korean.md">Korean</a> | <a href="README-Filipino.md">Filipino</a> | <a href="README-French.md">French</a> | <a href="README-Slovak.md">Slovak</a> | <a href="README-Portuguese.md">Portuguese</a> | <a href="README-Spanish.md">Spanish</a>】
-
-
-# ai-toolbox
-AI-Toolbox provides a collection of automation scripts and tools to streamline your AI workflows.
-
+  
 [![GitHub Stars](https://img.shields.io/github/stars/deffcolony/AI-Toolbox.svg)](https://github.com/deffcolony/AI-Toolbox/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/deffcolony/AI-Toolbox.svg)](https://github.com/deffcolony/AI-Toolbox/network)
 [![GitHub Issues](https://img.shields.io/github/issues/deffcolony/AI-Toolbox.svg)](https://github.com/deffcolony/AI-Toolbox/issues)
 [![GitHub Pull Requests](https://img.shields.io/github/issues-pr/deffcolony/AI-Toolbox.svg)](https://github.com/deffcolony/AI-Toolbox/pulls)
+</div>
+
+# 🧰 ai-toolbox
+AI-Toolbox provides a collection of automation scripts and tools to streamline your AI workflows.
 
 Simplify AI Application Installation with Automation.
 
 AI-Toolbox provides a collection of automation scripts that streamline the installation of various AI applications. Whether you're a data scientist, researcher, or developer working with artificial intelligence, our toolbox makes software deployment effortless, saving you time and effort.
 
-## Features
+## ✨ Features
 
 - Automated installation of the following AI applications:
   * [autogen](https://github.com/microsoft/autogen)
@@ -37,7 +40,7 @@ AI-Toolbox provides a collection of automation scripts that streamline the insta
 
 - Regular updates and contributions from the community.
 
-## Installation
+## 📦 Installation
 
 AI-Toolbox may require specific prerequisites based on the AI application you intend to install. It will automatically handle the installation of these prerequisites if they are not already present on your system. Common prerequisites include:
 
