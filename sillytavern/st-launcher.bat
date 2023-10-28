@@ -819,8 +819,6 @@ if /i "!confirmation!"=="Y" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing vs_BuildTools...
     bitsadmin /transfer "vs_buildtools" /download /priority FOREGROUND "https://aka.ms/vs/17/release/vs_BuildTools.exe"
     start "" "%temp%\vs_buildtools.exe" --norestart --passive --downloadThenInstall --includeRecommended --add Microsoft.VisualStudio.Workload.NativeDesktop --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Workload.MSBuildTools
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%vs_BuildTools is now installed. Please continue%reset%
-    pause
 
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Microsoft.VCRedist.2015+.x64...
     winget install -e --id Microsoft.VCRedist.2015+.x64

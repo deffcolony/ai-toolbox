@@ -170,8 +170,6 @@ winget install -e --id Anaconda.Miniconda3
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing vs_BuildTools...
 bitsadmin /transfer "vs_buildtools" /download /priority FOREGROUND "https://aka.ms/vs/17/release/vs_BuildTools.exe"
 start "" "%temp%\vs_buildtools.exe" --norestart --passive --downloadThenInstall --includeRecommended --add Microsoft.VisualStudio.Workload.NativeDesktop --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Workload.MSBuildTools
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%vs_BuildTools is now installed. Please continue%reset%
-pause
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Microsoft.VCRedist.2015+.x64...
 winget install -e --id Microsoft.VCRedist.2015+.x64
@@ -218,7 +216,7 @@ set /p create_shortcut=Do you want to create a shortcut on the desktop? [Y/n]
 if /i "%create_shortcut%"=="Y" (
 
     REM Create the shortcut
-    echo %blue_fg_strong%[INFO]%reset% Creating shortcut...
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating shortcut...
     %SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe -Command ^
         "$WshShell = New-Object -ComObject WScript.Shell; " ^
         "$Shortcut = $WshShell.CreateShortcut('%desktopPath%\%shortcutName%'); " ^
@@ -226,7 +224,7 @@ if /i "%create_shortcut%"=="Y" (
         "$Shortcut.WorkingDirectory = '%startIn%'; " ^
         "$Shortcut.Description = '%comment%'; " ^
         "$Shortcut.Save()"
-    echo %green_fg_strong%Shortcut created on the desktop.%reset%
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Shortcut created on the desktop.%reset%
     pause
 )
 endlocal
@@ -238,7 +236,7 @@ title SillyTavern [INSTALL ST]
 cls
 echo %blue_fg_strong%/ Installer / SillyTavern%reset%
 echo ---------------------------------------------------------------
-echo %blue_fg_strong%[INFO]%reset% Installing SillyTavern...
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing SillyTavern...
 echo .
 echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
 
@@ -284,8 +282,6 @@ rem winget install -e --id Microsoft.VisualStudio.2022.BuildTools
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing vs_BuildTools...
 bitsadmin /transfer "vs_buildtools" /download /priority FOREGROUND "https://aka.ms/vs/17/release/vs_BuildTools.exe"
 start "" "%temp%\vs_buildtools.exe" --norestart --passive --downloadThenInstall --includeRecommended --add Microsoft.VisualStudio.Workload.NativeDesktop --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Workload.MSBuildTools
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%vs_BuildTools is now installed. Please continue%reset%
-pause
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Microsoft.VCRedist.2015+.x64...
 winget install -e --id Microsoft.VCRedist.2015+.x64
