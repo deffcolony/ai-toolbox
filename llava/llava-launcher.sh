@@ -223,7 +223,7 @@ uninstall_llava() {
     # Confirm with the user before proceeding
     echo
     echo -e "${red_bg}╔════ DANGER ZONE ══════════════════════════════════════════════════════════════╗${reset}"
-    echo -e "${red_bg}║ WARNING: This will delete all LLaVA data                                      ║${reset}"
+    echo -e "${red_bg}║ WARNING: This will delete all data of LLaVA                                   ║${reset}"
     echo -e "${red_bg}║ If you want to keep any data, make sure to create a backup before proceeding. ║${reset}"
     echo -e "${red_bg}╚═══════════════════════════════════════════════════════════════════════════════╝${reset}"
     echo
@@ -239,7 +239,7 @@ uninstall_llava() {
         read -p "Press Enter to continue..."
         home
     else
-        log_message "INFO" "Action canceled."
+        log_message "INFO" "Uninstall canceled."
         read -p "Press Enter to continue..."
         home
     fi
