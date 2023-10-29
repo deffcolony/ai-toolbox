@@ -32,6 +32,7 @@ AI-Toolbox provides a collection of automation scripts that streamline the insta
   * [open-interpreter](https://github.com/KillianLucas/open-interpreter)
   * [SillyTavern](https://github.com/SillyTavern/SillyTavern)
   * [stable-diffusion-webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui)
+  * [ComfyUI](https://github.com/comfyanonymous/ComfyUI)
   * [text-generation-webui](https://github.com/oobabooga/text-generation-webui)
 
 - Customizable for your specific workflow and preferences.
