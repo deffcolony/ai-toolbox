@@ -1,6 +1,7 @@
 @echo off
 REM RVC-Launcher
 REM Created by: Deffcolony
+REM Github: https://github.com/Mangio621/Mangio-RVC-Fork
 REM
 REM Description:
 REM This script installs winget, 7-zip and Mangio-RVC 
@@ -9,10 +10,11 @@ REM Usage:
 REM 1. install Mangio-RVC 
 REM 2. Launch this script again and choose option 2 or 3 
 REM
-REM This script is intended for use on Windows systems. Please
+REM This script is intended for use on Windows systems.
 REM report any issues or bugs on the GitHub repository.
 REM
-REM Github: https://github.com/Mangio621/Mangio-RVC-Fork
+REM GitHub: https://github.com/deffcolony/ai-toolbox
+REM Issues: https://github.com/deffcolony/ai-toolbox/issues
 setlocal
 
 title Mangio RVC Launcher

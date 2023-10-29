@@ -1,17 +1,17 @@
 @echo off
-REM Stable Difussion Web UI Launcher
+REM ComfyUI Launcher
 REM Created by: Deffcolony
-REM Github: https://github.com/AUTOMATIC1111/stable-diffusion-webui
+REM Github: https://github.com/comfyanonymous/ComfyUI
 REM
 REM Description:
-REM This script can install Stable difussion Webui
+REM This script can install sillytavern and/or extras with shortcut to open the launcher.bat
 REM
 REM This script is intended for use on Windows systems.
 REM report any issues or bugs on the GitHub repository.
 REM
 REM GitHub: https://github.com/deffcolony/ai-toolbox
 REM Issues: https://github.com/deffcolony/ai-toolbox/issues
-title SD Web UI Launcher
+title ComfyUI Launcher
 setlocal
 
 REM ANSI Escape Code for Colors
@@ -37,12 +37,12 @@ REM Environment Variables (TOOLBOX Install Extras)
 set "miniconda_path=%userprofile%\miniconda"
 
 REM Define the paths and filenames for the shortcut creation
-set "shortcutTarget=%~dp0sdw-launcher.bat"
-set "iconFile=%~dp0sdw.ico"
+set "shortcutTarget=%~dp0comfyui-launcher.bat"
+set "iconFile=%~dp0comfyui.ico"
 set "desktopPath=%userprofile%\Desktop"
-set "shortcutName=sdw-launcher.lnk"
+set "shortcutName=comfyui-launcher.lnk"
 set "startIn=%~dp0"
-set "comment=Stable Diffusion Web UI Launcher"
+set "comment=ComfyUI Launcher"
 
 
 REM Check if Winget is installed; if not, then install it
@@ -95,18 +95,16 @@ if %errorlevel% neq 0 (
 
 REM home Frontend
 :home
-title SD Web UI [HOME]
+title ComfyUI [HOME]
 cls
 echo %blue_fg_strong%/ Home %reset%
 echo -------------------------------------
 echo What would you like to do?
-echo 1. Install SD web UI
-echo 2. Run SD web UI
-echo 3. Run SD web UI + addons
-echo 4. Run SD web UI + share
-echo 5. Update
-echo 6. Toolbox
-echo 7. Exit
+echo 1. Install ComfyUI
+echo 2. Run ComfyUI
+echo 3. Update
+echo 4. Toolbox
+echo 5. Exit
 
 
 set "choice="
@@ -118,18 +116,14 @@ REM if not defined choice set "choice=1"
 
 REM home - Backend
 if "%choice%"=="1" (
-    call :install_sdw
+    call :install_comfyui
 ) else if "%choice%"=="2" (
-    call :run_sdw
+    call :run_comfyui
 ) else if "%choice%"=="3" (
-    call :run_sdw_addons
+    call :update_comfyui
 ) else if "%choice%"=="4" (
-    call :run_sdw_share
-) else if "%choice%"=="5" (
-    call :update_sdw
-) else if "%choice%"=="6" (
     call :toolbox
-) else if "%choice%"=="7" (
+) else if "%choice%"=="5" (
     exit
 ) else (
     color 6
@@ -139,65 +133,56 @@ if "%choice%"=="1" (
 )
 
 
-:install_sdw
-title SD Web UI [INSTALL]
+:install_comfyui
+title ComfyUI [INSTALL]
 cls
-echo %blue_fg_strong%/ Home / Install SD web UI%reset%
+echo %blue_fg_strong%/ Home / Install ComfyUI%reset%
 echo ---------------------------------------------------------------
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Stable Diffusion web UI...
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing ComfyUI...
 echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
 
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Miniconda...
 winget install -e --id Anaconda.Miniconda3
 
 REM Run conda activate from the Miniconda installation
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
 call "%miniconda_path%\Scripts\activate.bat"
 
-REM Create a Conda environment named stablediffusionwebui
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment stablediffusionwebui...
-call conda create -n stablediffusionwebui -y
+REM Create a Conda environment named comfyui
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment comfyui...
+call conda create -n comfyui -y
 
-REM Activate the stablediffusionwebui environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment stablediffusionwebui...
-call conda activate stablediffusionwebui
+REM Activate the comfyui environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment comfyui...
+call conda activate comfyui
 
-REM Install Python 3.10.6 and Git in the stablediffusionwebui environment
+REM Install Python 3.11 and Git in the comfyui environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
-call conda install python=3.10.6 git -y
+call conda install python=3.11 git -y
 
-REM Clone the stable-diffusion-webui Extras repository
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the stable-diffusion-webui repository...
-git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
+REM Clone the ComfyUI Extras repository
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the ComfyUI repository...
+git clone https://github.com/comfyanonymous/ComfyUI.git
 
-REM Clone extensions for stable-diffusion-webui
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning extensions for stable-diffusion-webui...
-cd /d "%~dp0stable-diffusion-webui/extensions"
-git clone https://github.com/alemelis/sd-webui-ar.git
-git clone https://github.com/butaixianran/Stable-Diffusion-Webui-Civitai-Helper.git
-git clone https://github.com/DominikDoom/a1111-sd-webui-tagcomplete.git
-git clone https://github.com/EnsignMK/danbooru-prompt.git
-git clone https://github.com/fkunn1326/openpose-editor.git
-git clone https://github.com/Mikubill/sd-webui-controlnet.git
-git clone https://github.com/ashen-sensored/sd_webui_SAG.git
-git clone https://github.com/NoCrypt/sd-fast-pnginfo.git
-git clone https://github.com/Bing-su/adetailer.git
-git clone https://github.com/hako-mikan/sd-webui-supermerger.git
-git clone https://github.com/AlUlkesh/stable-diffusion-webui-images-browser.git
-git clone https://github.com/hako-mikan/sd-webui-regional-prompter.git
-git clone https://github.com/Gourieff/sd-webui-reactor.git
-git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui-rembg.git
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements...
+cd /d "%~dp0ComfyUI"
+pip install -r requirements.txt
+pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu121
 
-
+REM Clone extensions for ComfyUI
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning extensions for ComfyUI...
+cd /d "%~dp0ComfyUI/custom_nodes"
+git clone https://github.com/ltdrdata/ComfyUI-Manager.git
 
 
 REM Installs better upscaler models
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Better Upscaler models...
-cd /d "%~dp0stable-diffusion-webui/models"
+cd /d "%~dp0ComfyUI/models"
 mkdir ESRGAN && cd ESRGAN
 curl -o 4x-AnimeSharp.pth https://huggingface.co/konohashinobi4/4xAnimesharp/resolve/main/4x-AnimeSharp.pth
 curl -o 4x-UltraSharp.pth https://huggingface.co/lokCX/4x-Ultrasharp/resolve/main/4x-UltraSharp.pth
 
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Stable Diffusion web UI successfully installed.%reset%
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%ComfyUI successfully installed.%reset%
 
 REM Ask if the user wants to create a shortcut
 set /p create_shortcut=Do you want to create a shortcut on the desktop? [Y/n] 
@@ -219,80 +204,34 @@ if /i "%create_shortcut%"=="Y" (
 goto :home
 
 
-:run_sdw
-title SD web UI
+:run_comfyui
+title ComfyUI
 cls
-echo %blue_fg_strong%/ Home / Run SD web UI%reset%
+echo %blue_fg_strong%/ Home / Run ComfyUI%reset%
 echo ---------------------------------------------------------------
 
 REM Run conda activate from the Miniconda installation
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
 call "%miniconda_path%\Scripts\activate.bat"
 
 REM Activate the sillytavernextras environment
-call conda activate stablediffusionwebui
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment comfyui...
+call conda activate comfyui
 
-REM Start stablediffusionwebui clean
-cd /d "%~dp0stable-diffusion-webui"
-start cmd /k python launch.py
+REM Start ComfyUI clean
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Running ComfyUI in a new window
+cd /d "%~dp0ComfyUI"
+start cmd /k python main.py --auto-launch --listen --port 7901
 goto :home
 
 
-:run_sdw_addons
-title SD web UI [ADDONS]
-cls
-echo %blue_fg_strong%/ Home / Run SD web UI + addons%reset%
-echo ---------------------------------------------------------------
-
-REM Run conda activate from the Miniconda installation
-call "%miniconda_path%\Scripts\activate.bat"
-
-REM Activate the sillytavernextras environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment stablediffusionwebui...
-call conda activate stablediffusionwebui
-
-REM Start stablediffusionwebui with desired configurations
-cd /d "%~dp0stable-diffusion-webui"
-start cmd /k python launch.py --autolaunch --api --listen --port 7900 --xformers --reinstall-xformers --theme dark
-goto :home
-
-
-:run_sdw_share
-title SD web UI [SHARE]
-cls
-echo %blue_fg_strong%/ Home / Run SD web UI + share%reset%
-echo ---------------------------------------------------------------
-
-REM Run conda activate from the Miniconda installation
-call "%miniconda_path%\Scripts\activate.bat"
-echo %blue_fg_strong%[INFO]%reset% Running SD web UI + share...
-
-REM Activate the stablediffusionwebui environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment stablediffusionwebui...
-call conda activate stablediffusionwebui
-
-cls
-echo %blue_fg_strong%/ Home / SD web UI + share%reset%
-echo ---------------------------------------------------------------
-
-REM Prompt user for username
-set /p username=Enter a username: 
-
-REM Prompt user for password creation
-powershell -command "$password = Read-Host 'Enter a password' -AsSecureString; $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password); $password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR); Write-Output $password" > temp_pass.txt
-set /p password=<temp_pass.txt
-del temp_pass.txt
-cd /d "%~dp0stable-diffusion-webui"
-start cmd /k python launch.py --autolaunch --xformers --reinstall-xformers --always-batch-cond-uncond --share --port 7900 --gradio-auth %username%:%password% --always-batch-cond-uncond --theme dark
-goto :home
-
-
-:update_sdw
-title SD web UI [UPDATE]
+:update_comfyui
+title ComfyUI [UPDATE]
 cls
 echo %blue_fg_strong%/ Home / Update%reset%
 echo ---------------------------------------------------------------
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Updating Stable Difussion Web UI...
-cd /d "%~dp0stable-diffusion-webui"
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Updating ComfyUI...
+cd /d "%~dp0ComfyUI"
 
 REM Check if git is installed
 git --version > nul 2>&1
@@ -305,7 +244,7 @@ if %errorlevel% neq 0 (
         REM incase there is still something wrong
         echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Errors while updating. Please download the latest version manually.%reset%
     ) else (
-        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Stable Diffusion Web UI updated successfully.%reset%
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%ComfyUI updated successfully.%reset%
     )
 )
 pause
@@ -316,15 +255,13 @@ goto :home
 
 REM Toolbox Frontend
 :toolbox
-title SD Web UI [TOOLBOX]
+title ComfyUI [TOOLBOX]
 cls
 echo %blue_fg_strong%/ Home / Toolbox %reset%
 echo -------------------------------------
 echo What would you like to do?
-echo 1. Enable Lobe Theme
-echo 2. Disable Lobe Theme
-echo 3. Uninstall SD web UI
-echo 4. Back to Home
+echo 1. Uninstall ComfyUI
+echo 2. Back to Home
 
 
 
@@ -338,12 +275,8 @@ REM if not defined choice set "choice=1"
 
 REM toolbox - Backend
 if "%toolbox_choice%"=="1" (
-    call :enable_lobe_theme
+    call :uninstall_comfyui
 ) else if "%toolbox_choice%"=="2" (
-    call :disable_lobe_theme
-) else if "%toolbox_choice%"=="3" (
-    call :uninstall_sdw
-) else if "%toolbox_choice%"=="4" (
     call :home
 ) else (
     color 6
@@ -352,29 +285,15 @@ if "%toolbox_choice%"=="1" (
     goto :toolbox
 )
 
-
-:enable_lobe_theme
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning custom theme for stable-diffusion-webui...
-cd /d "%~dp0stable-diffusion-webui/extensions"
-git clone https://github.com/lobehub/sd-webui-lobe-theme.git
-goto :toolbox
-
-:disable_lobe_theme
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the sd-webui-lobe-theme directory...
-cd /d "%~dp0stable-diffusion-webui/extensions"
-rmdir /s /q sd-webui-lobe-theme
-goto :toolbox
-
-
-:uninstall_sdw
-title SD web UI [UNINSTALL]
+:uninstall_comfyui
+title ComfyUI [UNINSTALL]
 setlocal enabledelayedexpansion
 chcp 65001 > nul
 
 REM Confirm with the user before proceeding
 echo.
 echo %red_bg%╔════ DANGER ZONE ══════════════════════════════════════════════════════════════════════════════╗%reset%
-echo %red_bg%║ WARNING: This will delete all data of Stable Difussion Web UI                                 ║%reset%
+echo %red_bg%║ WARNING: This will delete all data of ComfyUI                                                 ║%reset%
 echo %red_bg%║ If you want to keep any data, make sure to create a backup before proceeding.                 ║%reset%
 echo %red_bg%╚═══════════════════════════════════════════════════════════════════════════════════════════════╝%reset%
 echo.
@@ -382,15 +301,15 @@ set /p "confirmation=Are you sure you want to proceed? [Y/N]: "
 if /i "%confirmation%"=="Y" (
 
     REM Remove the Conda environment
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'stablediffusionwebui'...
-    call conda remove --name stablediffusionwebui --all -y
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'comfyui'...
+    call conda remove --name comfyui --all -y
 
-    REM Remove the folder stable-diffusion-webui
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the stable-diffusion-webui directory...
+    REM Remove the folder ComfyUI
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the ComfyUI directory...
     cd /d "%~dp0"
-    rmdir /s /q stable-diffusion-webui
+    rmdir /s /q ComfyUI
 
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Stable Diffusion Web UI uninstalled successfully.%reset%
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%ComfyUI uninstalled successfully.%reset%
     pause
     goto :home
 ) else (
