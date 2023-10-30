@@ -252,7 +252,7 @@ call conda activate stablediffusionwebui
 
 REM Start stablediffusionwebui with desired configurations
 cd /d "%~dp0stable-diffusion-webui"
-start cmd /k python launch.py --autolaunch --api --listen --port 7900 --xformers --reinstall-xformers --theme dark
+start cmd /k python launch.py --autolaunch --api --listen --port 7900 --opt-sdp-attention --theme dark
 goto :home
 
 
@@ -282,7 +282,7 @@ powershell -command "$password = Read-Host 'Enter a password' -AsSecureString; $
 set /p password=<temp_pass.txt
 del temp_pass.txt
 cd /d "%~dp0stable-diffusion-webui"
-start cmd /k python launch.py --autolaunch --xformers --reinstall-xformers --always-batch-cond-uncond --share --port 7900 --gradio-auth %username%:%password% --always-batch-cond-uncond --theme dark
+start cmd /k python launch.py --autolaunch --opt-sdp-attention --always-batch-cond-uncond --share --port 7900 --gradio-auth %username%:%password% --always-batch-cond-uncond --theme dark
 goto :home
 
 

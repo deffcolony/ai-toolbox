@@ -253,17 +253,16 @@ goto :home
 
 
 
-REM Toolbox Frontend
+REM Toolbox - Frontend
 :toolbox
 title ComfyUI [TOOLBOX]
 cls
 echo %blue_fg_strong%/ Home / Toolbox %reset%
 echo -------------------------------------
 echo What would you like to do?
-echo 1. Uninstall ComfyUI
-echo 2. Back to Home
-
-
+echo 1. Workflows
+echo 2. Uninstall ComfyUI
+echo 3. Back to Home
 
 
 set "toolbox_choice="
@@ -275,8 +274,10 @@ REM if not defined choice set "choice=1"
 
 REM toolbox - Backend
 if "%toolbox_choice%"=="1" (
-    call :uninstall_comfyui
+    call :workflows
 ) else if "%toolbox_choice%"=="2" (
+    call :uninstall_comfyui
+) else if "%toolbox_choice%"=="3" (
     call :home
 ) else (
     color 6
@@ -317,3 +318,113 @@ if /i "%confirmation%"=="Y" (
     pause
     goto :home
 )
+
+
+REM Workflows - Frontend
+:workflows
+cd /d "%~dp0"
+title ComfyUI [WORKFLOWS]
+cls
+echo %blue_fg_strong%/ Home / Toolbox / Workflows%reset%
+echo -------------------------------------
+echo What would you like to do?
+echo 1. Install gtm-sdxl-sd15
+echo 2. Install hybrid-w-style-selector
+echo 3. Back to Toolbox
+
+
+set "workflows_choice="
+set /p "workflows_choice=Choose Your Destiny: "
+
+REM Default to choice 1 if no input is provided
+REM Disable REM below to enable default choise
+REM if not defined choice set "choice=1"
+
+REM toolbox - Backend
+if "%workflows_choice%"=="1" (
+    call :workflow_pack01
+) else if "%workflows_choice%"=="2" (
+    call :workflow_pack02
+) else if "%workflows_choice%"=="3" (
+    call :toolbox
+) else (
+    color 6
+    echo WARNING: Invalid number. Please insert a valid number.
+    pause
+    goto :toolbox
+)
+
+
+:workflow_pack01
+REM Clone extension requirements for GTM ComfyUI workflow
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning extensions for GTM ComfyUI Workflow...
+cd /d "%~dp0ComfyUI\custom_nodes"
+git clone https://github.com/chrisgoringe/cg-use-everywhere.git
+git clone https://github.com/bash-j/mikey_nodes.git
+git clone https://github.com/twri/sdxl_prompt_styler.git
+git clone https://github.com/Derfuu/Derfuu_ComfyUI_ModdedNodes.git
+git clone https://github.com/BadCafeCode/masquerade-nodes-comfyui.git
+git clone https://github.com/space-nuko/ComfyUI-OpenPose-Editor.git
+git clone https://github.com/ssitu/ComfyUI_UltimateSDUpscale.git
+git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git
+git clone https://github.com/ltdrdata/ComfyUI-Impact-Pack.git
+git clone https://github.com/RockOfFire/ComfyUI_Comfyroll_CustomNodes.git
+
+mkdir "%~dp0comfyui-workflows"
+start https://civitai.com/api/download/models/179750
+
+REM Wait for the user to complete the download in the browser
+for /l %%i in (10,-1,1) do (
+    set /p "=Waiting for download to complete... Please wait %cyan_fg_strong%%%i%reset%" <nul
+    timeout /t 1 >nul
+    echo.
+)
+
+
+REM Move the file to the desired directory
+move "%userprofile%\Downloads\gtmComfyuiWorkflows_cleanuiV11.zip" "%~dp0comfyui-workflows\gtmComfyuiWorkflows_cleanuiV11.zip"
+
+REM Extract Mangio-RVC 7z archive
+cd /d "%~dp0comfyui-workflows"
+"%ProgramFiles%\7-Zip\7z.exe" x "gtmComfyuiWorkflows_cleanuiV11.zip" || (
+    color 4
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Extraction failed.. Please try again%reset%
+    pause
+    goto :workflows
+)
+
+REM Cleanup downloaded zip
+del "%~dp0comfyui-workflows\gtmComfyuiWorkflows_cleanuiV11.zip"
+goto :workflows
+
+:workflow_pack02
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning extensions for Hybrid w Style Selector...
+cd /d "%~dp0ComfyUI\custom_nodes"
+git clone https://github.com/twri/sdxl_prompt_styler.git
+git clone https://github.com/LucianoCirino/efficiency-nodes-comfyui.git
+
+mkdir "%~dp0comfyui-workflows"
+start https://civitai.com/api/download/models/150004
+
+REM Wait for the user to complete the download in the browser
+for /l %%i in (10,-1,1) do (
+    set /p "=Waiting for download to complete... Please wait %cyan_fg_strong%%%i%reset%" <nul
+    timeout /t 1 >nul
+    echo.
+)
+
+REM Move the file to the desired directory
+move "%userprofile%\Downloads\comfyuiHybridWStyle_v10.zip" "%~dp0comfyui-workflows\comfyuiHybridWStyle_v10.zip"
+
+REM Extract Mangio-RVC 7z archive
+cd /d "%~dp0comfyui-workflows"
+"%ProgramFiles%\7-Zip\7z.exe" x "comfyuiHybridWStyle_v10.zip" || (
+    color 4
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Extraction failed.. Please try again%reset%
+    pause
+    goto :workflows
+)
+
+REM Cleanup downloaded zip
+del "%~dp0comfyui-workflows\comfyuiHybridWStyle_v10.zip"
+goto :workflows
