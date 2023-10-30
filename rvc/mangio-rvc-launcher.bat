@@ -146,12 +146,14 @@ REM if not defined choice set "choice=1"
 
 REM home - Backend
 if "%choice%"=="1" (
-    call :installmangiorvc
+    call :install_mangio_rvc
 ) else if "%choice%"=="2" (
-    call :rungoweb
+    call :run_goweb
 ) else if "%choice%"=="3" (
-    call :rungorealtime
+    call :run_gorealtime
 ) else if "%choice%"=="4" (
+    call :uninstall_mangio_rvc
+) else if "%choice%"=="5" (
     exit
 ) else (
     color 6
@@ -161,7 +163,7 @@ if "%choice%"=="1" (
 )
 
 
-:installmangiorvc
+:install_mangio_rvc
 title Mangio RVC [INSTALL]
 cls
 echo %blue_fg_strong%/ Home / Install Mangio RVC%reset%
@@ -192,7 +194,7 @@ echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
     del "%~dp0Mangio-RVC-%version%_INFER_TRAIN.7z"
 goto :home
 
-:rungoweb
+:run_goweb
 title Mangio RVC [GO-WEB]
 cls
 echo %blue_fg_strong%/ Home / Run go-web.bat%reset%
@@ -209,7 +211,7 @@ echo ---------------------------------------------------------------
     )
 goto :home
 
-:rungorealtime
+:run_gorealtime
 title Mangio RVC [GO-REALTIME-GUI]
 cls
 echo %blue_fg_strong%/ Home / Run go-realtime-gui.bat%reset%
@@ -225,3 +227,33 @@ echo ---------------------------------------------------------------
         goto :home
     )
 goto :home
+
+
+:uninstall_mangio_rvc
+title Mangio RVC [UNINSTALL]
+setlocal enabledelayedexpansion
+chcp 65001 > nul
+
+REM Confirm with the user before proceeding
+echo.
+echo %red_bg%╔════ DANGER ZONE ══════════════════════════════════════════════════════════════════════════════╗%reset%
+echo %red_bg%║ WARNING: This will delete all data of Mangio RVC                                              ║%reset%
+echo %red_bg%║ If you want to keep any data, make sure to create a backup before proceeding.                 ║%reset%
+echo %red_bg%╚═══════════════════════════════════════════════════════════════════════════════════════════════╝%reset%
+echo.
+set /p "confirmation=Are you sure you want to proceed? [Y/N]: "
+if /i "%confirmation%"=="Y" (
+
+    REM Remove the folder Mangio RVC
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Mangio RVC directory...
+    cd /d "%~dp0"
+    rmdir /s /q Mangio-RVC-%version%_INFER_TRAIN
+
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Mangio RVC uninstalled successfully.%reset%
+    pause
+    goto :home
+) else (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Uninstall canceled.
+    pause
+    goto :home
+)

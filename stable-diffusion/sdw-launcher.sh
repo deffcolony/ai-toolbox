@@ -153,10 +153,10 @@ uninstall_sdw() {
 
     # Confirm with the user before proceeding
     echo
-    echo -e "\e[41m╔════ DANGER ZONE ══════════════════════════════════════════════════════════════╗\e[0m"
-    echo -e "\e[41m║ WARNING: This will delete all Stable Difussion Web UI data                    ║\e[0m"
-    echo -e "\e[41m║ If you want to keep any data, make sure to create a backup before proceeding. ║\e[0m"
-    echo -e "\e[41m╚═══════════════════════════════════════════════════════════════════════════════╝\e[0m"
+    echo -e "${red_bg}╔════ DANGER ZONE ══════════════════════════════════════════════════════════════╗${reset}"
+    echo -e "${red_bg}║ WARNING: This will delete all Stable Difussion Web UI data                    ║${reset}"
+    echo -e "${red_bg}║ If you want to keep any data, make sure to create a backup before proceeding. ║${reset}"
+    echo -e "${red_bg}╚═══════════════════════════════════════════════════════════════════════════════╝${reset}"
     echo
     read -p "Are you sure you want to proceed? [Y/N] " confirmation
     if [ "$confirmation" = "Y" ] || [ "$confirmation" = "y" ]; then
@@ -233,7 +233,7 @@ elif command -v emerge &>/dev/null; then
     install_git
     home
 else
-    echo -e "${red_fg_strong}[ERROR] Unsupported package manager. Cannot detect Linux distribution.${reset}"
+    log_message "ERROR" "${red_fg_strong}Unsupported package manager. Cannot detect Linux distribution.${reset}"
     exit 1
 fi
 

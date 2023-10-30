@@ -1,8 +1,16 @@
 @echo off
-REM --------------------------------------------
-REM This script was created by: Deffcolony
-REM --------------------------------------------
-REM Github: https://github.com/textgen/text-generation-webui
+REM Text generation web UI Launcher
+REM Created by: Deffcolony
+REM Github: https://github.com/oobabooga/text-generation-webui
+REM
+REM Description:
+REM This script can install Text generation web UI
+REM
+REM This script is intended for use on Windows systems.
+REM report any issues or bugs on the GitHub repository.
+REM
+REM GitHub: https://github.com/deffcolony/ai-toolbox
+REM Issues: https://github.com/deffcolony/ai-toolbox/issues
 setlocal
 
 REM ANSI Escape Code for Colors
@@ -83,7 +91,8 @@ echo 2. Run textgen
 echo 3. Run textgen + addons
 echo 4. Run textgen + share
 echo 5. Update
-echo 6. Exit
+echo 6. Uninstall textgen
+echo 7. Exit
 
 
 set "choice="
@@ -95,15 +104,17 @@ REM if not defined choice set "choice=1"
 
 REM home - Backend
 if "%choice%"=="1" (
-    call :installtextgen
+    call :install_textgen
 ) else if "%choice%"=="2" (
-    call :runtextgen
+    call :run_textgen
 ) else if "%choice%"=="3" (
-    call :runtextgenaddons
+    call :run_textgen_addons
 ) else if "%choice%"=="4" (
-    call :runtextgenshare
+    call :run_textgen_share
 ) else if "%choice%"=="5" (
-    call :updatetextgen
+    call :update_textgen
+) else if "%choice%"=="5" (
+    call :uninstall_textgen
 ) else if "%choice%"=="6" (
     exit
 ) else (
@@ -114,7 +125,7 @@ if "%choice%"=="1" (
 )
 
 
-:installtextgen
+:install_textgen
 title textgen [INSTALL]
 cls
 echo %blue_fg_strong%/ Home / Install textgen%reset%
@@ -124,26 +135,32 @@ echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
 echo %blue_fg_strong%[INFO]%reset% Installing textgen...
 git clone https://github.com/oobabooga/text-generation-webui.git
 
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Miniconda...
 winget install -e --id Anaconda.Miniconda3
 
 REM Run conda activate from the Miniconda installation
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
 call "%miniconda_path%\Scripts\activate.bat"
 
 REM Create a Conda environment named textgen
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment textgen...
 call conda create -n textgen -y 
 
 REM Activate the textgen environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment textgen...
 call conda activate textgen
 
 REM Install Python in the textgen environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python in the Conda environment...
 call conda install python=3.10 -y
 
 cd /d "%~dp0text-generation-webui/extensions/openai"
 
 REM Install openai + xformers
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing openai extension and xformers...
 pip install -r requirements.txt
 pip install xformers
-echo %green_fg_strong%textgen Installed Successfully.%reset%
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%textgen Installed Successfully.%reset%
 
 REM Ask if the user wants to create a shortcut
 set /p create_shortcut=Do you want to create a shortcut on the desktop? [Y/n] 
@@ -172,10 +189,12 @@ echo %blue_fg_strong%/ Home / Configure textgen%reset%
 echo ---------------------------------------------------------------
 
 REM Run conda activate from the Miniconda installation
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
 call "%miniconda_path%\Scripts\activate.bat"
-echo %blue_fg_strong%[INFO]%reset% Running textgen...
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Running textgen...
 
 REM Activate the textgen environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment textgen...
 call conda activate textgen
 
 cls
@@ -187,7 +206,7 @@ pause
 goto :home
 
 
-:runtextgen
+:run_textgen
 title textgen
 cls
 echo %blue_fg_strong%/ Home / Run textgen%reset%
@@ -220,16 +239,17 @@ REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
 
 REM Activate the textgen environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment textgen...
 call conda activate textgen
 
 REM Start textgen with desired configurations
-echo %blue_fg_strong%[INFO]%reset% textgen has been launched.
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% textgen launched in a new window.
 cd /d "%~dp0text-generation-webui"
 start cmd /k start_windows.bat --api --listen --listen-port 7910 --loader ExLlama_HF --xformers
 goto :home
 
 
-:runtextgenaddons
+:run_textgen_addons
 title textgen [ADDONS]
 cls
 echo %blue_fg_strong%/ Home / Run textgen + addons%reset%
@@ -272,7 +292,7 @@ REM You can add more flags like this --api --listen --listen-port 7910
 goto :home
 
 
-:runtextgenshare
+:run_textgen_share
 title textgen [SHARE]
 cls
 echo %blue_fg_strong%/ Home / Run textgen + share%reset%
@@ -303,7 +323,7 @@ REM You can add more flags like this --api --listen --listen-port 7910 --loader 
 goto :home
 
 
-:updatetextgen
+:update_textgen
 title textgen [UPDATE]
 cls
 echo %blue_fg_strong%/ Home / Update%reset%
@@ -345,3 +365,37 @@ pip install --upgrade xformers
 call "%CONDA_ROOT_PREFIX%\condabin\conda.bat" deactivate "%INSTALL_ENV_DIR%"
 pause
 goto :home
+
+
+:uninstall_textgen
+title textgen [UNINSTALL]
+setlocal enabledelayedexpansion
+chcp 65001 > nul
+
+REM Confirm with the user before proceeding
+echo.
+echo %red_bg%╔════ DANGER ZONE ══════════════════════════════════════════════════════════════════════════════╗%reset%
+echo %red_bg%║ WARNING: This will delete all Text generation web UI data                                     ║%reset%
+echo %red_bg%║ If you want to keep any data, make sure to create a backup before proceeding.                 ║%reset%
+echo %red_bg%╚═══════════════════════════════════════════════════════════════════════════════════════════════╝%reset%
+echo.
+set /p "confirmation=Are you sure you want to proceed? [Y/N]: "
+if /i "%confirmation%"=="Y" (
+
+    REM Remove the Conda environment
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'textgen'...
+    call conda remove --name textgen --all -y
+
+    REM Remove the folder stable-diffusion-webui
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the text-generation-webui directory...
+    cd /d "%~dp0"
+    rmdir /s /q text-generation-webui
+
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Text generation web UI uninstalled successfully.%reset%
+    pause
+    goto :home
+) else (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Uninstall canceled.
+    pause
+    goto :home
+)

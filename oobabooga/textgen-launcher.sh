@@ -4,7 +4,7 @@
 # Created by: Deffcolony
 #
 # Description:
-# This script installs textgen web UI to your Linux system.
+# This script installs Text generation web UI to your Linux system.
 #
 # Usage:
 # chmod +x textgen-launcher.sh && ./textgen-launcher.sh 
@@ -42,53 +42,81 @@ blue_bg="\033[44m"
 miniconda_path="$HOME/miniconda"
 miniconda_installer="Miniconda3-latest-Linux-x86_64.sh"
 
+# Function to log messages with timestamps and colors
+log_message() {
+    # This is only time
+    current_time=$(date +'%H:%M:%S')
+    # This is with date and time 
+    # current_time=$(date +'%Y-%m-%d %H:%M:%S')
+    case "$1" in
+        "INFO")
+            echo -e "${blue_bg}[$current_time]${reset} ${blue_fg_strong}[INFO]${reset} $2"
+            ;;
+        "WARN")
+            echo -e "${yellow_bg}[$current_time]${reset} ${yellow_fg_strong}[WARN]${reset} $2"
+            ;;
+        "ERROR")
+            echo -e "${red_bg}[$current_time]${reset} ${red_fg_strong}[ERROR]${reset} $2"
+            ;;
+        *)
+            echo -e "${blue_bg}[$current_time]${reset} ${blue_fg_strong}[DEBUG]${reset} $2"
+            ;;
+    esac
+}
+
+# Log your messages test window
+#log_message "INFO" "Something has been launched."
+#log_message "WARN" "${yellow_fg_strong}Something is not installed on this system.${reset}"
+#log_message "ERROR" "${red_fg_strong}An error occurred during the process.${reset}"
+#log_message "DEBUG" "This is a debug message."
+#read -p "Press Enter to continue..."
 
 # Function to install Git
 install_git() {
     if ! command -v git &> /dev/null; then
-        echo -e "${yellow_fg_strong}[WARN] Git is not installed on this system.${reset}"
+        log_message "WARN" "${yellow_fg_strong}Git is not installed on this system${reset}"
 
         if command -v apt-get &>/dev/null; then
             # Debian/Ubuntu-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using apt..."
+            log_message "INFO" "Installing Git using apt..."
             sudo apt-get update
             sudo apt-get install -y git
         elif command -v yum &>/dev/null; then
             # Red Hat/Fedora-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using yum..."
+            log_message "INFO" "Installing Git using yum..."
             sudo yum install -y git
         elif command -v apk &>/dev/null; then
             # Alpine Linux-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using apk..."
+            log_message "INFO" "Installing Git using apk..."
             sudo apk add git
         elif command -v pacman &>/dev/null; then
             # Arch Linux-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using pacman..."
+            log_message "INFO" "Installing Git using pacman..."
             sudo pacman -S --noconfirm git
         elif command -v emerge &>/dev/null; then
             # Gentoo Linux-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using emerge..."
+            log_message "INFO" "Installing Git using emerge..."
             sudo emerge --ask dev-vcs/git
         else
-            echo -e "${red_fg_strong}[ERROR] Unsupported Linux distribution.${reset}"
+            log_message "ERROR" "${red_fg_strong}Unsupported Linux distribution.${reset}"
             exit 1
         fi
 
-        echo -e "${green_fg_strong}Git is installed.${reset}"
+        log_message "INFO" "${green_fg_strong}Git is installed.${reset}"
     else
         echo -e "${blue_fg_strong}[INFO] Git is already installed.${reset}"
     fi
 }
 
 
-# Function to install textgen web UI
+# Function to install Text generation web UI
 install_textgen() {
     echo -e "\033]0;textgen [INSTALL]\007"
     clear
-    echo -e "${blue_fg_strong}/ Home / textgen web UI${reset}"
+    echo -e "${blue_fg_strong}/ Home / textgen${reset}"
     echo "---------------------------------------------------------------"
-    echo -e "${blue_fg_strong}[INFO]${reset} Installing textgen web UI..."
     echo -e "${cyan_fg_strong}This may take a while. Please be patient.${reset}"
+    log_message "INFO" "Installing Text generation web UI..."
 
     git clone https://github.com/oobabooga/text-generation-webui.git
 
@@ -114,20 +142,20 @@ install_textgen() {
 
     cd /d "$PWD/text-generation-webui/extensions/openai"
 
-    echo -e "${blue_fg_strong}[INFO]${reset} Installing openai extension and xformers..."
+    log_message "INFO" "Installing openai extension and xformers..."
     pip install -r requirements.txt
     pip install xformers
 
     # Cleanup the Downloaded file
     rm -rf /tmp/$miniconda_installer
-    echo -e "${green_fg_strong}textgen web UI installed successfully.${reset}"
+    log_message "INFO" "${green_fg_strong}Text generation web UI installed successfully.${reset}"
     read -p "Press Enter to continue..."
     home
 }
 
 
 
-# Function to run textgen web UI
+# Function to run Text generation web UI
 run_textgen() {
     echo -e "\033]0;textgen\007"
     clear
@@ -163,7 +191,7 @@ run_textgen() {
     conda activate textgen
 
     # Start textgen with desired configurations
-    echo -e %blue_fg_strong%[INFO]%reset% textgen has been launched.
+    log_message "INFO" "textgen launched in a new window."
     cd "$PWD/text-generation-webui"
 
     # Start a seperate terminal emulator (adjust the command as needed)
@@ -173,7 +201,7 @@ run_textgen() {
 }
 
 
-# Function to run textgen web UI with addons
+# Function to run Text generation web UI with addons
 run_textgen_addons() {
     echo -e "\033]0;textgen [ADDONS]\007"
     clear
@@ -209,7 +237,7 @@ run_textgen_addons() {
     conda activate textgen
 
     # Start textgen with desired configurations
-    echo -e %blue_fg_strong%[INFO]%reset% textgen has been launched.
+    log_message "INFO" "textgen launched in a new window."
     cd "$PWD/text-generation-webui"
 
     # Start a seperate terminal emulator (adjust the command as needed)
@@ -227,10 +255,10 @@ uninstall_textgen() {
 
     # Confirm with the user before proceeding
     echo
-    echo -e "\e[41m╔════ DANGER ZONE ══════════════════════════════════════════════════════════════╗\e[0m"
-    echo -e "\e[41m║ WARNING: This will delete all oobabooga textgen data                          ║\e[0m"
-    echo -e "\e[41m║ If you want to keep any data, make sure to create a backup before proceeding. ║\e[0m"
-    echo -e "\e[41m╚═══════════════════════════════════════════════════════════════════════════════╝\e[0m"
+    echo -e "${red_bg}╔════ DANGER ZONE ══════════════════════════════════════════════════════════════╗${reset}"
+    echo -e "${red_bg}║ WARNING: This will delete all Text generation web UI data                     ║${reset}"
+    echo -e "${red_bg}║ If you want to keep any data, make sure to create a backup before proceeding. ║${reset}"
+    echo -e "${red_bg}╚═══════════════════════════════════════════════════════════════════════════════╝${reset}"
     echo
     read -p "Are you sure you want to proceed? [Y/N] " confirmation
     if [ "$confirmation" = "Y" ] || [ "$confirmation" = "y" ]; then
@@ -249,10 +277,10 @@ home() {
     echo -e "${blue_fg_strong}/ Home${reset}"
     echo "-------------------------------------"
     echo "What would you like to do?"
-    echo "1. Install textgen web UI"
-    echo "2. Run textgen web UI"
-    echo "3. Run textgen web UI with addons"
-    echo "4. Uninstall textgen web UI"
+    echo "1. Install textgen"
+    echo "2. Run textgen"
+    echo "3. Run textgen + addons"
+    echo "4. Uninstall textgen"
     echo "5. Exit"
 
     read -p "Choose Your Destiny (default is 1): " choice

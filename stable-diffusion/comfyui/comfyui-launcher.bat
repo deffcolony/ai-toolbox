@@ -4,7 +4,7 @@ REM Created by: Deffcolony
 REM Github: https://github.com/comfyanonymous/ComfyUI
 REM
 REM Description:
-REM This script can install sillytavern and/or extras with shortcut to open the launcher.bat
+REM This script can install ComfyUI
 REM
 REM This script is intended for use on Windows systems.
 REM report any issues or bugs on the GitHub repository.

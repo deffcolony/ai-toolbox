@@ -37,6 +37,35 @@ cyan_fg_strong="\033[96m"
 red_bg="\033[41m"
 blue_bg="\033[44m"
 
+# Function to log messages with timestamps and colors
+log_message() {
+    # This is only time
+    current_time=$(date +'%H:%M:%S')
+    # This is with date and time 
+    # current_time=$(date +'%Y-%m-%d %H:%M:%S')
+    case "$1" in
+        "INFO")
+            echo -e "${blue_bg}[$current_time]${reset} ${blue_fg_strong}[INFO]${reset} $2"
+            ;;
+        "WARN")
+            echo -e "${yellow_bg}[$current_time]${reset} ${yellow_fg_strong}[WARN]${reset} $2"
+            ;;
+        "ERROR")
+            echo -e "${red_bg}[$current_time]${reset} ${red_fg_strong}[ERROR]${reset} $2"
+            ;;
+        *)
+            echo -e "${blue_bg}[$current_time]${reset} ${blue_fg_strong}[DEBUG]${reset} $2"
+            ;;
+    esac
+}
+
+# Log your messages test window
+#log_message "INFO" "Something has been launched."
+#log_message "WARN" "${yellow_fg_strong}Something is not installed on this system.${reset}"
+#log_message "ERROR" "${red_fg_strong}An error occurred during the process.${reset}"
+#log_message "DEBUG" "This is a debug message."
+#read -p "Press Enter to continue..."
+
 
 # Function to install MPV
 install_mpv() {

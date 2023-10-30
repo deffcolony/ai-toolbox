@@ -147,6 +147,7 @@ echo ---------------------------------------------------------------
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Stable Diffusion web UI...
 echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
 
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Miniconda...
 winget install -e --id Anaconda.Miniconda3
 
 REM Run conda activate from the Miniconda installation

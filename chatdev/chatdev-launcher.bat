@@ -1,8 +1,16 @@
 @echo off
-REM --------------------------------------------
-REM This script was created by: Deffcolony
-REM --------------------------------------------
+REM RVC-Launcher
+REM Created by: Deffcolony
 REM Github: https://github.com/OpenBMB/ChatDev
+REM
+REM Description:
+REM This script installs ChatDev
+REM
+REM This script is intended for use on Windows systems.
+REM report any issues or bugs on the GitHub repository.
+REM
+REM GitHub: https://github.com/deffcolony/ai-toolbox
+REM Issues: https://github.com/deffcolony/ai-toolbox/issues
 setlocal
 
 REM ANSI Escape Code for Colors
@@ -39,11 +47,11 @@ set "comment=ChatDev Launcher"
 REM Check if Winget is installed; if not, then install it
 winget --version > nul 2>&1
 if %errorlevel% neq 0 (
-    echo %yellow_fg_strong%[WARN] Winget is not installed on this system.%reset%
-    echo %blue_fg_strong%[INFO]%reset% Installing Winget...
+    echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Winget is not installed on this system.%reset%
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Winget...
     bitsadmin /transfer "Microsoft.DesktopAppInstaller_8wekyb3d8bbwe" /download /priority FOREGROUND "https://github.com/microsoft/winget-cli/releases/download/v1.5.2201/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
     start "" "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-    echo %green_fg_strong%Winget is now installed.%reset%
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Winget installed successfully.%reset%
 ) else (
     echo %blue_fg_strong%[INFO] Winget is already installed.%reset%
 )
@@ -64,7 +72,7 @@ if %ff_path_exists% neq 0 (
 
     rem Update the PATH value for the current session
     setx PATH "%new_path%" > nul
-    echo %green_fg_strong%winget added to PATH.%reset%
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%winget successfully added to PATH.%reset%
 ) else (
     set "new_path=%current_path%"
     echo %blue_fg_strong%[INFO] winget already exists in PATH.%reset%
@@ -118,29 +126,36 @@ echo %blue_fg_strong%/ Home / Install ChatDev%reset%
 echo ---------------------------------------------------------------
 echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
 
-echo %blue_fg_strong%[INFO]%reset% Installing ChatDev...
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing ChatDev...
 
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Miniconda...
 winget install -e --id Anaconda.Miniconda3
 
 REM Run conda activate from the Miniconda installation
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
 call "%miniconda_path%\Scripts\activate.bat"
 
 REM Create a Conda environment named chatdev
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment chatdev...
 call conda create -n chatdev -y 
 
 REM Activate the chatdev environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment chatdev...
 call conda activate chatdev
 
-REM Install Python 3.11 and Git in the chatdev environment
+REM Install Python and Git in the chatdev environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
 call conda install python=3.9 git -y
 
 REM Clone the ChatDev repository
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the ChatDev repository...
 git clone https://github.com/OpenBMB/ChatDev.git
 
 REM Navigate to the ChatDev directory
 cd ChatDev
 
 REM Install Python dependencies from requirements files
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements...
 pip install -r requirements.txt
 
 echo %green_fg_strong%ChatDev Installed Successfully.%reset%

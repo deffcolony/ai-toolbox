@@ -118,29 +118,35 @@ echo %blue_fg_strong%/ Home / Install autogen%reset%
 echo ---------------------------------------------------------------
 echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
 
-echo %blue_fg_strong%[INFO]%reset% Installing autogen...
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing autogen...
 
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Miniconda...
 winget install -e --id Anaconda.Miniconda3
 
 REM Run conda activate from the Miniconda installation
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
 call "%miniconda_path%\Scripts\activate.bat"
 
 REM Create a Conda environment named autogen
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment autogen...
 call conda create -n autogen -y 
 
 REM Activate the autogen environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment autogen...
 call conda activate autogen
 
-REM Install Python 3.11 and Git in the autogen environment
+REM Install Python and Git in the autogen environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
 call conda install python=3.11.4 git -y
 
 REM Create & Navigate to the autogen directory
 mkdir autogen && cd autogen
 
 REM Install AutoGen package from pip
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pyautogen with pip...
 pip install pyautogen
 
-echo %green_fg_strong%autogen Installed Successfully.%reset%
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%autogen Installed Successfully.%reset%
 
 REM Ask if the user wants to create a shortcut
 set /p create_shortcut=Do you want to create a shortcut on the desktop? [Y/n] 
@@ -169,10 +175,11 @@ echo %blue_fg_strong%/ Home / Configure autogen%reset%
 echo ---------------------------------------------------------------
 
 REM Run conda activate from the Miniconda installation
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
 call "%miniconda_path%\Scripts\activate.bat"
-echo %blue_fg_strong%[INFO]%reset% Running autogen...
 
 REM Activate the autogen environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment autogen...
 call conda activate autogen
 
 cls
@@ -192,13 +199,14 @@ echo ---------------------------------------------------------------
 echo %blue_fg_strong%[INFO]%reset% AutoGen has been launched.
 
 REM Run conda activate from the Miniconda installation
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
 call "%miniconda_path%\Scripts\activate.bat"
 
 REM Activate the autogen environment
 call conda activate autogen
 
 REM Start SillyTavern Extras with desired configurations
-echo %blue_fg_strong%[INFO]%reset% AutoGen has been launched.
+echo %blue_fg_strong%[INFO]%reset% AutoGen launched in a new window.
 cd /d "%~dp0autogen"
 start cmd /k python app.py
 goto :home
