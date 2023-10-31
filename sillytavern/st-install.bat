@@ -132,11 +132,11 @@ if not defined choice set "choice=1"
 
 REM Installer - Backend
 if "%choice%"=="1" (
-    call :installstextras
+    call :install_st_extras
 ) else if "%choice%"=="2" (
-    call :installsillytavern 
+    call :install_sillytavern 
 ) else if "%choice%"=="3" (
-    call :installextras
+    call :install_extras
 ) else if "%choice%"=="4" (
     exit
 ) else (
@@ -147,7 +147,7 @@ if "%choice%"=="1" (
 )
 
 
-:installstextras
+:install_st_extras
 title SillyTavern [INSTALL ST + EXTRAS]
 cls
 echo %blue_fg_strong%/ Installer / SillyTavern + Extras%reset%
@@ -231,7 +231,7 @@ endlocal
 goto :installer
 
 
-:installsillytavern
+:install_sillytavern
 title SillyTavern [INSTALL ST]
 cls
 echo %blue_fg_strong%/ Installer / SillyTavern%reset%
@@ -265,7 +265,7 @@ endlocal
 goto :installer
 
 
-:installextras
+:install_extras
 title SillyTavern [INSTALL EXTRAS]
 cls
 echo %blue_fg_strong%/ Installer / Extras%reset%

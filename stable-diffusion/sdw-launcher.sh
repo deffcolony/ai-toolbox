@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 #
 # Stable Diffusion web UI Launcher
 # Created by: Deffcolony

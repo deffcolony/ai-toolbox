@@ -1,13 +1,13 @@
-#!/usr/bin/bash
+#!/bin/bash
 #
-# SillyTavern Installer Script v0.0.1
+# SillyTavern Installer Script
 # Created by: Deffcolony
 #
 # Description:
 # This script installs SillyTavern and/or Extras to your Linux system.
 #
 # Usage:
-# chmod +x install.sh && ./install.sh
+# chmod +x st-install.sh && ./st-install.sh
 #
 # In automated environments, you may want to run as root.
 # If using curl, we recommend using the -fsSL flags.
@@ -50,27 +50,57 @@ startIn="SillyTavern"
 comment="SillyTavern Launcher"
 
 
+# Function to log messages with timestamps and colors
+log_message() {
+    # This is only time
+    current_time=$(date +'%H:%M:%S')
+    # This is with date and time 
+    # current_time=$(date +'%Y-%m-%d %H:%M:%S')
+    case "$1" in
+        "INFO")
+            echo -e "${blue_bg}[$current_time]${reset} ${blue_fg_strong}[INFO]${reset} $2"
+            ;;
+        "WARN")
+            echo -e "${yellow_bg}[$current_time]${reset} ${yellow_fg_strong}[WARN]${reset} $2"
+            ;;
+        "ERROR")
+            echo -e "${red_bg}[$current_time]${reset} ${red_fg_strong}[ERROR]${reset} $2"
+            ;;
+        *)
+            echo -e "${blue_bg}[$current_time]${reset} ${blue_fg_strong}[DEBUG]${reset} $2"
+            ;;
+    esac
+}
+
+# Log your messages test window
+#log_message "INFO" "Something has been launched."
+#log_message "WARN" "${yellow_fg_strong}Something is not installed on this system.${reset}"
+#log_message "ERROR" "${red_fg_strong}An error occurred during the process.${reset}"
+#log_message "DEBUG" "This is a debug message."
+#read -p "Press Enter to continue..."
+
+
 # Function to install D-Bus
 install_dbus() {
     if command -v apt-get &>/dev/null; then
-        echo -e "${blue_fg_strong}[INFO] Installing D-Bus on Debian/Ubuntu.${reset}"
+        log_message "INFO" "Installing D-Bus on Debian/Ubuntu.${reset}"
         sudo apt update
         sudo apt install -y dbus dbus-x11
     elif command -v yum &>/dev/null; then
-        echo -e "${blue_fg_strong}[INFO] Installing D-Bus on Red Hat/Fedora.${reset}"
+        log_message "INFO" "Installing D-Bus on Red Hat/Fedora.${reset}"
         sudo yum install -y dbus dbus-x11
     elif command -v apk &>/dev/null; then
-        echo -e "${blue_fg_strong}[INFO] Installing D-Bus on Alpine Linux.${reset}"
+        log_message "INFO" "Installing D-Bus on Alpine Linux.${reset}"
         sudo apk update
         sudo apk add dbus dbus-x11
     elif command -v pacman &>/dev/null; then
-        echo -e "${blue_fg_strong}[INFO] Installing D-Bus on Arch Linux.${reset}"
+        log_message "INFO" "Installing D-Bus on Arch Linux.${reset}"
         sudo pacman -Syu dbus dbus-x11
     elif command -v emerge &>/dev/null; then
-        echo -e "${blue_fg_strong}[INFO] Installing D-Bus on Gentoo Linux.${reset}"
+        log_message "INFO" "Installing D-Bus on Gentoo Linux.${reset}"
         sudo emerge dbus dbus-x11
     else
-        echo -e "${red_fg_strong}[ERROR] Unsupported package manager. Cannot install D-Bus.${reset}"
+        log_message "ERROR" "${red_fg_strong}Unsupported package manager. Cannot install D-Bus.${reset}"
         exit 1
     fi
 }
@@ -78,35 +108,35 @@ install_dbus() {
 # Function to install Git
 install_git() {
     if ! command -v git &> /dev/null; then
-        echo -e "${yellow_fg_strong}[WARN] Git is not installed on this system.${reset}"
+        log_message "WARN" "${yellow_fg_strong}Git is not installed on this system${reset}"
 
         if command -v apt-get &>/dev/null; then
             # Debian/Ubuntu-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using apt..."
+            log_message "INFO" "Installing Git using apt..."
             sudo apt-get update
             sudo apt-get install -y git
         elif command -v yum &>/dev/null; then
             # Red Hat/Fedora-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using yum..."
+            log_message "INFO" "Installing Git using yum..."
             sudo yum install -y git
         elif command -v apk &>/dev/null; then
             # Alpine Linux-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using apk..."
+            log_message "INFO" "Installing Git using apk..."
             sudo apk add git
         elif command -v pacman &>/dev/null; then
             # Arch Linux-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using pacman..."
+            log_message "INFO" "Installing Git using pacman..."
             sudo pacman -S --noconfirm git
         elif command -v emerge &>/dev/null; then
             # Gentoo Linux-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using emerge..."
+            log_message "INFO" "Installing Git using emerge..."
             sudo emerge --ask dev-vcs/git
         else
-            echo -e "${red_fg_strong}[ERROR] Unsupported Linux distribution.${reset}"
+            log_message "ERROR" "${red_fg_strong}Unsupported Linux distribution.${reset}"
             exit 1
         fi
 
-        echo -e "${green_fg_strong}Git is installed.${reset}"
+        log_message "INFO" "${green_fg_strong}Git is installed.${reset}"
     else
         echo -e "${blue_fg_strong}[INFO] Git is already installed.${reset}"
     fi
@@ -120,7 +150,7 @@ install_nodejs_npm() {
 
         if command -v apt-get &>/dev/null; then
             # Debian/Ubuntu-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Node.js and npm using apt..."
+            log_message "INFO" "Installing Node.js and npm using apt..."
             sudo apt-get update
             sudo apt-get install -y curl
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
@@ -130,7 +160,7 @@ install_nodejs_npm() {
             nvm use --lts
         elif command -v yum &>/dev/null; then
             # Red Hat/Fedora-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Node.js and npm using yum..."
+            log_message "INFO" "Installing Node.js and npm using yum..."
             sudo yum install -y curl
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
             source "$NVM_DIR/nvm.sh"
@@ -139,7 +169,7 @@ install_nodejs_npm() {
             nvm use --lts
         elif command -v apk &>/dev/null; then
             # Alpine Linux-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Node.js and npm using apk..."
+            log_message "INFO" "Installing Node.js and npm using apk..."
             sudo apk add curl
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
             source "$NVM_DIR/nvm.sh"
@@ -148,7 +178,7 @@ install_nodejs_npm() {
             nvm use --lts
         elif command -v pacman &>/dev/null; then
             # Arch Linux-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Node.js and npm using pacman..."
+            log_message "INFO" "Installing Node.js and npm using pacman..."
             sudo pacman -S --noconfirm curl
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
             source "$NVM_DIR/nvm.sh"
@@ -157,7 +187,7 @@ install_nodejs_npm() {
             nvm use --lts
         elif command -v emerge &>/dev/null; then
             # Gentoo-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Node.js and npm using emerge..."
+            log_message "INFO" "Installing Node.js and npm using emerge..."
             sudo emerge -av net-misc/curl
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
             source "$NVM_DIR/nvm.sh"
@@ -165,7 +195,7 @@ install_nodejs_npm() {
             nvm install --lts
             nvm use --lts
         else
-            echo -e "${red_fg_strong}[ERROR] Unsupported Linux distribution.${reset}"
+            log_message "ERROR" "${red_fg_strong}Unsupported Linux distribution.${reset}"
             exit 1
         fi
 
@@ -178,19 +208,19 @@ install_nodejs_npm() {
 
 
 # Function to install SillyTavern + Extras
-installstextras() {
+install_st_extras() {
     echo -e "\033]0;SillyTavern [INSTALL-ST-EXTRAS]\007"
     clear
     echo -e "${blue_fg_strong}/ Installer / SillyTavern + Extras${reset}"
     echo "---------------------------------------------------------------"
-    echo -e "${blue_fg_strong}[INFO]${reset} Installing SillyTavern + Extras..."
+    log_message "INFO" "Installing SillyTavern + Extras..."
     echo -e "${cyan_fg_strong}This may take a while. Please be patient.${reset}"
 
-    echo -e "${blue_fg_strong}[INFO]${reset} Installing SillyTavern..."
+    log_message "INFO" "Installing SillyTavern..."
     git clone https://github.com/SillyTavern/SillyTavern.git
-    echo -e "${green_fg_strong}SillyTavern installed successfully.${reset}"
+    log_message "INFO" "${green_fg_strong}SillyTavern installed successfully.${reset}"
 
-    echo -e "${blue_fg_strong}[INFO]${reset} Installing Extras..."
+    log_message "INFO" "Installing Extras..."
 
     # Download the Miniconda installer script
     wget https://repo.anaconda.com/miniconda/$miniconda_installer -P /tmp
@@ -203,50 +233,55 @@ installstextras() {
     export PATH="$miniconda_path/bin:$PATH"
 
     # Activate Conda environment
+    log_message "INFO" "Activating Miniconda environment..."
     source $miniconda_path/etc/profile.d/conda.sh
 
     # Create and activate the Conda environment
-    echo -e "${blue_fg_strong}[INFO]${reset} Creating a Conda environment..."
+    log_message "INFO" "Disabling conda auto activate..."
     conda config --set auto_activate_base false
     conda init bash
+
+    log_message "INFO" "Creating Conda environment sillytavernextras..."
     conda create -n sillytavernextras -y
+
+    log_message "INFO" "Activating Conda environment sillytavernextras..."
     conda activate sillytavernextras
-    echo -e "${green_fg_strong}Conda environment created.${reset}"
 
-    echo -e "${blue_fg_strong}[INFO]${reset} Installing Python 3.11 and Git in the Conda environment..."
+    log_message "INFO" "Installing Python and Git in the Conda environment..."
     conda install python=3.11 git -y
-    echo -e "${green_fg_strong}Python 3.11 and Git installed.${reset}"
 
-    echo -e "${blue_fg_strong}[INFO]${reset} Cloning the SillyTavern Extras repository..."
+    log_message "INFO" "Cloning SillyTavern-extras repository..."
     git clone https://github.com/SillyTavern/SillyTavern-extras.git
-    echo -e "${green_fg_strong}SillyTavern Extras repository cloned.${reset}"
 
-    echo -e "${blue_fg_strong}[INFO]${reset} Installing Python dependencies..."
     cd SillyTavern-extras
+
+    log_message "INFO" "Installing pip requirements-complete..."
     pip install -r requirements-complete.txt
+
+    log_message "INFO" "Installing pip requirements-rvc..."
     pip install -r requirements-rvc.txt
+
     echo -e "${cyan_fg_strong}Yes, If you are seeing errors about Numpy and Librosa then that is completely normal. If facebook updates their fairseq library to python 3.11 then this error will not appear anymore.${reset}"
     # Cleanup the Downloaded file
     rm -rf /tmp/$miniconda_installer
-    echo -e "${green_fg_strong}SillyTavern + Extras has been successfully installed.${reset}"
-
+    log_message "INFO" "${green_fg_strong}SillyTavern + Extras successfully installed.${reset}"
+    
     installer
 }
 
 
 
 # Function to install SillyTavern
-installsillytavern() {
+install_sillytavern() {
     echo -e "\033]0;SillyTavern [INSTALL-ST]\007"
     clear
     echo -e "${blue_fg_strong}/ Installer / SillyTavern${reset}"
     echo "---------------------------------------------------------------"
-    echo -e "${blue_fg_strong}[INFO]${reset} Installing SillyTavern..."
-    echo "--------------------------------"
     echo -e "${cyan_fg_strong}This may take a while. Please be patient.${reset}"
-
+    log_message "INFO" "Installing SillyTavern..."
+    log_message "INFO" "Cloning SillyTavern repository..."
     git clone https://github.com/SillyTavern/SillyTavern.git
-    echo -e "${green_fg_strong}SillyTavern installed successfully.${reset}"
+    log_message "INFO" "${green_fg_strong}SillyTavern installed successfully.${reset}"
     read -p "Press Enter to continue..."
 
     installer
@@ -254,12 +289,12 @@ installsillytavern() {
 
 
 # Function to install Extras
-installextras() {
+install_extras() {
     echo -e "\033]0;SillyTavern [INSTALL-EXTRAS]\007"
     clear
     echo -e "${blue_fg_strong}/ Installer / Extras${reset}"
     echo "---------------------------------------------------------------"
-    echo -e "${blue_fg_strong}[INFO]${reset} Installing Extras..."
+    log_message "INFO" "Installing Extras..."
 
     # Download the Miniconda installer script
     wget https://repo.anaconda.com/miniconda/$miniconda_installer -P /tmp
@@ -272,30 +307,35 @@ installextras() {
     export PATH="$miniconda_path/bin:$PATH"
 
     # Activate Conda environment
+    log_message "INFO" "Activating Miniconda environment..."
     source $miniconda_path/etc/profile.d/conda.sh
 
     # Create and activate the Conda environment
-    echo -e "${blue_fg_strong}[INFO]${reset} Creating a Conda environment..."
+    log_message "INFO" "Disabling conda auto activate..."
     conda config --set auto_activate_base false
     conda init bash
+
+    log_message "INFO" "Creating Conda environment sillytavernextras..."
     conda create -n sillytavernextras -y
+
+    log_message "INFO" "Activating Conda environment sillytavernextras..."
     conda activate sillytavernextras
-    echo -e "${green_fg_strong}Conda environment created.${reset}"
 
-    echo -e "${blue_fg_strong}[INFO]${reset} Installing Python 3.11 and Git in the Conda environment..."
+    log_message "INFO" "Installing Python and Git in the Conda environment..."
     conda install python=3.11 git -y
-    echo -e "${green_fg_strong}Python 3.11 and Git installed.${reset}"
 
-    echo -e "${blue_fg_strong}[INFO]${reset} Cloning the SillyTavern Extras repository..."
+    log_message "INFO" "Cloning SillyTavern-extras repository..."
     git clone https://github.com/SillyTavern/SillyTavern-extras.git
-    echo -e "${green_fg_strong}SillyTavern Extras repository cloned.${reset}"
 
-    echo -e "${blue_fg_strong}[INFO]${reset} Installing Python dependencies..."
     cd SillyTavern-extras
+
+    log_message "INFO" "Installing pip requirements-complete..."
     pip install -r requirements-complete.txt
+
+    log_message "INFO" "Installing pip requirements-rvc..."
     pip install -r requirements-rvc.txt
     echo -e "${cyan_fg_strong}Yes, If you are seeing errors about Numpy and Librosa then that is completely normal. If facebook updates their fairseq library to python 3.11 then this error will not appear anymore.${reset}"
-    echo -e "${green_fg_strong}SillyTavern + Extras has been successfully installed.${reset}"
+    log_message "INFO" "${green_fg_strong}SillyTavern + Extras has been successfully installed.${reset}"
 
     installer
 }
@@ -324,11 +364,11 @@ installer() {
 
     # Installer - Backend
     if [ "$choice" = "1" ]; then
-        installstextras
+        install_st_extras
     elif [ "$choice" = "2" ]; then
-        installsillytavern
+        install_sillytavern
     elif [ "$choice" = "3" ]; then
-        installextras
+        install_extras
     elif [ "$choice" = "4" ]; then
         exit
     else
@@ -340,42 +380,42 @@ installer() {
 
 # Detect the package manager and execute the appropriate installation
 if command -v apt-get &>/dev/null; then
-    echo -e "${blue_fg_strong}[INFO] Detected Debian/Ubuntu-based system.${reset}"
+    log_message "INFO" "${blue_fg_strong}Detected Debian/Ubuntu-based system.${reset}"
     # Debian/Ubuntu
     install_dbus
     install_git
     install_nodejs_npm
     installer
 elif command -v yum &>/dev/null; then
-    echo -e "${blue_fg_strong}[INFO] Detected Red Hat/Fedora-based system.${reset}"
+    log_message "INFO" "${blue_fg_strong}Detected Red Hat/Fedora-based system.${reset}"
     # Red Hat/Fedora
     install_dbus
     install_git
     install_nodejs_npm
     installer
 elif command -v apk &>/dev/null; then
-    echo -e "${blue_fg_strong}[INFO] Detected Alpine Linux-based system.${reset}"
+    log_message "INFO" "${blue_fg_strong}Detected Alpine Linux-based system.${reset}"
     # Alpine Linux
     install_dbus
     install_git
     install_nodejs_npm
     installer
 elif command -v pacman &>/dev/null; then
-    echo -e "${blue_fg_strong}[INFO] Detected Arch Linux-based system.${reset}"
+    log_message "INFO" "${blue_fg_strong}Detected Arch Linux-based system.${reset}"
     # Arch Linux
     install_dbus
     install_git
     install_nodejs_npm
     installer
 elif command -v emerge &>/dev/null; then
-    echo -e "${blue_fg_strong}[INFO] Detected Gentoo Linux-based system. Now you are the real CHAD${reset}"
+    log_message "INFO" "${blue_fg_strong}Detected Gentoo Linux-based system. Now you are the real CHAD${reset}"
     # Gentoo Linux
     install_dbus
     install_git
     install_nodejs_npm
     installer
 else
-    echo -e "${red_fg_strong}[ERROR] Unsupported package manager. Cannot detect Linux distribution.${reset}"
+    log_message "ERROR" "${red_fg_strong}Unsupported package manager. Cannot detect Linux distribution.${reset}"
     exit 1
 fi
 

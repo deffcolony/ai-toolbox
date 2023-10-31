@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 #
 # textgen web UI
 # Created by: Deffcolony

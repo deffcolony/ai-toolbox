@@ -162,7 +162,7 @@ REM Home - backend
 if "%choice%"=="1" (
     call :start
 ) else if "%choice%"=="2" (
-    call :start_stextras
+    call :start_st_extras
 ) else if "%choice%"=="3" (
     call :update
 ) else if "%choice%"=="4" (
@@ -197,7 +197,7 @@ start cmd /k start.bat
 goto :home
 
 
-:start_stextras
+:start_st_extras
 REM Check if Node.js is installed
 node --version > nul 2>&1
 if %errorlevel% neq 0 (

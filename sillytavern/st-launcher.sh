@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 #
 # SillyTavern Launcher
 # Created by: Deffcolony
@@ -64,38 +64,67 @@ caption_trigger="false"
 summarize_trigger="false"
 
 
+# Function to log messages with timestamps and colors
+log_message() {
+    # This is only time
+    current_time=$(date +'%H:%M:%S')
+    # This is with date and time 
+    # current_time=$(date +'%Y-%m-%d %H:%M:%S')
+    case "$1" in
+        "INFO")
+            echo -e "${blue_bg}[$current_time]${reset} ${blue_fg_strong}[INFO]${reset} $2"
+            ;;
+        "WARN")
+            echo -e "${yellow_bg}[$current_time]${reset} ${yellow_fg_strong}[WARN]${reset} $2"
+            ;;
+        "ERROR")
+            echo -e "${red_bg}[$current_time]${reset} ${red_fg_strong}[ERROR]${reset} $2"
+            ;;
+        *)
+            echo -e "${blue_bg}[$current_time]${reset} ${blue_fg_strong}[DEBUG]${reset} $2"
+            ;;
+    esac
+}
+
+# Log your messages test window
+#log_message "INFO" "Something has been launched."
+#log_message "WARN" "${yellow_fg_strong}Something is not installed on this system.${reset}"
+#log_message "ERROR" "${red_fg_strong}An error occurred during the process.${reset}"
+#log_message "DEBUG" "This is a debug message."
+#read -p "Press Enter to continue..."
+
 # Function to install Git
 install_git() {
     if ! command -v git &> /dev/null; then
-        echo -e "${yellow_fg_strong}[WARN] Git is not installed on this system.${reset}"
+        log_message "WARN" "${yellow_fg_strong}Git is not installed on this system${reset}"
 
         if command -v apt-get &>/dev/null; then
             # Debian/Ubuntu-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using apt..."
+            log_message "INFO" "Installing Git using apt..."
             sudo apt-get update
             sudo apt-get install -y git
         elif command -v yum &>/dev/null; then
             # Red Hat/Fedora-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using yum..."
+            log_message "INFO" "Installing Git using yum..."
             sudo yum install -y git
         elif command -v apk &>/dev/null; then
             # Alpine Linux-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using apk..."
+            log_message "INFO" "Installing Git using apk..."
             sudo apk add git
         elif command -v pacman &>/dev/null; then
             # Arch Linux-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using pacman..."
+            log_message "INFO" "Installing Git using pacman..."
             sudo pacman -S --noconfirm git
         elif command -v emerge &>/dev/null; then
             # Gentoo Linux-based system
-            echo -e "${blue_fg_strong}[INFO]${reset} Installing Git using emerge..."
+            log_message "INFO" "Installing Git using emerge..."
             sudo emerge --ask dev-vcs/git
         else
-            echo -e "${red_fg_strong}[ERROR] Unsupported Linux distribution.${reset}"
+            log_message "ERROR" "${red_fg_strong}Unsupported Linux distribution.${reset}"
             exit 1
         fi
 
-        echo -e "${green_fg_strong}Git is installed.${reset}"
+        log_message "INFO" "${green_fg_strong}Git is installed.${reset}"
     else
         echo -e "${blue_fg_strong}[INFO] Git is already installed.${reset}"
     fi
@@ -181,7 +210,7 @@ check_nodejs() {
 # Function to start SillyTavern
 start_sillytavern() {
     check_nodejs
-    echo -e "${blue_fg_strong}[INFO]${reset} SillyTavern has been launched."
+    log_message "INFO" "SillyTavern launched in a new window."
 
     # Start a terminal emulator for "start.sh" (adjust the command as needed)
     x-terminal-emulator -e "cd $(dirname "$0")./SillyTavern && ./start.sh" &
@@ -192,13 +221,13 @@ start_sillytavern() {
 # Function to start SillyTavern with Extras
 start_sillytavern_with_extras() {
     check_nodejs
-    echo -e "${blue_fg_strong}[INFO]${reset} SillyTavern has been launched."
 
     # Start a terminal emulator for "start.sh" (adjust the command as needed)
+    log_message "INFO" "SillyTavern launched in a new window."
+    log_message "INFO" "Extras launched in a new window."
     x-terminal-emulator -e "cd $(dirname "$0")./SillyTavern && ./start.sh" &
     x-terminal-emulator -e "cd $(dirname "$0")./SillyTavern-extras && ./start.sh" &
 
-    echo -e "${blue_fg_strong}[INFO]${reset} Extras have been launched."
     home
 }
 
@@ -206,7 +235,7 @@ start_sillytavern_with_extras() {
 # Function to update
 update() {
     echo -e "\033]0;SillyTavern [UPDATE]\007"
-    echo -e "${blue_fg_strong}[INFO]${reset} Updating..."
+    log_message "INFO" "Updating SillyTavern..."
     cd "$(dirname "$0")./SillyTavern" || exit 1
 
     # Check if Git is installed
@@ -335,7 +364,7 @@ backup_menu() {
 
 # Function to switch to the Release branch in SillyTavern
 switch_release_st() {
-    echo -e "${blue_fg_strong}[INFO]${reset} Switching to release branch..."
+    log_message "INFO" "Switching to release branch..."
     git switch release
     read -p "Press Enter to continue..."
     switch_branch_menu
@@ -343,7 +372,7 @@ switch_release_st() {
 
 # Function to switch to the Staging branch in SillyTavern
 switch_staging_st() {
-    echo -e "${blue_fg_strong}[INFO]${reset} Switching to staging branch..."
+    log_message "INFO" "Switching to staging branch..."
     git switch staging
     read -p "Press Enter to continue..."
     switch_branch_menu
@@ -518,33 +547,42 @@ reinstall_extras() {
 
         echo -e "${green_fg_strong}SillyTavern Extras${reset}"
         echo "---------------------------------------------------------------"
-        echo -e "${blue_fg_strong}[INFO]${reset} Installing SillyTavern Extras..."
-        echo "--------------------------------"
         echo -e "${cyan_fg_strong}This may take a while. Please be patient.${reset}"
+        log_message "INFO" "Installing SillyTavern Extras..."
 
-        # Activate the Miniconda environment
-        source "$miniconda_path/Scripts/activate"
+        # Update PATH to include Miniconda
+        export PATH="$miniconda_path/bin:$PATH"
 
-        # Create a Conda environment named sillytavernextras
+        # Activate Conda environment
+        log_message "INFO" "Activating Miniconda environment..."
+        source $miniconda_path/etc/profile.d/conda.sh
+
+        # Create and activate the Conda environment
+        log_message "INFO" "Disabling conda auto activate..."
+        conda config --set auto_activate_base false
+        conda init bash
+
+        log_message "INFO" "Creating Conda environment sillytavernextras..."
         conda create -n sillytavernextras -y
 
-        # Activate the sillytavernextras environment
+        log_message "INFO" "Activating Conda environment sillytavernextras..."
         conda activate sillytavernextras
 
-        # Install Python 3.11 and Git in the sillytavernextras environment
+        log_message "INFO" "Installing Python and Git in the Conda environment..."
         conda install python=3.11 git -y
 
-        # Clone the SillyTavern Extras repository
-        git clone https://github.com/SillyTavern/SillyTavern-extras
+        log_message "INFO" "Cloning SillyTavern-extras repository..."
+        git clone https://github.com/SillyTavern/SillyTavern-extras.git
 
-        # Navigate to the SillyTavern-extras directory
         cd SillyTavern-extras
 
-        # Install Python dependencies from requirements files
+        log_message "INFO" "Installing pip requirements-complete..."
         pip install -r requirements-complete.txt
+
+        log_message "INFO" "Installing pip requirements-rvc..."
         pip install -r requirements-rvc.txt
 
-        echo -e "${green_fg_strong}SillyTavern Extras have been successfully reinstalled.${reset}"
+        log_message "INFO" "${green_fg_strong}SillyTavern Extras reinstalled successfully.${reset}"
     else
         echo "Reinstall canceled."
     fi
@@ -588,36 +626,36 @@ toolbox() {
 
 # Detect the package manager and execute the appropriate installation
 if command -v apt-get &>/dev/null; then
-    echo -e "${blue_fg_strong}[INFO] Detected Debian/Ubuntu-based system.${reset}"
+    log_message "INFO" "Detected Debian/Ubuntu-based system.${reset}"
     # Debian/Ubuntu
     install_git
     install_nodejs_npm
     home
 elif command -v yum &>/dev/null; then
-    echo -e "${blue_fg_strong}[INFO] Detected Red Hat/Fedora-based system.${reset}"
+    log_message "INFO" "Detected Red Hat/Fedora-based system.${reset}"
     # Red Hat/Fedora
     install_git
     install_nodejs_npm
     home
 elif command -v apk &>/dev/null; then
-    echo -e "${blue_fg_strong}[INFO] Detected Alpine Linux-based system.${reset}"
+    log_message "INFO" "Detected Alpine Linux-based system.${reset}"
     # Alpine Linux
     install_git
     install_nodejs_npm
     home
 elif command -v pacman &>/dev/null; then
-    echo -e "${blue_fg_strong}[INFO] Detected Arch Linux-based system.${reset}"
+    log_message "INFO" "Detected Arch Linux-based system.${reset}"
     # Arch Linux
     install_git
     install_nodejs_npm
     home
 elif command -v emerge &>/dev/null; then
-    echo -e "${blue_fg_strong}[INFO] Detected Gentoo Linux-based system. Now you are the real CHAD${reset}"
+    log_message "INFO" "Detected Gentoo Linux-based system. Now you are the real CHAD${reset}"
     # Gentoo Linux
     install_git
     install_nodejs_npm
     home
 else
-    echo -e "${red_fg_strong}[ERROR] Unsupported package manager. Cannot detect Linux distribution.${reset}"
+    log_message "ERROR" "${red_fg_strong}Unsupported package manager. Cannot detect Linux distribution.${reset}"
     exit 1
 fi

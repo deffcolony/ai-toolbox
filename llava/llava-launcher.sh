@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 #
 # LLaVA Launcher
 # Created by: Deffcolony
