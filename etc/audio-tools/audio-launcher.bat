@@ -100,7 +100,7 @@ echo %blue_fg_strong%/ Home%reset%
 echo -------------------------------------
 echo What would you like to do?
 echo 1. Install Audio Launcher
-echo 2. Create Playlist Textfile
+echo 2. Run Audio Toolbox
 echo 3. Uninstall Audio Launcher
 echo 4. Exit
 
@@ -116,7 +116,7 @@ REM home - Backend
 if "%choice%"=="1" (
     call :install_audio_launcher
 ) else if "%choice%"=="2" (
-    call :create_playlist_text
+    call :run_audio_toolbox
 ) else if "%choice%"=="3" (
     call :uninstall_audio_launcher
 ) else if "%choice%"=="4" (
@@ -158,6 +158,8 @@ echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python an
 call conda install python=3.12 -y
 
 pip install mutagen
+pip install ttkthemes
+pip install PySimpleGUI
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Audio Launcher installed.%reset%
 
@@ -181,8 +183,8 @@ if /i "%create_shortcut%"=="Y" (
 goto :home
 
 
-:create_playlist_text
-title Audio Launcher [CREATE PLAYLIST]
+:run_audio_toolbox
+title Audio Launcher [AUDIO TOOLBOX]
 cls
 echo %blue_fg_strong%/ Home / Create Playlist%reset%
 echo -------------------------------------
