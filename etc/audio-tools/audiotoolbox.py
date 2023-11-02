@@ -4,6 +4,7 @@ from tkinter import filedialog
 from mutagen.mp3 import MP3
 from datetime import timedelta
 from datetime import date
+import datetime
 from tkinter import ttk
 from ttkthemes import ThemedTk
 
@@ -125,23 +126,39 @@ while True:
         window["-STATUS-"].update("Creating preview...")
         folder_path = values["-FOLDER_PATH-"]
         window["-PREVIEW-"].update("")
+        total_duration = 0
         try:
             music_files = [file for file in os.listdir(folder_path) if file.endswith(".mp3")]
             music_files.sort()
 
             generatedat = date.today().strftime("%d/%m/%Y")
 
-            preview = ["Preview:\n", f"Generated at {generatedat}\n\n"]
+            preview = []
             for index, music_file in enumerate(music_files, start=1):
                 audio = MP3(os.path.join(folder_path, music_file))
+
+                total_duration += audio.info.length
                 duration = format_duration(audio.info.length)
-                entry = f"[{duration}] - {index:02d} {os.path.splitext(music_file)[0]}\n"
+                # remove miliseconds
+                duration = duration[:-7]
+
+                formatted_duration = f"[{duration}]"
+                
+                entry = f"{formatted_duration} - {index:02d} {os.path.splitext(music_file)[0]}\n"
                 preview.append(entry)
 
+            # preview.append(f"\nTotal duration: {format_duration(total_duration)}")
+            # append at top
+            preview.insert(0, f"Generated at {generatedat}\nTotal duration: {format_duration(total_duration)}\n\n")
             window["-PREVIEW-"].update("".join(preview))
             window["-STATUS-"].update("Preview created")
-        except:
-            window["-STATUS-"].update("Error creating preview")
+        except Exception as e:
+            window["-STATUS-"].update("Error creating preview, check console")
+            err = [f"Error creating preview: \n{e}\n"]
+            window["-PREVIEW-"].update("".join(err))
+            # log error
+            print("Error creating preview")
+            print(e)
 
     elif event == "-OUTPUT_PATH-":
         window["-STATUS-"].update("Output path selected")
