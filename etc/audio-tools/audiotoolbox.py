@@ -1,13 +1,14 @@
 import os
-import tkinter as tk
-from tkinter import filedialog
 from mutagen.mp3 import MP3
 from datetime import timedelta
-from datetime import date
-from tkinter import ttk
-from ttkthemes import ThemedTk
-
+import datetime
+import traceback
 from PySimpleGUI import PySimpleGUI as sg
+
+cmd_reset = "\033[0m"
+cmd_red = "\033[91m"
+cmd_yellow = "\033[93m"
+cmd_green = "\033[92m"
 
 # [LENGTH  ] - [INDEX] [ARTIST] - [TITLE                        ]
 # [00:00:00] - 01 Purrple Cat   - Traveller
@@ -22,32 +23,77 @@ from PySimpleGUI import PySimpleGUI as sg
 # [00:27:04] - 10 Purrple Cat   - Walking To The Park At 3 A.M
 
 # Function to format the duration as [hh:mm:ss]
+def days_hours_minutes(td):
+    def add0(n):
+        if n < 10:
+            return f"0{n}"
+        else:
+            return n
+    return f"{add0(td.seconds//3600)}:{add0((td.seconds//60)%60)}:{add0(td.seconds%60)}"
+
+    # return td.days, td.seconds//3600, (td.seconds//60)%60, td.seconds%60
 def format_duration(duration):
-    return str(timedelta(seconds=duration))
+    return days_hours_minutes(timedelta(seconds=duration))
 
-# Function to generate the playlist
-# def generate_playlist(outfolder = None):
-#     # allow all music files
-#     folder_path = outfolder
-    
-#     if folder_path:
-#         music_files = [file for file in os.listdir(folder_path) if file.endswith(".mp3")]
-#         music_files.sort()
+class folder_scanner:
+    # 
+    def __init__(self):
+        pass
+    pass
 
-#         playlist = []
-#         for index, music_file in enumerate(music_files, start=1):
-#             audio = MP3(os.path.join(folder_path, music_file))
-#             # format duration as [hh:mm:ss]
-#             duration = format_duration(audio.info.length)
-#             entry = f"[{duration}] - {index:02d} {os.path.splitext(music_file)[0]}\n"
-#             playlist.append(entry)
+def scan_folder(folder_path, recursive=False, formating={"start_at_0": False, "square_brackets": True}):
+    total_duration = 0
+    local_total_duration = 0
 
-#         with open("playlist.txt", "w") as playlist_file:
-#             playlist_file.writelines(playlist)
+    print(f"{cmd_yellow}[Scanning]{cmd_reset} {folder_path}")
+    music_files = [file for file in os.listdir(folder_path) if file.endswith(".mp3")]
+    preview = []
+    for index, music_file in enumerate(music_files, start=1):
+        print(f"{cmd_green}[Found   ]{cmd_reset} {music_file}")
+        audio = MP3(os.path.join(folder_path, music_file))
+        formatted_duration = "[00:00:00]"
 
-#         return "Playlist generated successfully at " + os.path.join(folder_path, "playlist.txt")
-#     else:
-#         return "No folder selected!"
+        entry = "[] - 00 [Unknown] - [Unknown]\n"
+
+        if not formating["start_at_0"]:
+            total_duration += audio.info.length
+            local_total_duration += audio.info.length
+            duration = format_duration(audio.info.length)
+            formatted_duration = f"{formating['square_brackets'] * '['}{duration}{formating['square_brackets'] * ']'}"
+            entry = f"{formatted_duration} - {index:02d} {os.path.splitext(music_file)[0]}\n"
+        
+        if formating["start_at_0"]:
+            duration = format_duration(local_total_duration)
+            formatted_duration = f"{formating['square_brackets'] * '['}{duration}{formating['square_brackets'] * ']'}"
+            total_duration += audio.info.length
+            local_total_duration += audio.info.length
+            entry = f"{formatted_duration} - {index:02d} {os.path.splitext(music_file)[0]}\n"
+        
+        preview.append(entry)
+
+    if not music_files:
+        print(f"{cmd_red} No music files found!{cmd_reset}")
+        preview.append(f"No files found\n")
+
+    if recursive:
+        for folder in os.listdir(folder_path):
+            if os.path.isdir(os.path.join(folder_path, folder)):
+                wordlength_path = len(folder_path)
+                wordlength_folder = len(folder)
+                divider = "=" * (wordlength_path + 2)
+                
+                preview.append(f"\n{divider}\n{folder_path}/{folder}\n{divider}\n")
+                scan = scan_folder(os.path.join(folder_path, folder), recursive, formating)
+                final_preview = scan["preview"]
+
+                preview.extend(final_preview)
+                total_duration += scan.get("total_duration", 0)
+
+    d = dict()
+    d["preview"] = preview
+    d["total_duration"] = total_duration
+    return d
+
 
 def output_txt(playlist, outfolder):
     if outfolder:
@@ -59,35 +105,54 @@ def output_txt(playlist, outfolder):
 
 sg.theme("DarkAmber")
 
-
 layout_preview = [[
     sg.Text("Preview:"),
+    sg.VSeperator(),
+    sg.Button("Save Playlist", key="-GENERATE_PLAYLIST-", disabled=True),
+    sg.VSeperator(),
+    sg.Text("Select a folder", key="-STATUS-", size=(40, 1))
 ],[
-    sg.Multiline("", key="-PREVIEW-", size=(600, 200)),
-    # table
-    # sg.Table(values=[["00:00:00", "01", "Purrple Cat", "Traveller"]], headings=["Length", "Index", "Artist", "Title"], auto_size_columns=True, num_rows=10, key="-PREVIEW-", size=(sg.Window.get_screen_size()[0] - 100, sg.Window.get_screen_size()[1] - 100 - 80)),
+    sg.Multiline("", key="-PREVIEW-", expand_x=True, expand_y=True),
+    # formating
+    sg.Frame(layout=[[
+        sg.Column(layout=[
+            [sg.Checkbox("Start playlist at 00:00", key="-START_AT_0-")],
+            [sg.Checkbox("Show square brackets", key="-SHOW_SQUARE_BRACKETS-", default=True)],
+        ], expand_x=True, expand_y=True, scrollable=True, vertical_scroll_only=True),
+    ]], title="Formating", relief=sg.RELIEF_SUNKEN, expand_x=True, expand_y=True),
+    # sg.Frame(layout=[
+    #     [sg.Checkbox("Start playlist at 00:00", key="-START_AT_0-")],
+    #     [sg.Checkbox("Show square brackets", key="-SHOW_SQUARE_BRACKETS-")],
+    #     [sg.Input(key="-DATE_FORMAT-", size=(10, 1))],
+    # ], title="Formating", relief=sg.RELIEF_SUNKEN,
+    #     expand_x=True, expand_y=True
+    # ),
 ]]
 
 paths_layout = [[
     sg.Frame(layout=[[
-        sg.Text("Input Path:"),
+        sg.Text("Path:"),
         sg.Input(key="-FOLDER_PATH-", enable_events=True),
         sg.FolderBrowse(key="-INPUT_ADD-"),
-    ]], title="Input", relief=sg.RELIEF_SUNKEN, size=(600, 80)),
+    ], [
+        sg.Button("Scan", key="-SCAN-"),
+        sg.Checkbox("Scan subfolders", key="-SCAN_SUBFOLDERS-"),
+    ]], title="Input", relief=sg.RELIEF_SUNKEN,
+        expand_x=True, expand_y=True
+    ),
     # container
     sg.Frame(layout=[[
-        sg.Text("Output Path:"),
+        sg.Text("Path:"),
         sg.Input(key="-OUTPUT_PATH-", enable_events=True),
         sg.FolderBrowse(key="-OUTPUT_ADD-"),
     ], [
         sg.Checkbox("Output same as input folder", key="-SAME_AS_INPUT-"),
-    ]], title="Output", relief=sg.RELIEF_SUNKEN, size=(600, 80)),
-], [
-    sg.Button("Generate Playlist", key="-GENERATE_PLAYLIST-"),
-    sg.Text("Select a folder", key="-STATUS-", size=(40, 1))
+    ]], title="Output", relief=sg.RELIEF_SUNKEN,
+        expand_x=True, expand_y=True
+    )
 ]]
 
-layout = [[sg.Column(layout=paths_layout)], [sg.HSeparator() ], [sg.Column(layout=layout_preview),]]
+layout = [[sg.Column(layout=paths_layout, expand_x=True)], [sg.HSeparator() ], [sg.Column(layout=layout_preview, expand_x=True, expand_y=True),]]
 
 # ], [
 #     # 
@@ -102,7 +167,7 @@ layout = [[sg.Column(layout=paths_layout)], [sg.HSeparator() ], [sg.Column(layou
 # ]]
 
 
-window = sg.Window("Playlist Generator", layout, size=(1200, 500), finalize=True, resizable=True)
+window = sg.Window("Playlist Generator", layout, size=(1100, 600), finalize=True, resizable=True)
 
 
 while True:
@@ -120,28 +185,45 @@ while True:
     elif event == "-OUTPUT_ADD-":
         window["-STATUS-"].update("Adding output path...")
     # inputs
-    elif event == "-FOLDER_PATH-":
+    elif event == "-SCAN-":
+        formating = {"start_at_0": values["-START_AT_0-"], "square_brackets": values["-SHOW_SQUARE_BRACKETS-"]}
         # scan the folder
         window["-STATUS-"].update("Creating preview...")
         folder_path = values["-FOLDER_PATH-"]
         window["-PREVIEW-"].update("")
+        recusive = values["-SCAN_SUBFOLDERS-"]
+        total_duration = 0
+        preview = []
         try:
             music_files = [file for file in os.listdir(folder_path) if file.endswith(".mp3")]
             music_files.sort()
 
-            generatedat = date.today().strftime("%d/%m/%Y")
+            # show date and time
+            generatedat = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
-            preview = ["Preview:\n", f"Generated at {generatedat}\n\n"]
-            for index, music_file in enumerate(music_files, start=1):
-                audio = MP3(os.path.join(folder_path, music_file))
-                duration = format_duration(audio.info.length)
-                entry = f"[{duration}] - {index:02d} {os.path.splitext(music_file)[0]}\n"
-                preview.append(entry)
+            print(f"===== SCAN : {generatedat} =====")
 
+            scan = scan_folder(folder_path, recusive, formating)
+
+            total_duration = scan.get("total_duration", 0)
+
+            # preview.append(f"\nTotal duration: {format_duration(total_duration)}")
+            # append at top
+            preview.extend(f"Generated at {generatedat}\nTotal duration: [{format_duration(total_duration)}]\n===================================\n\n")
+            preview.extend(f"Folder: {folder_path}\n===================================\n\n")
+            preview.extend(scan.get("preview", []))
             window["-PREVIEW-"].update("".join(preview))
             window["-STATUS-"].update("Preview created")
-        except:
-            window["-STATUS-"].update("Error creating preview")
+            window["-GENERATE_PLAYLIST-"].update(disabled=False)
+        except Exception as e:
+            window["-STATUS-"].update("Error creating preview, check console")
+            err = [f"Error creating preview: \n{e}\n"]
+            window["-PREVIEW-"].update("".join(err))
+            window["-GENERATE_PLAYLIST-"].update(disabled=True)
+            # log error
+            print("Error creating preview")
+            traceback.print_exc()
+            window["-PREVIEW-"].update("".join(traceback.format_exc()))
 
     elif event == "-OUTPUT_PATH-":
         window["-STATUS-"].update("Output path selected")
@@ -150,35 +232,20 @@ while True:
         window["-STATUS-"].update("Generating playlist...")
         folder_path = values["-FOLDER_PATH-"]
         outfolder = values["-OUTPUT_PATH-"]
+
+        # is "same as input" checked?
         if outfolder == "":
             outfolder = None
+
+        if values["-SAME_AS_INPUT-"]:
+            outfolder = folder_path
+
         try:
+            print(f"Saving playlist to {outfolder}")
+
             result = output_txt(preview, outfolder)
             window["-STATUS-"].update(result)
         except:
             window["-STATUS-"].update("Error generating playlist")
 
 window.close()
-
-
-
-# # Create the main application window with the "plastik" theme
-# root = ThemedTk(theme="plastik")
-# root.title("Playlist Generator")
-
-# # Set the initial window size
-# root.geometry("600x400")  # Adjust the size as needed
-
-# # Create and configure the label
-# label = ttk.Label(root, text="Select a folder to generate a playlist")
-# label.pack(pady=10)
-
-# # Create and configure the Generate Playlist button
-# generate_button = ttk.Button(root, text="Generate Playlist", command=generate_playlist)
-# generate_button.pack()
-
-# # Create and configure the status label
-# status_label = ttk.Label(root, text="")
-# status_label.pack(pady=10)
-
-# root.mainloop()
