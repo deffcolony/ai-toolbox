@@ -1,12 +1,7 @@
 import os
-import tkinter as tk
-from tkinter import filedialog
 from mutagen.mp3 import MP3
 from datetime import timedelta
-from datetime import date
 import datetime
-from tkinter import ttk
-from ttkthemes import ThemedTk
 import traceback
 from PySimpleGUI import PySimpleGUI as sg
 
