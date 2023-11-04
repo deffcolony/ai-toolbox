@@ -2,6 +2,8 @@ name: Bug Report 🐛
 description: Report something that's not working the intended way.
 title: '[BUG] <title>'
 labels: ['🐛 Bug']
+assignees:
+  - deffcolony
 body:
   - type: dropdown
     id: environment
