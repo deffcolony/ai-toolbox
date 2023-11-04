@@ -4,11 +4,135 @@ from datetime import timedelta
 import datetime
 import traceback
 from PySimpleGUI import PySimpleGUI as sg
+import webbrowser
+import json
+
+class configManager():
+    def __init__(self):
+        self.config = {
+            "theme": "DarkAmber",
+            "input_path": "",
+            "scan_subfolders": True,
+            "output_path": "",
+            "same_as_input": False,
+            "start_at_0": False,
+            "show_square_brackets": True,
+        }
+        self.load_config()
+
+    def load_config(self):
+        # load config
+        if os.path.exists("config.json"):
+            with open("config.json", "r") as config_file:
+                self.config = json.load(config_file)
+        else:
+            self.save_config()
+
+    def save_config(self):
+        # save config
+        with open("config.json", "w") as config_file:
+            json.dump(self.config, config_file)
+
+    def get(self, key):
+        return self.config.get(key, None)
+
+    def set(self, key, value):
+        self.config[key] = value
 
 cmd_reset = "\033[0m"
 cmd_red = "\033[91m"
 cmd_yellow = "\033[93m"
 cmd_green = "\033[92m"
+cmd_blue = "\033[94m"
+
+def window_preferences(conf):
+    settings = {
+        "saved": False,
+        "reload": False,
+        "theme": conf.get("theme"),
+    }
+
+    settings["reload"] = False
+    settings["saved"] = False
+    settings["theme"] = conf.get("theme")
+
+    # general
+    page1_layout = [
+    ]
+    # appearance
+    page2_layout = [
+        [sg.Text("Theme:"), sg.Combo(sg.theme_list(), default_value=settings["theme"], key="-THEME-", enable_events=True)],
+    ]
+
+
+    layout = [
+        [sg.TabGroup([[
+            sg.Tab("General", page1_layout), 
+            sg.Tab("Appearance", page2_layout)
+            ]],
+            key="-TABGROUP-",
+            expand_x=True,
+            expand_y=True,
+            )],
+        [sg.HSeparator()],
+        [sg.Text("About")],
+        [sg.Text("Hover over a setting to see a description", key="-DESCRIPTION-")],
+        [sg.HSeparator()],
+        [sg.Button("Save", key="-SAVE-"), sg.Button("Cancel", key="-CANCEL-")],
+    ]
+
+    window = sg.Window("Preferences", layout, modal=True, finalize=True, size=(600, 400), resizable=True)
+
+    while True:
+        event, values = window.read()
+        if event == sg.WIN_CLOSED:
+            break
+        if event == "-CLOSE-":
+            break
+
+        # settings update
+        if event == "-THEME-":
+            print(f"Theme: {values['-THEME-']}")
+            settings["theme"] = values["-THEME-"]
+            settings["reload"] = True
+
+        # description
+        if event == "-THEME-":
+            window["-DESCRIPTION-"].update("The theme of the application")
+
+        # buttons
+        if event == "-SAVE-":
+            settings["saved"] = True
+            conf.set("theme", settings["theme"])
+            conf.save_config()
+            break
+        if event == "-CANCEL-":
+            break
+
+    window.close()
+    return settings
+
+def window_about():
+    layout = [
+        [sg.Text("Playlist Generator")],
+        [sg.Text("Version 0.1.0")],
+        [sg.Text("Original by Deffcolony\nRemastered By AlexVeeBee")],
+        # link to github
+        [sg.Text("Github: "), sg.Text("deffcolony/ai-toolbox", enable_events=True, key="-GITHUB-", text_color="#8888EE", font=("Helvetica", 10, "underline"))],
+        [sg.Button("Close", key="-CLOSE-")],
+    ]
+
+    window = sg.Window("About", layout, modal=True, finalize=True, size=(400, 250))
+
+    while True:
+        event, values = window.read()
+        if event == sg.WIN_CLOSED:
+            break
+        if event == "-CLOSE-":
+            break
+        if event == "-GITHUB-":
+            webbrowser.open("https://github.com/deffcolony/ai-toolbox/tree/main/etc/audio-tools")
+    window.close()
 
 # [LENGTH  ] - [INDEX] [ARTIST] - [TITLE                        ]
 # [00:00:00] - 01 Purrple Cat   - Traveller
@@ -71,6 +195,8 @@ def scan_folder(folder_path, recursive=False, formating={"start_at_0": False, "s
         
         preview.append(entry)
 
+    preview.append(f"\nFolder total duration: [{format_duration(local_total_duration)}]\n")
+
     if not music_files:
         print(f"{cmd_red} No music files found!{cmd_reset}")
         preview.append(f"No files found\n")
@@ -103,149 +229,200 @@ def output_txt(playlist, outfolder):
     else:
         return "No folder selected!"
 
-sg.theme("DarkAmber")
+def checkbox_ticked(checkbox):
+    if checkbox:
+        return True
+    else:
+        return False
 
-layout_preview = [[
-    sg.Text("Preview:"),
-    sg.VSeperator(),
-    sg.Button("Save Playlist", key="-GENERATE_PLAYLIST-", disabled=True),
-    sg.VSeperator(),
-    sg.Text("Select a folder", key="-STATUS-", size=(40, 1))
-],[
-    sg.Multiline("", key="-PREVIEW-", expand_x=True, expand_y=True),
-    # formating
-    sg.Frame(layout=[[
-        sg.Column(layout=[
-            [sg.Checkbox("Start playlist at 00:00", key="-START_AT_0-")],
-            [sg.Checkbox("Show square brackets", key="-SHOW_SQUARE_BRACKETS-", default=True)],
-        ], expand_x=True, expand_y=True, scrollable=True, vertical_scroll_only=True),
-    ]], title="Formating", relief=sg.RELIEF_SUNKEN, expand_x=True, expand_y=True),
-    # sg.Frame(layout=[
-    #     [sg.Checkbox("Start playlist at 00:00", key="-START_AT_0-")],
-    #     [sg.Checkbox("Show square brackets", key="-SHOW_SQUARE_BRACKETS-")],
-    #     [sg.Input(key="-DATE_FORMAT-", size=(10, 1))],
-    # ], title="Formating", relief=sg.RELIEF_SUNKEN,
-    #     expand_x=True, expand_y=True
-    # ),
-]]
+def main():
+    conf = configManager()
+    sg.theme(conf.get("theme"))
 
-paths_layout = [[
-    sg.Frame(layout=[[
-        sg.Text("Path:"),
-        sg.Input(key="-FOLDER_PATH-", enable_events=True),
-        sg.FolderBrowse(key="-INPUT_ADD-"),
-    ], [
-        sg.Button("Scan", key="-SCAN-"),
-        sg.Checkbox("Scan subfolders", key="-SCAN_SUBFOLDERS-"),
-    ]], title="Input", relief=sg.RELIEF_SUNKEN,
-        expand_x=True, expand_y=True
-    ),
-    # container
-    sg.Frame(layout=[[
-        sg.Text("Path:"),
-        sg.Input(key="-OUTPUT_PATH-", enable_events=True),
-        sg.FolderBrowse(key="-OUTPUT_ADD-"),
-    ], [
-        sg.Checkbox("Output same as input folder", key="-SAME_AS_INPUT-"),
-    ]], title="Output", relief=sg.RELIEF_SUNKEN,
-        expand_x=True, expand_y=True
-    )
-]]
+    layout_preview = [[
+        sg.Text("Preview:"),
+        sg.VSeperator(),
+        sg.Button("Save Playlist", key="-GENERATE_PLAYLIST-", disabled=True),
+        sg.VSeperator(),
+        sg.Text("Select a folder", key="-STATUS-", size=(40, 1))
+    ],[
+        sg.Multiline("", key="-PREVIEW-", expand_x=True, expand_y=True),
+        # formating
+        sg.Frame(layout=[[
+            sg.Column(layout=[
+                [sg.Checkbox("Start playlist at 00:00", key="-START_AT_0-", default=conf.get("start_at_0"), enable_events=True)],
+                [sg.Checkbox("Show square brackets", key="-SHOW_SQUARE_BRACKETS-", default=conf.get("show_square_brackets"), enable_events=True)],
+            ], expand_x=True, expand_y=True, scrollable=True, vertical_scroll_only=True),
+        ]], title="Formating", relief=sg.RELIEF_SUNKEN, expand_x=True, expand_y=True),
+        # sg.Frame(layout=[
+        #     [sg.Checkbox("Start playlist at 00:00", key="-START_AT_0-")],
+        #     [sg.Checkbox("Show square brackets", key="-SHOW_SQUARE_BRACKETS-")],
+        #     [sg.Input(key="-DATE_FORMAT-", size=(10, 1))],
+        # ], title="Formating", relief=sg.RELIEF_SUNKEN,
+        #     expand_x=True, expand_y=True
+        # ),
+    ]]
 
-layout = [[sg.Column(layout=paths_layout, expand_x=True)], [sg.HSeparator() ], [sg.Column(layout=layout_preview, expand_x=True, expand_y=True),]]
+    paths_layout = [[
+        sg.Frame(layout=[[
+            sg.Text("Path:"),
+            sg.Input(key="-FOLDER_PATH-", enable_events=True, default_text=conf.get("input_path")),
+            sg.FolderBrowse(key="-INPUT_ADD-"),
+        ], [
+            sg.Button("Scan", key="-SCAN-"),
+            sg.Checkbox("Scan subfolders", key="-SCAN_SUBFOLDERS-", default=conf.get("scan_subfolders"), enable_events=True),
+        ]], title="Input", relief=sg.RELIEF_SUNKEN,
+            expand_x=True, expand_y=True
+        ),
+        # container
+        sg.Frame(layout=[[
+            sg.Text("Path:"),
+            sg.Input(key="-OUTPUT_PATH-", enable_events=True, default_text=conf.get("output_path")),
+            sg.FolderBrowse(key="-OUTPUT_ADD-"),
+        ], [
+            sg.Checkbox("Output same as input folder", key="-SAME_AS_INPUT-", default=conf.get("same_as_input"), enable_events=True),
+        ]], title="Output", relief=sg.RELIEF_SUNKEN,
+            expand_x=True, expand_y=True
+        )
+    ]]
 
-# ], [
-#     # 
+    menu_def = [
+        ["&File", ["&Preferences", "&Exit", ], ],
+        ["&Help", "&About"], 
+        ]
 
-#     sg.Text("Output Path:"),
-#     sg.Input(key="-OUTPUT_PATH-"),
-#     sg.FolderBrowse(),
-# ], [
-#     sg.Checkbox("Output same as input folder", key="-SAME_AS_INPUT-"),
-# ], [
-#     sg.Text("Select a folder", key="-STATUS-", size=(40, 1))
-# ]]
+    layout = [
+        [sg.Menu(menu_def,
+                text_color=sg.COLOR_SYSTEM_DEFAULT,
+                background_color=sg.COLOR_SYSTEM_DEFAULT,
+                key="-MENU-",
+                )],
+        [sg.Column(layout=paths_layout, expand_x=True)], 
+        [sg.HSeparator() ], 
+        [sg.Column(layout=layout_preview, expand_x=True, expand_y=True),]
+    ]
+
+    # ], [
+    #     # 
+
+    #     sg.Text("Output Path:"),
+    #     sg.Input(key="-OUTPUT_PATH-"),
+    #     sg.FolderBrowse(),
+    # ], [
+    #     sg.Checkbox("Output same as input folder", key="-SAME_AS_INPUT-"),
+    # ], [
+    #     sg.Text("Select a folder", key="-STATUS-", size=(40, 1))
+    # ]]
 
 
-window = sg.Window("Playlist Generator", layout, size=(1100, 600), finalize=True, resizable=True)
+    window = sg.Window("Playlist Generator", layout, size=(1100, 600), finalize=True, resizable=True)
 
 
-while True:
-    event, values = window.read()
-    if event == sg.WIN_CLOSED:
-        break
-    elif event == "-SAME_AS_INPUT-":
-        if values["-SAME_AS_INPUT-"]:
-            window["-OUTPUT_PATH-"].update(values["-FOLDER_PATH-"])
-        else:
-            window["-OUTPUT_PATH-"].update("")
-    # FolderBrowse 
-    elif event == "-INPUT_ADD-":
-        window["-STATUS-"].update("Adding input path...")
-    elif event == "-OUTPUT_ADD-":
-        window["-STATUS-"].update("Adding output path...")
-    # inputs
-    elif event == "-SCAN-":
-        formating = {"start_at_0": values["-START_AT_0-"], "square_brackets": values["-SHOW_SQUARE_BRACKETS-"]}
-        # scan the folder
-        window["-STATUS-"].update("Creating preview...")
-        folder_path = values["-FOLDER_PATH-"]
-        window["-PREVIEW-"].update("")
-        recusive = values["-SCAN_SUBFOLDERS-"]
-        total_duration = 0
-        preview = []
-        try:
-            music_files = [file for file in os.listdir(folder_path) if file.endswith(".mp3")]
-            music_files.sort()
+    while True:
+        event, values = window.read()
+        if event == sg.WIN_CLOSED:
+            break
 
-            # show date and time
-            generatedat = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        if event == "About":
+            window_about()
 
-            print(f"===== SCAN : {generatedat} =====")
+        if event == "Preferences":
+            update = window_preferences(conf)
 
-            scan = scan_folder(folder_path, recusive, formating)
+            if update["reload"]:
+                window.close()
+                window = main()
+        if event == "Exit":
+            break
 
-            total_duration = scan.get("total_duration", 0)
+        elif event == "-SAME_AS_INPUT-":
+            conf.set("same_as_input", values["-SAME_AS_INPUT-"])
+            conf.save_config()
+            if values["-SAME_AS_INPUT-"]:
+                window["-OUTPUT_PATH-"].update(values["-FOLDER_PATH-"])
+            else:
+                window["-OUTPUT_PATH-"].update("")
+                
+        # inputs
+        elif event == "-SCAN-":
+            formating = {"start_at_0": values["-START_AT_0-"], "square_brackets": values["-SHOW_SQUARE_BRACKETS-"]}
+            # scan the folder
+            window["-STATUS-"].update("Creating preview...")
+            folder_path = values["-FOLDER_PATH-"]
+            window["-PREVIEW-"].update("")
+            recusive = values["-SCAN_SUBFOLDERS-"]
+            total_duration = 0
+            preview = []
+            try:
+                music_files = [file for file in os.listdir(folder_path) if file.endswith(".mp3")]
+                music_files.sort()
 
-            # preview.append(f"\nTotal duration: {format_duration(total_duration)}")
-            # append at top
-            preview.extend(f"Generated at {generatedat}\nTotal duration: [{format_duration(total_duration)}]\n===================================\n\n")
-            preview.extend(f"Folder: {folder_path}\n===================================\n\n")
-            preview.extend(scan.get("preview", []))
-            window["-PREVIEW-"].update("".join(preview))
-            window["-STATUS-"].update("Preview created")
-            window["-GENERATE_PLAYLIST-"].update(disabled=False)
-        except Exception as e:
-            window["-STATUS-"].update("Error creating preview, check console")
-            err = [f"Error creating preview: \n{e}\n"]
-            window["-PREVIEW-"].update("".join(err))
-            window["-GENERATE_PLAYLIST-"].update(disabled=True)
-            # log error
-            print("Error creating preview")
-            traceback.print_exc()
-            window["-PREVIEW-"].update("".join(traceback.format_exc()))
+                # show date and time
+                generatedat = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
-    elif event == "-OUTPUT_PATH-":
-        window["-STATUS-"].update("Output path selected")
+                print(f"{cmd_blue}===== SCAN : {generatedat} ====={cmd_reset}")
 
-    elif event == "-GENERATE_PLAYLIST-":
-        window["-STATUS-"].update("Generating playlist...")
-        folder_path = values["-FOLDER_PATH-"]
-        outfolder = values["-OUTPUT_PATH-"]
+                scan = scan_folder(folder_path, recusive, formating)
 
-        # is "same as input" checked?
-        if outfolder == "":
-            outfolder = None
+                total_duration = scan.get("total_duration", 0)
 
-        if values["-SAME_AS_INPUT-"]:
-            outfolder = folder_path
+                # preview.append(f"\nTotal duration: {format_duration(total_duration)}")
+                # append at top
+                preview.extend(f"Generated at {generatedat}\nTotal duration: [{format_duration(total_duration)}]\n===================================\n\n")
+                preview.extend(f"Folder: {folder_path}\n===================================\n\n")
+                preview.extend(scan.get("preview", []))
+                window["-PREVIEW-"].update("".join(preview))
+                window["-STATUS-"].update("Preview created")
+                window["-GENERATE_PLAYLIST-"].update(disabled=False)
+            except Exception as e:
+                window["-STATUS-"].update("Error creating preview, check console")
+                err = [f"Error creating preview: \n{e}\n"]
+                window["-PREVIEW-"].update("".join(err))
+                window["-GENERATE_PLAYLIST-"].update(disabled=True)
+                # log error
+                print("Error creating preview")
+                traceback.print_exc()
+                window["-PREVIEW-"].update("".join(traceback.format_exc()))
 
-        try:
-            print(f"Saving playlist to {outfolder}")
+        # path inputs
+        elif event == "-FOLDER_PATH-":
+            conf.set("input_path", values["-FOLDER_PATH-"])
+            conf.save_config()
+        elif event == "-OUTPUT_PATH-":
+            conf.set("output_path", values["-OUTPUT_PATH-"])
+            conf.save_config()
 
-            result = output_txt(preview, outfolder)
-            window["-STATUS-"].update(result)
-        except:
-            window["-STATUS-"].update("Error generating playlist")
+        # checkboxes
+        elif event == "-SCAN_SUBFOLDERS-":
+            conf.set("scan_subfolders", checkbox_ticked(values["-SCAN_SUBFOLDERS-"]))
+            conf.save_config()
+        elif event == "-START_AT_0-":
+            conf.set("start_at_0", checkbox_ticked(values["-START_AT_0-"]))
+            conf.save_config()
+        elif event == "-SHOW_SQUARE_BRACKETS-":
+            conf.set("show_square_brackets", checkbox_ticked(values["-SHOW_SQUARE_BRACKETS-"]))
+            conf.save_config()
 
-window.close()
+        elif event == "-GENERATE_PLAYLIST-":
+            window["-STATUS-"].update("Generating playlist...")
+            folder_path = values["-FOLDER_PATH-"]
+            outfolder = values["-OUTPUT_PATH-"]
+
+            # is "same as input" checked?
+            if outfolder == "":
+                outfolder = None
+
+            if values["-SAME_AS_INPUT-"]:
+                outfolder = folder_path
+
+            try:
+                print(f"Saving playlist to {outfolder}")
+
+                result = output_txt(preview, outfolder)
+                window["-STATUS-"].update(result)
+            except:
+                window["-STATUS-"].update("Error generating playlist")
+    window.close()
+
+if __name__ == "__main__":
+    main()
