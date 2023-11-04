@@ -47,11 +47,11 @@ class folder_scanner:
     pass
 
 def scan_folder(folder_path, recursive=False, formating={"start_at_0": False, "square_brackets": True}):
-    print(f"Scaning with formating: {formating}")
+    total_duration = 0
+    local_total_duration = 0
 
     print(f"{cmd_yellow}[Scanning]{cmd_reset} {folder_path}")
     music_files = [file for file in os.listdir(folder_path) if file.endswith(".mp3")]
-    total_duration = 0
     preview = []
     for index, music_file in enumerate(music_files, start=1):
         print(f"{cmd_green}[Found   ]{cmd_reset} {music_file}")
@@ -62,14 +62,16 @@ def scan_folder(folder_path, recursive=False, formating={"start_at_0": False, "s
 
         if not formating["start_at_0"]:
             total_duration += audio.info.length
+            local_total_duration += audio.info.length
             duration = format_duration(audio.info.length)
             formatted_duration = f"{formating['square_brackets'] * '['}{duration}{formating['square_brackets'] * ']'}"
             entry = f"{formatted_duration} - {index:02d} {os.path.splitext(music_file)[0]}\n"
         
         if formating["start_at_0"]:
-            duration = format_duration(total_duration)
+            duration = format_duration(local_total_duration)
             formatted_duration = f"{formating['square_brackets'] * '['}{duration}{formating['square_brackets'] * ']'}"
             total_duration += audio.info.length
+            local_total_duration += audio.info.length
             entry = f"{formatted_duration} - {index:02d} {os.path.splitext(music_file)[0]}\n"
         
         preview.append(entry)
@@ -86,7 +88,7 @@ def scan_folder(folder_path, recursive=False, formating={"start_at_0": False, "s
                 divider = "=" * (wordlength_path + 2)
                 
                 preview.append(f"\n{divider}\n{folder_path}/{folder}\n{divider}\n")
-                scan = scan_folder(os.path.join(folder_path, folder), recursive)
+                scan = scan_folder(os.path.join(folder_path, folder), recursive, formating)
                 final_preview = scan["preview"]
 
                 preview.extend(final_preview)
@@ -121,7 +123,6 @@ layout_preview = [[
         sg.Column(layout=[
             [sg.Checkbox("Start playlist at 00:00", key="-START_AT_0-")],
             [sg.Checkbox("Show square brackets", key="-SHOW_SQUARE_BRACKETS-", default=True)],
-            [sg.Input(key="-DATE_FORMAT-", size=(10, 1))],
         ], expand_x=True, expand_y=True, scrollable=True, vertical_scroll_only=True),
     ]], title="Formating", relief=sg.RELIEF_SUNKEN, expand_x=True, expand_y=True),
     # sg.Frame(layout=[
