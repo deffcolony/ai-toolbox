@@ -90,7 +90,8 @@ echo 1. Install ChatDev
 echo 2. Configure ChatDev
 echo 3. Run ChatDev webui
 echo 4. Update
-echo 5. Exit
+echo 5. Uninstall ChatDev
+echo 6. Exit
 
 
 set "choice="
@@ -102,14 +103,16 @@ REM if not defined choice set "choice=1"
 
 REM home - Backend
 if "%choice%"=="1" (
-    call :installchatdev
+    call :install_chatdev
 ) else if "%choice%"=="2" (
-    call :configurechatdev
+    call :configure_chatdev
 ) else if "%choice%"=="3" (
-    call :runchatdev
+    call :run_chatdev
 ) else if "%choice%"=="4" (
-    call :updatechatdev
+    call :update_chatdev
 ) else if "%choice%"=="5" (
+    call :uninstall_chatdev
+) else if "%choice%"=="6" (
     exit
 ) else (
     color 6
@@ -119,7 +122,7 @@ if "%choice%"=="1" (
 )
 
 
-:installchatdev
+:install_chatdev
 title ChatDev [INSTALL]
 cls
 echo %blue_fg_strong%/ Home / Install ChatDev%reset%
@@ -180,7 +183,7 @@ endlocal
 goto :home
 
 
-:configurechatdev
+:configure_chatdev
 title ChatDev [CONFIGURE]
 cls
 echo %blue_fg_strong%/ Home / Configure ChatDev%reset%
@@ -216,7 +219,7 @@ if /i "%confirm%"=="Y" (
 goto :home
 
 
-:runchatdev
+:run_chatdev
 title ChatDev
 cls
 echo %blue_fg_strong%/ Home / Run ChatDev%reset%
@@ -237,15 +240,50 @@ cd /d "%~dp0ChatDev"
 REM Check if git is installed
 git --version > nul 2>&1
 if %errorlevel% neq 0 (
-    echo %red_fg_strong%[ERROR] git command not found in PATH. Skipping update.%reset%
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] git command not found in PATH. Skipping update.%reset%
     echo %red_bg%Please make sure Git is installed and added to your PATH.%reset%
-    echo %blue_bg%To install Git go to Toolbox%reset%
 ) else (
     call git pull --rebase --autostash
     if %errorlevel% neq 0 (
         REM incase there is still something wrong
-        echo There were errors while updating. Please download the latest version manually.
+        echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Errors while updating. Please download the latest version manually.%reset%
+    ) else (
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%ChatDev updated successfully.%reset%
     )
 )
 pause
 goto :home
+
+
+:uninstall_chatdev
+title ChatDev [UNINSTALL]
+setlocal enabledelayedexpansion
+chcp 65001 > nul
+
+REM Confirm with the user before proceeding
+echo.
+echo %red_bg%╔════ DANGER ZONE ══════════════════════════════════════════════════════════════════════════════╗%reset%
+echo %red_bg%║ WARNING: This will delete all data of ChatDev                                                 ║%reset%
+echo %red_bg%║ If you want to keep any data, make sure to create a backup before proceeding.                 ║%reset%
+echo %red_bg%╚═══════════════════════════════════════════════════════════════════════════════════════════════╝%reset%
+echo.
+set /p "confirmation=Are you sure you want to proceed? [Y/N]: "
+if /i "%confirmation%"=="Y" (
+
+    REM Remove the Conda environment
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'chatdev'...
+    call conda remove --name chatdev --all -y
+
+    REM Remove the folder ChatDev
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the ChatDev directory...
+    cd /d "%~dp0"
+    rmdir /s /q ChatDev
+
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%ChatDev uninstalled successfully.%reset%
+    pause
+    goto :home
+) else (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Uninstall canceled.
+    pause
+    goto :home
+)

@@ -1,0 +1,55 @@
+name: Bug Report 🐛
+description: Report something that's not working the intended way.
+title: '[BUG] <title>'
+labels: ['🐛 Bug']
+assignees:
+  - deffcolony
+body:
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: What OS are you on?
+      options:
+        - Windows      
+        - Linux
+        - macOS
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Describe the problem
+      description: Please describe exactly what is not working, include the steps to reproduce, actual result and expected result
+      placeholder: When doing ABC then DEF, I expect to see XYZ, but I actually see ZYX
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Additional info
+      description: Logs? Screenshots? Yes, please.
+      placeholder: If the issue happens during build-time, include terminal logs. For run-time errors, include browser logs which you can view in the Dev Tools (F12), under the Console tab. Take care to blank out any personal info.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: idiot-check
+    attributes:
+      label: Please tick the boxes
+      description: Before submitting, please ensure that
+      options:
+        - label: You have explained the issue clearly, and included all relevant info
+          required: true
+        - label: You've checked that this [issue hasn't already been raised](https://github.com/deffcolony/ai-toolbox/issues?q=is%3Aissue)
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |-
+        ## Thanks 🙏
+        Thank you for raising this ticket - in doing so you are helping to make ai-toolbox better for everyone.
+    validations:
+      required: false
