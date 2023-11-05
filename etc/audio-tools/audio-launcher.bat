@@ -158,7 +158,6 @@ echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python an
 call conda install python=3.12 -y
 
 pip install mutagen
-pip install ttkthemes
 pip install PySimpleGUI
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Audio Launcher installed.%reset%
