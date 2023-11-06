@@ -131,6 +131,10 @@ install_git() {
             # Gentoo Linux-based system
             log_message "INFO" "Installing Git using emerge..."
             sudo emerge --ask dev-vcs/git
+        elif command -v brew &>/dev/null; then
+            # macOS
+            log_message "INFO" "Installing Git using Homebrew..."
+            brew install git
         else
             log_message "ERROR" "${red_fg_strong}Unsupported Linux distribution.${reset}"
             exit 1
@@ -194,6 +198,10 @@ install_nodejs_npm() {
             read -p "Press Enter to continue..."
             nvm install --lts
             nvm use --lts
+        elif command -v brew &>/dev/null; then
+            # macOS
+            log_message "INFO" "Installing Node.js and npm using Homebrew..."
+            brew install node
         else
             log_message "ERROR" "${red_fg_strong}Unsupported Linux distribution.${reset}"
             exit 1
@@ -378,6 +386,18 @@ installer() {
     fi
 }
 
+# Check if the script is running on macOS
+if [ "$(uname)" == "Darwin" ]; then
+    IS_MACOS="1"
+fi
+
+# Detect the package manager and execute the appropriate installation
+if [ -n "$IS_MACOS" ]; then
+    log_message "INFO" "${blue_fg_strong}Detected macOS system.${reset}"
+    # macOS
+    install_git
+    install_nodejs_npm
+    installer
 # Detect the package manager and execute the appropriate installation
 if command -v apt-get &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected Debian/Ubuntu-based system.${reset}"
