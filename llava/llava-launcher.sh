@@ -138,10 +138,11 @@ install_llava() {
     log_message "INFO" "Activating Conda environment..."
     source $miniconda_path/etc/profile.d/conda.sh
 
-    log_message "INFO" "Creating and activating the Conda environment..."
     conda config --set auto_activate_base false
     conda init bash
+    log_message "INFO" "Creating Conda environment llava..."
     conda create -n llava python=3.10 -y
+    log_message "INFO" "Activating Conda environment llava..."
     conda activate llava
 
     log_message "INFO" "Upgrading pip..."
@@ -170,7 +171,7 @@ run_llava() {
     clear
     cd LLaVA
 
-    log_message "INFO" "Activating Conda environment..."
+    log_message "INFO" "Activating Conda environment llava..."
     source $miniconda_path/etc/profile.d/conda.sh
     conda activate llava
 
