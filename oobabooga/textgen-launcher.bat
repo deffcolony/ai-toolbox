@@ -245,7 +245,7 @@ call conda activate textgen
 REM Start textgen with desired configurations
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% textgen launched in a new window.
 cd /d "%~dp0text-generation-webui"
-start cmd /k start_windows.bat --api --listen --listen-port 7910 --loader ExLlama_HF --xformers
+start cmd /k start_windows.bat --extensions openai --listen --listen-port 7910 --loader ExLlama_HF --xformers
 goto :home
 
 
@@ -288,7 +288,7 @@ echo %blue_fg_strong%[INFO]%reset% textgen has been launched.
 cd /d "%~dp0text-generation-webui"
 start cmd /k start_windows.bat --extensions openai --listen --listen-port 7910 --loader ExLlama_HF --model TheBloke_MythoMax-L2-13B-GPTQ --xformers
 REM start cmd /k start_windows.bat --extensions openai --listen --listen-port 7910 --loader ExLlama_HF --model TheBloke_MythoMax-L2-13B-GPTQ --xformers
-REM You can add more flags like this --api --listen --listen-port 7910
+REM You can add more flags like this --extensions openai --listen --listen-port 7910
 goto :home
 
 
@@ -317,9 +317,9 @@ powershell -command "$password = Read-Host 'Enter a password' -AsSecureString; $
 set /p password=<temp_pass.txt
 del temp_pass.txt
 cd /d "%~dp0text-generation-webui"
-start cmd /k python one_click.py --gradio-auth %username%:%password% --api --listen --listen-port 7910 --loader ExLlama_HF --model TheBloke_MythoMax-L2-13B-GPTQ --share
+start cmd /k python one_click.py --gradio-auth %username%:%password% --extensions openai --listen --listen-port 7910 --loader ExLlama_HF --model TheBloke_MythoMax-L2-13B-GPTQ --share
 REM start cmd /k start_windows.bat --extensions openai --listen --listen-port 7910 --loader ExLlama_HF --model TheBloke_MythoMax-L2-13B-GPTQ
-REM You can add more flags like this --api --listen --listen-port 7910 --loader ExLlama_HF --model TheBloke_MythoMax-L2-13B-GPTQ --share --xformers
+REM You can add more flags like this --extensions openai --listen --listen-port 7910 --loader ExLlama_HF --model TheBloke_MythoMax-L2-13B-GPTQ --share --xformers
 goto :home
 
 
