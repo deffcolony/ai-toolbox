@@ -144,7 +144,8 @@ echo What would you like to do?
 echo 1. Install Mangio RVC
 echo 2. Run go-web.bat : Voice Training, Voice Cover Creation
 echo 3. Run go-realtime-gui.bat : Voice Changer that is useable with Discord, Steam, etc...
-echo 4. Exit
+echo 4. Uninstall Mangio RVC
+echo 5. Exit
 
 set "choice="
 set /p "choice=Choose Your Destiny: "
