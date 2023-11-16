@@ -47,6 +47,14 @@ set "winget_path=%userprofile%\AppData\Local\Microsoft\WindowsApps"
 REM Environment Variables (7z)
 set "zip7_install_path=%ProgramFiles%\7-Zip"
 
+REM Define the paths and filenames for the shortcut creation
+set "shortcutTarget=%~dp0mangio-rvc-launcher.bat"
+set "iconFile=%~dp0mangio-rvc.ico"
+set "desktopPath=%userprofile%\Desktop"
+set "shortcutName=mangio-rvc-launcher.lnk"
+set "startIn=%~dp0"
+set "comment=Mangio RVC Launcher"
+
 
 REM Log your messages test window
 REM echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Something has been launched.
@@ -62,7 +70,7 @@ winget --version > nul 2>&1
 if %errorlevel% neq 0 (
     echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Winget is not installed on this system.%reset%
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Winget...
-    bitsadmin /transfer "Microsoft.DesktopAppInstaller_8wekyb3d8bbwe" /download /priority FOREGROUND "https://github.com/microsoft/winget-cli/releases/download/v1.5.2201/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+    curl -L -o "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" "https://github.com/microsoft/winget-cli/releases/download/v1.6.2771/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
     start "" "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Winget installed successfully.%reset%
 ) else (
@@ -85,11 +93,12 @@ if %ff_path_exists% neq 0 (
 
     rem Update the PATH value for the current session
     setx PATH "%new_path%" > nul
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%winget successfully added to PATH.%reset%
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%winget added to PATH.%reset%
 ) else (
     set "new_path=%current_path%"
     echo %blue_fg_strong%[INFO] winget already exists in PATH.%reset%
 )
+
 
 REM Check if 7-Zip is installed; if not, then install it
 7z > nul 2>&1
@@ -112,7 +121,7 @@ set "zip7_path_exists=%errorlevel%"
 rem Append the new paths to the current PATH only if they don't exist
 if %zip7_path_exists% neq 0 (
     set "new_path=%current_path%;%zip7_install_path%"
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%7-Zip successfully added to PATH.%reset%
+    echo %green_fg_strong%7-Zip added to PATH.%reset%
 ) else (
     set "new_path=%current_path%"
     echo %blue_fg_strong%[INFO] 7-Zip already exists in PATH.%reset%
@@ -122,7 +131,7 @@ rem Update the PATH value in the registry
 reg add "HKCU\Environment" /v PATH /t REG_EXPAND_SZ /d "%new_path%" /f
 
 rem Update the PATH value for the current session
-setx PATH "%new_path%"
+setx PATH "%new_path%" > nul
 
 
 REM home Frontend
@@ -172,26 +181,50 @@ echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Mangio RV
 echo --------------------------------
 echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
 
-    REM Download Mangio-RVC 7z archive
-    bitsadmin /transfer "infertraindwnl" /download /priority FOREGROUND ^
-    "https://huggingface.co/MangioRVC/Mangio-RVC-Huggingface/resolve/main/Mangio-RVC-%version%_INFER_TRAIN.7z" ^
-    "%~dp0Mangio-RVC-%version%_INFER_TRAIN.7z" || (
-        color 4
-        echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Download failed.. Please try again.%reset%
-        pause
-        goto :home
-    )
+REM Download Mangio-RVC 7z archive
+curl -L -o "%~dp0mangio-rvc.7z" "https://huggingface.co/MangioRVC/Mangio-RVC-Huggingface/resolve/main/Mangio-RVC-%version%_INFER_TRAIN.7z" || (
+    color 4
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Download failed.. Please try again.%reset%
+    pause
+    goto :home
+)
 
-    REM Extract Mangio-RVC 7z archive
-    "%ProgramFiles%\7-Zip\7z.exe" x "%~dp0Mangio-RVC-%version%_INFER_TRAIN.7z" -o"%~dp0Mangio-RVC-%version%_INFER_TRAIN" || (
-        color 4
-        echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Extraction failed.. Please try again%reset%
-        pause
-        goto :home
-    )
+REM Extract Mangio-RVC 7z archive
+"%ProgramFiles%\7-Zip\7z.exe" x "%~dp0mangio-rvc.7z" -o"%~dp0Mangio-RVC" || (
+    color 4
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Extraction failed.. Please try again%reset%
+    pause
+    goto :home
+)
 
-    REM Remove Mangio-RVC 7z archive
-    del "%~dp0Mangio-RVC-%version%_INFER_TRAIN.7z"
+ren "%~dp0Mangio-RVC\Mangio-RVC-%version%" "mangio-rvc-%version%"
+
+REM Move rvc to folder %~dp0
+move /Y "%~dp0Mangio-RVC\mangio-rvc-%version%" "%~dp0mangio-rvc-%version%"
+
+REM Remove rvc_lightweight leftovers
+del "%~dp0mangio-rvc.7z"
+rd /S /Q "%~dp0Mangio-RVC"
+
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Audiobook Maker successfully installed.%reset%
+
+REM Ask if the user wants to create a shortcut
+set /p create_shortcut=Do you want to create a shortcut on the desktop? [Y/n] 
+if /i "%create_shortcut%"=="Y" (
+
+    REM Create the shortcut
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating shortcut...
+    %SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe -Command ^
+        "$WshShell = New-Object -ComObject WScript.Shell; " ^
+        "$Shortcut = $WshShell.CreateShortcut('%desktopPath%\%shortcutName%'); " ^
+        "$Shortcut.TargetPath = '%shortcutTarget%'; " ^
+        "$Shortcut.IconLocation = '%iconFile%'; " ^
+        "$Shortcut.WorkingDirectory = '%startIn%'; " ^
+        "$Shortcut.Description = '%comment%'; " ^
+        "$Shortcut.Save()"
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Shortcut created on the desktop.%reset%
+    pause
+)
 goto :home
 
 :run_goweb
@@ -199,16 +232,9 @@ title Mangio RVC [GO-WEB]
 cls
 echo %blue_fg_strong%/ Home / Run go-web.bat%reset%
 echo ---------------------------------------------------------------
-    if exist "%dir%\go-web.bat" (
-        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Starting RVC webui...
-        cd "%dir%"
-        powershell.exe -nologo -noprofile -command "Start-Process '%dir%\go-web.bat'
-        goto :home
-    ) else (
-        echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] File not found: %dir%\go-web.bat%reset%
-        pause
-        goto :home
-    )
+
+cd /d "%~dp0mangio-rvc-%version%"
+start cmd /k go-web.bat
 goto :home
 
 :run_gorealtime
@@ -216,18 +242,10 @@ title Mangio RVC [GO-REALTIME-GUI]
 cls
 echo %blue_fg_strong%/ Home / Run go-realtime-gui.bat%reset%
 echo ---------------------------------------------------------------
-    if exist "%dir%\go-realtime-gui.bat" (
-        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Starting RVC realtime gui...
-        cd "%dir%"
-        powershell.exe -nologo -noprofile -command "Start-Process '%dir%\go-realtime-gui.bat'
-        goto :home
-    ) else (
-        echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] File not found: %dir%\go-realtime-gui.bat%reset%
-        pause
-        goto :home
-    )
-goto :home
 
+cd /d "%~dp0mangio-rvc-%version%"
+start cmd /k go-realtime-gui.bat
+goto :home
 
 :uninstall_mangio_rvc
 title Mangio RVC [UNINSTALL]
@@ -247,7 +265,7 @@ if /i "%confirmation%"=="Y" (
     REM Remove the folder Mangio RVC
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Mangio RVC directory...
     cd /d "%~dp0"
-    rmdir /s /q Mangio-RVC-%version%_INFER_TRAIN
+    rmdir /s /q mangio-rvc-%version%
 
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Mangio RVC uninstalled successfully.%reset%
     pause
