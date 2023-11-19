@@ -160,7 +160,7 @@ if not defined choice set "choice=1"
 
 REM Home - backend
 if "%choice%"=="1" (
-    call :start
+    call :start_st
 ) else if "%choice%"=="2" (
     call :start_st_extras
 ) else if "%choice%"=="3" (
@@ -181,7 +181,7 @@ if "%choice%"=="1" (
 )
 
 
-:start
+:start_st
 REM Check if Node.js is installed
 node --version > nul 2>&1
 if %errorlevel% neq 0 (
@@ -214,8 +214,8 @@ start cmd /k start.bat
 REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
 
-REM Activate the sillytavernextras environment
-call conda activate sillytavernextras
+REM Activate the extras environment
+call conda activate extras
 
 
 REM Start SillyTavern Extras with desired configurations
@@ -835,15 +835,15 @@ if /i "!confirmation!"=="Y" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
     call "%miniconda_path%\Scripts\activate.bat"
 
-    REM Create a Conda environment named sillytavernextras
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment sillytavernextras...
-    call conda create -n sillytavernextras -y
+    REM Create a Conda environment named extras
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment extras...
+    call conda create -n extras -y
 
-    REM Activate the sillytavernextras environment
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment sillytavernextras...
-    call conda activate sillytavernextras
+    REM Activate the extras environment
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment extras...
+    call conda activate extras
 
-    REM Install Python 3.11 and Git in the sillytavernextras environment
+    REM Install Python 3.11 and Git in the extras environment
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
     call conda install python=3.11 git -y
 
@@ -854,13 +854,26 @@ if /i "!confirmation!"=="Y" (
     REM Navigate to the SillyTavern-extras directory
     cd SillyTavern-extras
 
-    REM Install Python dependencies from requirements files
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-complete...
-    pip install -r requirements-complete.txt
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing modules from requirements.txt...
+    pip install -r requirements.txt
+
+    REM Provide a link to the Coqui documentation
+    echo %yellow_fg_strong%[DISCLAIMER] The installation of Coqui requirements is not recommended unless you have a specific use case. It may conflict with additional dependencies and functionalities to your environment.%reset%
+    echo %blue_fg_strong%[INFO]%reset% To learn more about Coqui, visit: https://docs.sillytavern.app/extras/installation/#decide-which-module-to-use
+
+    REM Ask the user if they want to install requirements-coqui.txt
+    set /p install_coqui_requirements=Do you want to install Coqui TTS? [Y/N] 
+
+    REM Check the user's response
+    if /i "%install_coqui_requirements%"=="Y" (
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-coqui...
+        pip install -r requirements-coqui.txt
+    ) else (
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]Coqui requirements installation skipped.%reset% 
+    )
 
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-rvc...
     pip install -r requirements-rvc.txt
-
 
     echo %cyan_fg_strong%Yes, If you are seeing errors about Numpy and Librosa then that is completely normal. If facebook updates their fairseq library to python 3.11 then this error will not appear anymore.%reset%
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Extras installed successfully.%reset%
@@ -887,8 +900,8 @@ set /p "confirmation=Are you sure you want to proceed? [Y/N]: "
 if /i "%confirmation%"=="Y" (
 
     REM Remove the Conda environment
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'sillytavernextras'...
-    call conda remove --name sillytavernextras --all -y
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'extras'...
+    call conda remove --name extras --all -y
 
     REM Remove the folder SillyTavern-extras
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the SillyTavern-extras directory...

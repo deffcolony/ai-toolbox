@@ -15,8 +15,8 @@
 # This script is intended for use on Linux systems. Please
 # report any issues or bugs on the GitHub repository.
 #
-# GitHub: https://github.com/SillyTavern/SillyTavern-Launcher
-# Issues: https://github.com/SillyTavern/SillyTavern-Launcher/issues
+# GitHub: https://github.com/deffcolony/ai-toolbox
+# Issues: https://github.com/deffcolony/ai-toolbox/issues
 # ----------------------------------------------------------
 # Note: Modify the script as needed to fit your requirements.
 # ----------------------------------------------------------
@@ -78,32 +78,6 @@ log_message() {
 #log_message "ERROR" "${red_fg_strong}An error occurred during the process.${reset}"
 #log_message "DEBUG" "This is a debug message."
 #read -p "Press Enter to continue..."
-
-
-# Function to install D-Bus
-install_dbus() {
-    if command -v apt-get &>/dev/null; then
-        log_message "INFO" "Installing D-Bus on Debian/Ubuntu.${reset}"
-        sudo apt update
-        sudo apt install -y dbus dbus-x11
-    elif command -v yum &>/dev/null; then
-        log_message "INFO" "Installing D-Bus on Red Hat/Fedora.${reset}"
-        sudo yum install -y dbus dbus-x11
-    elif command -v apk &>/dev/null; then
-        log_message "INFO" "Installing D-Bus on Alpine Linux.${reset}"
-        sudo apk update
-        sudo apk add dbus dbus-x11
-    elif command -v pacman &>/dev/null; then
-        log_message "INFO" "Installing D-Bus on Arch Linux.${reset}"
-        sudo pacman -Syu dbus dbus-x11
-    elif command -v emerge &>/dev/null; then
-        log_message "INFO" "Installing D-Bus on Gentoo Linux.${reset}"
-        sudo emerge dbus dbus-x11
-    else
-        log_message "ERROR" "${red_fg_strong}Unsupported package manager. Cannot install D-Bus.${reset}"
-        exit 1
-    fi
-}
 
 # Function to install Git
 install_git() {
@@ -249,11 +223,11 @@ install_st_extras() {
     conda config --set auto_activate_base false
     conda init bash
 
-    log_message "INFO" "Creating Conda environment sillytavernextras..."
-    conda create -n sillytavernextras -y
+    log_message "INFO" "Creating Conda environment extras..."
+    conda create -n extras -y
 
-    log_message "INFO" "Activating Conda environment sillytavernextras..."
-    conda activate sillytavernextras
+    log_message "INFO" "Activating Conda environment extras..."
+    conda activate extras
 
     log_message "INFO" "Installing Python and Git in the Conda environment..."
     conda install python=3.11 git -y
@@ -263,8 +237,20 @@ install_st_extras() {
 
     cd SillyTavern-extras
 
-    log_message "INFO" "Installing pip requirements-complete..."
-    pip install -r requirements-complete.txt
+    log_message "INFO" "Installing modules from requirements.txt..."
+    pip install -r requirements.txt
+
+    log_message "DISCLAIMER" "The installation of Coqui requirements is not recommended unless you have a specific use case. It may conflict with additional dependencies and functionalities to your environment."
+    log_message "INFO" "To learn more about Coqui, visit: https://docs.sillytavern.app/extras/installation/#decide-which-module-to-use"
+
+    read -p "Do you want to install Coqui TTS? [Y/N] " install_coqui_requirements
+
+    if [[ "$install_coqui_requirements" == [Yy] ]]; then
+        log_message "INFO" "Installing pip requirements-coqui..."
+        pip install -r requirements-coqui.txt
+    else
+        log_message "INFO" "Coqui requirements installation skipped."
+    fi
 
     log_message "INFO" "Installing pip requirements-rvc..."
     pip install -r requirements-rvc.txt
@@ -323,11 +309,11 @@ install_extras() {
     conda config --set auto_activate_base false
     conda init bash
 
-    log_message "INFO" "Creating Conda environment sillytavernextras..."
-    conda create -n sillytavernextras -y
+    log_message "INFO" "Creating Conda environment extras..."
+    conda create -n extras -y
 
-    log_message "INFO" "Activating Conda environment sillytavernextras..."
-    conda activate sillytavernextras
+    log_message "INFO" "Activating Conda environment extras..."
+    conda activate extras
 
     log_message "INFO" "Installing Python and Git in the Conda environment..."
     conda install python=3.11 git -y
@@ -401,35 +387,30 @@ if [ -n "$IS_MACOS" ]; then
 elif command -v apt-get &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected Debian/Ubuntu-based system.${reset}"
     # Debian/Ubuntu
-    install_dbus
     install_git
     install_nodejs_npm
     installer
 elif command -v yum &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected Red Hat/Fedora-based system.${reset}"
     # Red Hat/Fedora
-    install_dbus
     install_git
     install_nodejs_npm
     installer
 elif command -v apk &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected Alpine Linux-based system.${reset}"
     # Alpine Linux
-    install_dbus
     install_git
     install_nodejs_npm
     installer
 elif command -v pacman &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected Arch Linux-based system.${reset}"
     # Arch Linux
-    install_dbus
     install_git
     install_nodejs_npm
     installer
 elif command -v emerge &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected Gentoo Linux-based system. Now you are the real CHAD${reset}"
     # Gentoo Linux
-    install_dbus
     install_git
     install_nodejs_npm
     installer
@@ -437,5 +418,3 @@ else
     log_message "ERROR" "${red_fg_strong}Unsupported package manager. Cannot detect Linux distribution.${reset}"
     exit 1
 fi
-
-

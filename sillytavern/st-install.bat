@@ -36,7 +36,7 @@ REM Environment Variables (TOOLBOX Install Extras)
 set "miniconda_path=%userprofile%\miniconda3"
 
 REM Define the paths and filenames for the shortcut creation
-set "shortcutTarget=%~dp0st-launcher.bat"
+set "shortcutTarget=%~dp0launcher.bat"
 set "iconFile=%~dp0SillyTavern\public\st-launcher.ico"
 set "desktopPath=%userprofile%\Desktop"
 set "shortcutName=ST-Launcher.lnk"
@@ -49,7 +49,7 @@ winget --version > nul 2>&1
 if %errorlevel% neq 0 (
     echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Winget is not installed on this system.%reset%
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Winget...
-    bitsadmin /transfer "Microsoft.DesktopAppInstaller_8wekyb3d8bbwe" /download /priority FOREGROUND "https://github.com/microsoft/winget-cli/releases/download/v1.6.2771/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+    curl -L -o "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" "https://github.com/microsoft/winget-cli/releases/download/v1.6.2771/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
     start "" "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Winget installed successfully.%reset%
 ) else (
@@ -189,15 +189,15 @@ REM Run conda activate from the Miniconda installation
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
 call "%miniconda_path%\Scripts\activate.bat"
 
-REM Create a Conda environment named sillytavernextras
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment sillytavernextras...
-call conda create -n sillytavernextras -y
+REM Create a Conda environment named extras
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment extras...
+call conda create -n extras -y
 
-REM Activate the sillytavernextras environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment sillytavernextras...
-call conda activate sillytavernextras
+REM Activate the extras environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment extras...
+call conda activate extras
 
-REM Install Python 3.11 and Git in the sillytavernextras environment
+REM Install Python 3.11 and Git in the extras environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
 call conda install python=3.11 git -y
 
@@ -208,13 +208,26 @@ git clone https://github.com/SillyTavern/SillyTavern-extras.git
 REM Navigate to the SillyTavern-extras directory
 cd SillyTavern-extras
 
-REM Install Python dependencies from requirements files
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-complete...
-pip install -r requirements-complete.txt
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing modules from requirements.txt...
+pip install -r requirements.txt
+
+REM Provide a link to the Coqui documentation
+echo %yellow_fg_strong%[DISCLAIMER] The installation of Coqui requirements is not recommended unless you have a specific use case. It may conflict with additional dependencies and functionalities to your environment.%reset%
+echo %blue_fg_strong%[INFO]%reset% To learn more about Coqui, visit: https://docs.sillytavern.app/extras/installation/#decide-which-module-to-use
+
+REM Ask the user if they want to install requirements-coqui.txt
+set /p install_coqui_requirements=Do you want to install Coqui TTS? [Y/N] 
+
+REM Check the user's response
+if /i "%install_coqui_requirements%"=="Y" (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-coqui...
+    pip install -r requirements-coqui.txt
+) else (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]Coqui requirements installation skipped.%reset% 
+)
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-rvc...
 pip install -r requirements-rvc.txt
-
 
 echo %cyan_fg_strong%Yes, If you are seeing errors about Numpy and Librosa then that is completely normal. If facebook updates their fairseq library to python 3.11 then this error will not appear anymore.%reset%
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Extras installed successfully.%reset%
@@ -306,15 +319,15 @@ REM Run conda activate from the Miniconda installation
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
 call "%miniconda_path%\Scripts\activate.bat"
 
-REM Create a Conda environment named sillytavernextras
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment sillytavernextras...
-call conda create -n sillytavernextras -y
+REM Create a Conda environment named extras
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment extras...
+call conda create -n extras -y
 
-REM Activate the sillytavernextras environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment sillytavernextras...
-call conda activate sillytavernextras
+REM Activate the extras environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment extras...
+call conda activate extras
 
-REM Install Python 3.11 and Git in the sillytavernextras environment
+REM Install Python 3.11 and Git in the extras environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
 call conda install python=3.11 git -y
 
@@ -325,9 +338,20 @@ git clone https://github.com/SillyTavern/SillyTavern-extras.git
 REM Navigate to the SillyTavern-extras directory
 cd SillyTavern-extras
 
-REM Install Python dependencies from requirements files
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-complete...
-pip install -r requirements-complete.txt
+REM Provide a link to the Coqui documentation
+echo %yellow_fg_strong%[DISCLAIMER] The installation of Coqui requirements is not recommended unless you have a specific use case. It may conflict with additional dependencies and functionalities to your environment.%reset%
+echo %blue_fg_strong%[INFO]%reset% To learn more about Coqui, visit: https://docs.sillytavern.app/extras/installation/#decide-which-module-to-use
+
+REM Ask the user if they want to install requirements-coqui.txt
+set /p install_coqui_requirements=Do you want to install Coqui TTS? [Y/N] 
+
+REM Check the user's response
+if /i "%install_coqui_requirements%"=="Y" (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-coqui...
+    pip install -r requirements-coqui.txt
+) else (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]Coqui requirements installation skipped.%reset% 
+)
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-rvc...
 pip install -r requirements-rvc.txt
