@@ -4,6 +4,9 @@ REM Created by: Deffcolony
 REM
 REM Description:
 REM This script can install and create images with Windows Assessment and Deployment Kit
+REM If you want to create ur own unattend.xml go to: https://schneegans.de/windows/unattend-generator/
+REM Dont forget to edit startnet.cmd to match ur setup
+REM You can also add a custom install background by adding a jpg image to C:\WinPE_amd64\mount\windows\system32\winpe.jpg
 REM
 REM This script is intended for use on Windows systems.
 REM report any issues or bugs on the GitHub repository.
@@ -211,6 +214,23 @@ rmdir /s /q %~dp0WinPE_amd64
 REM Create working files bootable WinPE ISO in a seperate CMD window
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Opening seperate CMD Window for creating working files and bootable WinPE ISO...
 start /wait cmd.exe /k ""C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\DandISetEnv.bat" && copype amd64 %~dp0WinPE_amd64 && MakeWinPEMedia /ISO %~dp0WinPE_amd64 %~dp0WinPE_amd64\WinPE_amd64.iso && exit"
+
+REM Mount the boot.wim
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Mounting boot.wim...
+Dism /Mount-Image /ImageFile:"%~dp0WinPE_amd64\media\sources\boot.wim" /index:1 /MountDir:"%~dp0WinPE_amd64\mount"
+
+REM Copy startnet.cmd to mount of boot.wim
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying startnet.cmd into boot.wim...
+copy /Y "%~dp0startnet.cmd" "%~dp0WinPE_amd64\mount\Windows\System32\startnet.cmd"
+
+REM Copy unattend.xml to mount of boot.wim
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying unattend.xml into boot.wim...
+copy /Y "%~dp0unattend.xml" "%~dp0WinPE_amd64\mount\unattend.xml"
+
+REM Unmount the boot.wim, committing changes
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Unmounting the boot.wim, committing changes...
+Dism /Unmount-Image /MountDir:"%~dp0WinPE_amd64\mount" /commit
+
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%You can find the WinPE_amd64.iso at: %~dp0WinPE_amd64\WinPE_amd64.iso%reset%
 pause
 goto :home
