@@ -68,7 +68,7 @@ echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Initializing Windows
 wpeinit
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Connecting to network drive (Z:)...
-net use Z: \\YOUR_NETBOOTXYZ_IP\windows\11
+net use Z: \\YOUR_NETBOOTXYZ-SAMBA_IP\netboot\assets\windows\11 /user:YOUR_NETBOOTXYZ-SAMBA_IP\netboot netboot123
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Starting setup with unattended XML...
 z:\setup.exe /unattend:x:\unattend.xml
@@ -85,7 +85,7 @@ echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Initializing Windows
 wpeinit
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Connecting to network drive (Z:)...
-net use Z: \\YOUR_NETBOOTXYZ_IP\windows\10
+net use Z: \\YOUR_NETBOOTXYZ-SAMBA_IP\netboot\assets\windows\10 /user:YOUR_NETBOOTXYZ-SAMBA_IP\netboot netboot123
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Starting setup with unattended XML...
 z:\setup.exe /unattend:x:\unattend.xml
