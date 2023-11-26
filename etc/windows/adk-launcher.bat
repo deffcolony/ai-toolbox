@@ -91,8 +91,9 @@ echo -------------------------------------
 echo What would you like to do?
 echo 1. Install Windows ADK
 echo 2. Run Windows ADK
-echo 3. Uninstall Windows ADK
-echo 4. Exit
+echo 3. Edit boot.wim
+echo 4. Uninstall Windows ADK
+echo 5. Exit
 
 
 set "choice="
@@ -108,8 +109,10 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="2" (
     call :run_win_adk
 ) else if "%choice%"=="3" (
-    call :uninstall_win_adk
+    call :edit_bootwim
 ) else if "%choice%"=="4" (
+    call :uninstall_win_adk
+) else if "%choice%"=="5" (
     exit
 ) else (
     color 6
@@ -240,6 +243,78 @@ pause
 goto :home
 
 
+:edit_bootwim
+>nul 2>&1 net session
+if %errorlevel% neq 0 (
+    echo %red_fg_strong%[ERROR] This part requires administrative privileges. Please run the launcher as Administrator.%reset%
+    pause
+    goto :home
+)
+title Windows ADK [EDIT BOOT.WIM]
+cls
+echo %blue_fg_strong%/ Home / Edit boot.wim%reset%
+echo ---------------------------------------------------------------
+
+REM Remove the WinPE_amd64.iso
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the existing WinPE_amd64.iso...
+del "%~dp0WinPE_amd64\WinPE_amd64.iso" 
+
+REM Create the bootwimfiles directory
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating the bootwimfiles directory...
+mkdir "%~dp0WinPE_amd64\bootwimfiles"
+
+REM Mount the boot.wim
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Mounting boot.wim...
+Dism /Mount-Image /ImageFile:"%~dp0WinPE_amd64\media\sources\boot.wim" /index:1 /MountDir:"%~dp0WinPE_amd64\mount"
+
+REM Copy startnet.cmd to bootwimfiles folder
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying startnet.cmd into bootwimfiles directory...
+copy /Y "%~dp0WinPE_amd64\mount\Windows\System32\startnet.cmd" "%~dp0WinPE_amd64\bootwimfiles\startnet.cmd" 
+
+REM Copy unattend.xml to bootwimfiles folder
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying unattend.xml into bootwimfiles directory...
+copy /Y "%~dp0WinPE_amd64\mount\unattend.xml" "%~dp0WinPE_amd64\bootwimfiles\unattend.xml" 
+
+REM Copy winpe.jpg to bootwimfiles folder
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying unattend.xml into bootwimfiles directory...
+copy /Y "%~dp0WinPE_amd64\mount\Windows\System32\winpe.jpg" "%~dp0WinPE_amd64\bootwimfiles\winpe.jpg" 
+
+REM Ask user to press enter when done editing
+echo %cyan_fg_strong%You can edit startnet.cmd at: %~dp0WinPE_amd64\bootwimfiles\startnet.cmd%reset%
+echo %cyan_fg_strong%You can edit unattend.xml at: %~dp0WinPE_amd64\bootwimfiles\unattend.xml%reset%
+echo %cyan_fg_strong%Optionally, you can add a custom background at: %~dp0WinPE_amd64\bootwimfiles\winpe.jpg%reset%
+echo.
+echo %cyan_fg_strong%Done editing?%reset%
+pause
+
+REM Copy startnet.cmd to mount of boot.wim
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying startnet.cmd into boot.wim...
+copy /Y "%~dp0WinPE_amd64\bootwimfiles\startnet.cmd" "%~dp0WinPE_amd64\mount\Windows\System32\startnet.cmd"
+
+REM Copy unattend.xml to mount of boot.wim
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying unattend.xml into boot.wim...
+copy /Y "%~dp0WinPE_amd64\bootwimfiles\unattend.xml" "%~dp0WinPE_amd64\mount\unattend.xml"
+
+REM Copy winpe.jpg to mount of boot.wim
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying winpe.jpg into boot.wim...
+copy /Y "%~dp0WinPE_amd64\bootwimfiles\winpe.jpg" "%~dp0WinPE_amd64\mount\Windows\System32\winpe.jpg"
+
+REM Unmount the boot.wim, committing changes
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Unmounting the boot.wim, committing changes...
+Dism /Unmount-Image /MountDir:"%~dp0WinPE_amd64\mount" /commit
+
+REM Remove bootwimfiles directory for cleanup
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the bootwimfiles directory...
+rmdir /s /q "%~dp0WinPE_amd64\bootwimfiles"
+
+REM Build the WinPE ISO in a seperate CMD window
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Opening seperate CMD Window to build bootable WinPE ISO...
+start /wait cmd.exe /k ""C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\DandISetEnv.bat" && MakeWinPEMedia /ISO %~dp0WinPE_amd64 %~dp0WinPE_amd64\WinPE_amd64.iso && exit"
+
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%You can find the WinPE_amd64.iso at: %~dp0WinPE_amd64\WinPE_amd64.iso%reset%
+pause
+goto :home
+
 :uninstall_win_adk
 title Windows ADK [UNINSTALL]
 setlocal enabledelayedexpansion
@@ -261,8 +336,7 @@ if /i "%confirmation%"=="Y" (
 
     REM Remove the folder WinPE_amd64
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the WinPE_amd64 directory...
-    cd /d "%~dp0"
-    rmdir /s /q WinPE_amd64
+    rmdir /s /q "%~dp0WinPE_amd64"
 
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Windows ADK uninstalled successfully.%reset%
     pause
