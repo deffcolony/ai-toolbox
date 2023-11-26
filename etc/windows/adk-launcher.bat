@@ -211,9 +211,9 @@ REM Delete the temp folder
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Deleting the temp folder...
 rmdir /s /q %~dp0WinPE_amd64
 
-REM Create working files bootable WinPE ISO in a seperate CMD window
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Opening seperate CMD Window for creating working files and bootable WinPE ISO...
-start /wait cmd.exe /k ""C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\DandISetEnv.bat" && copype amd64 %~dp0WinPE_amd64 && MakeWinPEMedia /ISO %~dp0WinPE_amd64 %~dp0WinPE_amd64\WinPE_amd64.iso && exit"
+REM Create working files in a seperate CMD window
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Opening seperate CMD Window for creating working files
+start /wait cmd.exe /k ""C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\DandISetEnv.bat" && copype amd64 %~dp0WinPE_amd64 && exit"
 
 REM Mount the boot.wim
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Mounting boot.wim...
@@ -230,6 +230,10 @@ copy /Y "%~dp0unattend.xml" "%~dp0WinPE_amd64\mount\unattend.xml"
 REM Unmount the boot.wim, committing changes
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Unmounting the boot.wim, committing changes...
 Dism /Unmount-Image /MountDir:"%~dp0WinPE_amd64\mount" /commit
+
+REM Build the WinPE ISO in a seperate CMD window
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Opening seperate CMD Window to build bootable WinPE ISO...
+start /wait cmd.exe /k ""C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\DandISetEnv.bat" && MakeWinPEMedia /ISO %~dp0WinPE_amd64 %~dp0WinPE_amd64\WinPE_amd64.iso && exit"
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%You can find the WinPE_amd64.iso at: %~dp0WinPE_amd64\WinPE_amd64.iso%reset%
 pause
