@@ -68,11 +68,11 @@ echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Initializing Windows
 wpeinit
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Connecting to network drive (Z:)...
-net use Z: \\YOUR_NETBOOTXYZ-SAMBA_IP\netboot\assets\windows\11 /user:YOUR_NETBOOTXYZ-SAMBA_IP\netboot netboot123
+net use Z: \\YOUR_NETBOOTXYZ-SAMBA_IP\netboot\assets\windows\11 /user:netboot netboot123
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Starting setup with unattended XML...
 z:\setup.exe /unattend:x:\unattend.xml
-
+goto :home
 
 :install_windows10
 title WinPE Setup [INSTALL WINDOWS 10]
@@ -85,17 +85,38 @@ echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Initializing Windows
 wpeinit
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Connecting to network drive (Z:)...
-net use Z: \\YOUR_NETBOOTXYZ-SAMBA_IP\netboot\assets\windows\10 /user:YOUR_NETBOOTXYZ-SAMBA_IP\netboot netboot123
+net use Z: \\YOUR_NETBOOTXYZ-SAMBA_IP\netboot\assets\windows\10 /user:netboot netboot123
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Starting setup with unattended XML...
 z:\setup.exe /unattend:x:\unattend.xml
+goto :home
 
 
+REM Toolbox - Frontend
 :toolbox
 title WinPE Setup [TOOLBOX]
 cls
 echo %blue_fg_strong%/ Home / Toolbox%reset%
-echo ---------------------------------------------------------------
-echo Nothing here yet... You can edit the startnet.cmd script to add extra options if needed.
-pause
-goto :home
+echo -------------------------------------
+echo What would you like to do?
+echo 1. Run cmd.exe
+echo 2. Back to Home
+
+set /p toolbox_choice=Choose Your Destiny: 
+
+REM Toolbox - Backend
+if "%toolbox_choice%"=="1" (
+    call :run_cmd
+) else if "%toolbox_choice%"=="2" (
+    goto :home
+) else (
+    color 6
+    echo WARNING: Invalid number. Please insert a valid number.
+    pause
+    goto :toolbox
+)
+
+
+:run_cmd
+start cmd
+goto :toolbox
