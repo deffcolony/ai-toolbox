@@ -24,7 +24,7 @@ AI-Toolbox provides a collection of automation scripts that streamline the insta
 
 ## ✨ Features
 
-- Automated installation of the following AI applications:
+- Automated installation of the following applications:
   * [audiobook_maker](https://github.com/JarodMica/audiobook_maker)
   * [autogen](https://github.com/microsoft/autogen)
   * [ChatDev](https://github.com/OpenBMB/ChatDev)
