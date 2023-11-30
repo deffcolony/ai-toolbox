@@ -36,6 +36,7 @@ AI-Toolbox provides a collection of automation scripts that streamline the insta
   * [stable-diffusion-webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui)
   * [ComfyUI](https://github.com/comfyanonymous/ComfyUI)
   * [text-generation-webui](https://github.com/oobabooga/text-generation-webui)
+  * [Windows ADK](https://learn.microsoft.com/en-us/windows-hardware/test/weg/understanding-the-windows-adk-tools)
 
 - Customizable for your specific workflow and preferences.
 
