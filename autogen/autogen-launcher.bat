@@ -1,8 +1,17 @@
 @echo off
-REM --------------------------------------------
-REM This script was created by: Deffcolony
-REM --------------------------------------------
+REM AutoGen Launcher
+REM Created by: Deffcolony
 REM Github: https://github.com/microsoft/autogen
+REM
+REM Description:
+REM This script can install autogen
+REM
+REM This script is intended for use on Windows systems.
+REM report any issues or bugs on the GitHub repository.
+REM
+REM GitHub: https://github.com/deffcolony/ai-toolbox
+REM Issues: https://github.com/deffcolony/ai-toolbox/issues
+title AutoGen Launcher
 setlocal
 
 REM ANSI Escape Code for Colors
@@ -82,7 +91,8 @@ echo 1. Install autogen
 echo 2. Configure autogen
 echo 3. Run autogen
 echo 4. Update
-echo 5. Exit
+echo 5. Uninstall autogen
+echo 6. Exit
 
 
 set "choice="
@@ -94,13 +104,13 @@ REM if not defined choice set "choice=1"
 
 REM home - Backend
 if "%choice%"=="1" (
-    call :installautogen
+    call :install_autogen
 ) else if "%choice%"=="2" (
-    call :configureautogen
+    call :configure_autogen
 ) else if "%choice%"=="3" (
-    call :runautogen
+    call :run_autogen
 ) else if "%choice%"=="4" (
-    call :updateautogen
+    call :update_autogen
 ) else if "%choice%"=="5" (
     exit
 ) else (
@@ -111,7 +121,7 @@ if "%choice%"=="1" (
 )
 
 
-:installautogen
+:install_autogen
 title autogen [INSTALL]
 cls
 echo %blue_fg_strong%/ Home / Install autogen%reset%
@@ -168,7 +178,7 @@ endlocal
 goto :home
 
 
-:configureautogen
+:configure_autogen
 title autogen [CONFIGURE]
 cls
 echo %blue_fg_strong%/ Home / Configure autogen%reset%
@@ -191,18 +201,19 @@ pause
 goto :home
 
 
-:runautogen
+:run_autogen
 title autogen
 cls
 echo %blue_fg_strong%/ Home / Run autogen%reset%
 echo ---------------------------------------------------------------
-echo %blue_fg_strong%[INFO]%reset% AutoGen has been launched.
+echo %blue_fg_strong%[INFO]%reset% autogen has been launched.
 
 REM Run conda activate from the Miniconda installation
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
 call "%miniconda_path%\Scripts\activate.bat"
 
 REM Activate the autogen environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment autogen...
 call conda activate autogen
 
 REM Start SillyTavern Extras with desired configurations
@@ -212,7 +223,7 @@ start cmd /k python app.py
 goto :home
 
 
-:updateautogen
+:update_autogen
 title autogen [UPDATE]
 cls
 echo %blue_fg_strong%/ Home / Update%reset%
@@ -222,3 +233,37 @@ cd /d "%~dp0autogen"
 pip install --upgrade pyautogen
 pause
 goto :home
+
+
+:uninstall_autogen
+title autogen [UNINSTALL]
+setlocal enabledelayedexpansion
+chcp 65001 > nul
+
+REM Confirm with the user before proceeding
+echo.
+echo %red_bg%╔════ DANGER ZONE ══════════════════════════════════════════════════════════════════════════════╗%reset%
+echo %red_bg%║ WARNING: This will delete all data of AutoGen                                                 ║%reset%
+echo %red_bg%║ If you want to keep any data, make sure to create a backup before proceeding.                 ║%reset%
+echo %red_bg%╚═══════════════════════════════════════════════════════════════════════════════════════════════╝%reset%
+echo.
+set /p "confirmation=Are you sure you want to proceed? [Y/N]: "
+if /i "%confirmation%"=="Y" (
+
+    REM Remove the Conda environment
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'autogen'...
+    call conda remove --name autogen --all -y
+
+    REM Remove the folder autogen
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the autogen directory...
+    cd /d "%~dp0"
+    rmdir /s /q autogen
+
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%autogen uninstalled successfully.%reset%
+    pause
+    goto :home
+) else (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Uninstall canceled.
+    pause
+    goto :home
+)

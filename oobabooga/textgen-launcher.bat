@@ -113,9 +113,9 @@ if "%choice%"=="1" (
     call :run_textgen_share
 ) else if "%choice%"=="5" (
     call :update_textgen
-) else if "%choice%"=="5" (
-    call :uninstall_textgen
 ) else if "%choice%"=="6" (
+    call :uninstall_textgen
+) else if "%choice%"=="7" (
     exit
 ) else (
     color 6
