@@ -4,7 +4,7 @@
 # Created by: Deffcolony
 #
 # Description:
-# This script installs SillyTavern and/or Extras to your Linux system.
+# This script runs SillyTavern and/or Extras on your Linux system.
 #
 # Usage:
 # chmod +x st-launcher.sh && ./st-launcher.sh
@@ -164,34 +164,28 @@ home() {
     echo -e "Update Status: $update_status"
     echo "================================"
 
-    read -p "Choose Your Destiny (default is 1): " choice
+    read -p "Choose Your Destiny: " home_choice
 
     # Default to choice 1 if no input is provided
-    if [ -z "$choice" ]; then
-      choice=1
+    if [ -z "$home_choice" ]; then
+      home_choice=1
     fi
 
-    # home - Backend
-    if [ "$choice" = "1" ]; then
-        start_sillytavern
-    elif [ "$choice" = "2" ]; then
-        start_sillytavern_with_extras
-    elif [ "$choice" = "3" ]; then
-        update
-    elif [ "$choice" = "4" ]; then
-        backup_menu
-    elif [ "$choice" = "5" ]; then
-        switch_branch_menu
-    elif [ "$choice" = "6" ]; then
-        toolbox
-    elif [ "$choice" = "7" ]; then
-        exit
-    else
-        echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
-        read -p "Press Enter to continue..."
-        home
-    fi
+    # Home menu - Backend
+    case $home_choice in
+        1) start_st ;;
+        2) start_st_extras ;;
+        3) update ;;
+        4) backup_menu ;;
+        5) switch_branch_menu ;;
+        6) toolbox ;;
+        7) exit ;;
+        *) echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
+           read -p "Press Enter to continue..."
+           home ;;
+    esac
 }
+
 
 # Function to check if Node.js is installed
 check_nodejs() {
@@ -206,27 +200,63 @@ check_nodejs() {
 }
 
 
+# Function to find a suitable terminal emulator
+find_terminal() {
+    for terminal in "$TERMINAL" x-terminal-emulator mate-terminal gnome-terminal terminator xfce4-terminal urxvt rxvt termit Eterm aterm uxterm xterm roxterm termite lxterminal terminology st qterminal lilyterm tilix terminix konsole kitty guake tilda alacritty hyper wezterm; do
+        if command -v "$terminal" > /dev/null 2>&1; then
+            echo "$terminal"
+            return 0
+        fi
+    done
+
+    # Return a default terminal if none is found
+    echo "x-terminal-emulator"
+    return 1
+}
 
 # Function to start SillyTavern
-start_sillytavern() {
+start_st() {
     check_nodejs
     log_message "INFO" "SillyTavern launched in a new window."
+    # Find a suitable terminal
+    local detected_terminal
+    detected_terminal=$(find_terminal)
+    log_message "INFO" "Found terminal: $detected_terminal"
+    # Enable read p command for troubleshooting    
+    # read -p "Press Enter to continue..."
 
-    # Start a terminal emulator for "start.sh" (adjust the command as needed)
-    x-terminal-emulator -e "cd $(dirname "$0")./SillyTavern && ./start.sh" &
+    # Start SillyTavern in the detected terminal
+    if [ "$(uname)" == "Darwin" ]; then
+        log_message "INFO" "Detected macOS. Opening new Terminal window."
+        open -a Terminal "$(dirname "$0")/start.sh"
+    else
+        exec "$detected_terminal" -e "cd $(dirname "$0")./SillyTavern && ./start.sh" &
+    fi
 
     home
 }
 
 # Function to start SillyTavern with Extras
-start_sillytavern_with_extras() {
+start_st_extras() {
     check_nodejs
-
-    # Start a terminal emulator for "start.sh" (adjust the command as needed)
     log_message "INFO" "SillyTavern launched in a new window."
     log_message "INFO" "Extras launched in a new window."
-    x-terminal-emulator -e "cd $(dirname "$0")./SillyTavern && ./start.sh" &
-    x-terminal-emulator -e "cd $(dirname "$0")./SillyTavern-extras && ./start.sh" &
+    # Find a suitable terminal
+    local detected_terminal
+    detected_terminal=$(find_terminal)
+    log_message "INFO" "Found terminal: $detected_terminal"
+    # Enable read p command for troubleshooting    
+    # read -p "Press Enter to continue..."
+
+    # Start SillyTavern in the detected terminal
+    if [ "$(uname)" == "Darwin" ]; then
+        log_message "INFO" "Detected macOS. Opening new Terminal window."
+        open -a Terminal "$(dirname "$0")/start.sh"
+        open -a Terminal "$(dirname "$0")/SillyTavern-extras/start.sh"
+    else
+        exec "$detected_terminal" -e "cd $(dirname "$0")./SillyTavern && ./start.sh" &
+        exec "$detected_terminal" -e "cd $(dirname "$0")./SillyTavern-extras && ./start.sh" &
+    fi
 
     home
 }
@@ -347,19 +377,15 @@ backup_menu() {
     read -p "Choose Your Destiny: " backup_choice
 
     # Backup menu - Backend
-    if [ "$backup_choice" = "1" ]; then
-        create_backup
-    elif [ "$backup_choice" = "2" ]; then
-        restore_backup
-    elif [ "$backup_choice" = "3" ]; then
-        home
-    else
-        echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
-        read -p "Press Enter to continue..."
-        backup_menu
-    fi
+    case $backup_choice in
+        1) create_backup ;;
+        2) restore_backup ;;
+        3) home ;;
+        *) echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
+           read -p "Press Enter to continue..."
+           backup_menu ;;
+    esac
 }
-
 
 
 # Function to switch to the Release branch in SillyTavern
@@ -397,18 +423,15 @@ switch_branch_menu() {
 
     read -p "Choose Your Destiny: " branch_choice
 
-    # Home Menu - Backend
-    if [ "$branch_choice" = "1" ]; then
-        switch_release_st
-    elif [ "$branch_choice" = "2" ]; then
-        switch_staging_st
-    elif [ "$branch_choice" = "3" ]; then
-        home
-    else
-        echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
-        read -p "Press Enter to continue..."
-        switch_branch_menu
-    fi
+    # switch branch menu - Backend
+    case $branch_choice in
+        1) switch_release_st ;;
+        2) switch_staging_st ;;
+        3) home ;;
+        *) echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
+           read -p "Press Enter to continue..."
+           switch_branch_menu ;;
+    esac
 }
 
 # Function to edit environment variables
@@ -562,11 +585,11 @@ reinstall_extras() {
         conda config --set auto_activate_base false
         conda init bash
 
-        log_message "INFO" "Creating Conda environment sillytavernextras..."
-        conda create -n sillytavernextras -y
+        log_message "INFO" "Creating Conda environment extras..."
+        conda create -n extras -y
 
-        log_message "INFO" "Activating Conda environment sillytavernextras..."
-        conda activate sillytavernextras
+        log_message "INFO" "Activating Conda environment extras..."
+        conda activate extras
 
         log_message "INFO" "Installing Python and Git in the Conda environment..."
         conda install python=3.11 git -y
@@ -576,8 +599,20 @@ reinstall_extras() {
 
         cd SillyTavern-extras
 
-        log_message "INFO" "Installing pip requirements-complete..."
-        pip install -r requirements-complete.txt
+        log_message "INFO" "Installing modules from requirements.txt..."
+        pip install -r requirements.txt
+
+        log_message "DISCLAIMER" "The installation of Coqui requirements is not recommended unless you have a specific use case. It may conflict with additional dependencies and functionalities to your environment."
+        log_message "INFO" "To learn more about Coqui, visit: https://docs.sillytavern.app/extras/installation/#decide-which-module-to-use"
+
+        read -p "Do you want to install Coqui TTS? [Y/N] " install_coqui_requirements
+
+        if [[ "$install_coqui_requirements" == [Yy] ]]; then
+            log_message "INFO" "Installing pip requirements-coqui..."
+            pip install -r requirements-coqui.txt
+        else
+            log_message "INFO" "Coqui requirements installation skipped."
+        fi
 
         log_message "INFO" "Installing pip requirements-rvc..."
         pip install -r requirements-rvc.txt
@@ -585,6 +620,33 @@ reinstall_extras() {
         log_message "INFO" "${green_fg_strong}SillyTavern Extras reinstalled successfully.${reset}"
     else
         echo "Reinstall canceled."
+    fi
+    pause
+    toolbox
+}
+
+# Function to uninstall SillyTavern + Extras
+uninstall_st_extras() {
+
+    echo
+    echo -e "${red_bg}╔════ DANGER ZONE ═══════════════════════════════════════════════════════════════════╗${reset}"
+    echo -e "${red_bg}║ WARNING: This will delete all data in Sillytavern + Extras                         ║${reset}"
+    echo -e "${red_bg}║ If you want to keep any data, make sure to create a backup before proceeding.      ║${reset}"
+    echo -e "${red_bg}╚════════════════════════════════════════════════════════════════════════════════════╝${reset}"
+    echo
+    echo -n "Are you sure you want to proceed? [Y/N]: "
+    read confirmation
+
+    if [ "$confirmation" = "Y" ] || [ "$confirmation" = "y" ]; then
+        cd "$PWD"
+        log_message "INFO" "Removing the SillyTavern + Sillytavern-extras directory..."
+        rm -rf SillyTavern SillyTavern-extras
+        log_message "INFO" "Removing the Conda environment 'extras'..."
+        conda remove --name extras --all -y
+
+        log_message "INFO" "${green_fg_strong}SillyTavern + Extras uninstalled successfully.${reset}"
+    else
+        echo "Uninstall canceled."
     fi
     pause
     toolbox
@@ -603,7 +665,8 @@ toolbox() {
     echo "5. Edit Extras Modules"
     echo "6. Reinstall SillyTavern"
     echo "7. Reinstall Extras"
-    echo "8. Back to Home"
+    echo "8. Uninstall SillyTavern + Extras"
+    echo "9. Back to Home"
 
     read -p "Choose Your Destiny: " toolbox_choice
 
@@ -615,17 +678,28 @@ toolbox() {
         5) edit_extras_modules ;;
         6) reinstall_sillytavern ;;
         7) reinstall_extras ;;
-        8) home ;;
+        8) uninstall_st_extras ;;
+        9) home ;;
         *) echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
            read -p "Press Enter to continue..."
            toolbox ;;
     esac
 }
 
-
+# Check if the script is running on macOS
+if [ "$(uname)" == "Darwin" ]; then
+    IS_MACOS="1"
+fi
 
 # Detect the package manager and execute the appropriate installation
-if command -v apt-get &>/dev/null; then
+if [ -n "$IS_MACOS" ]; then
+    log_message "INFO" "${blue_fg_strong}Detected macOS system.${reset}"
+    # macOS
+    install_git
+    install_nodejs_npm
+    home
+# Detect the package manager and execute the appropriate installation
+elif command -v apt-get &>/dev/null; then
     log_message "INFO" "Detected Debian/Ubuntu-based system.${reset}"
     # Debian/Ubuntu
     install_git

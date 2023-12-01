@@ -112,6 +112,8 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="4" (
     call :update_autogen
 ) else if "%choice%"=="5" (
+    call :uninstall_autogen
+) else if "%choice%"=="6" (
     exit
 ) else (
     color 6

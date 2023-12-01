@@ -36,7 +36,7 @@ REM Environment Variables (TOOLBOX Install Extras)
 set "miniconda_path=%userprofile%\miniconda3"
 
 REM Define the paths and filenames for the shortcut creation
-set "shortcutTarget=%~dp0st-launcher.bat"
+set "shortcutTarget=%~dp0launcher.bat"
 set "iconFile=%~dp0SillyTavern\public\st-launcher.ico"
 set "desktopPath=%userprofile%\Desktop"
 set "shortcutName=ST-Launcher.lnk"
@@ -49,7 +49,7 @@ winget --version > nul 2>&1
 if %errorlevel% neq 0 (
     echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Winget is not installed on this system.%reset%
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Winget...
-    bitsadmin /transfer "Microsoft.DesktopAppInstaller_8wekyb3d8bbwe" /download /priority FOREGROUND "https://github.com/microsoft/winget-cli/releases/download/v1.6.2771/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+    curl -L -o "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" "https://github.com/microsoft/winget-cli/releases/download/v1.6.2771/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
     start "" "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Winget installed successfully.%reset%
 ) else (
@@ -153,7 +153,6 @@ cls
 echo %blue_fg_strong%/ Installer / SillyTavern + Extras%reset%
 echo ---------------------------------------------------------------
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing SillyTavern + Extras...
-echo .
 echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing SillyTavern...
@@ -189,15 +188,15 @@ REM Run conda activate from the Miniconda installation
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
 call "%miniconda_path%\Scripts\activate.bat"
 
-REM Create a Conda environment named sillytavernextras
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment sillytavernextras...
-call conda create -n sillytavernextras -y
+REM Create a Conda environment named extras
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment extras...
+call conda create -n extras -y
 
-REM Activate the sillytavernextras environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment sillytavernextras...
-call conda activate sillytavernextras
+REM Activate the extras environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment extras...
+call conda activate extras
 
-REM Install Python 3.11 and Git in the sillytavernextras environment
+REM Install Python 3.11 and Git in the extras environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
 call conda install python=3.11 git -y
 
@@ -208,16 +207,65 @@ git clone https://github.com/SillyTavern/SillyTavern-extras.git
 REM Navigate to the SillyTavern-extras directory
 cd SillyTavern-extras
 
-REM Install Python dependencies from requirements files
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-complete...
-pip install -r requirements-complete.txt
+REM Install pip requirements
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing modules from requirements.txt...
+pip install -r requirements.txt
+
+REM Provide a link to the XTTS
+echo %blue_fg_strong%[INFO] Feeling excited to give your robotic waifu/husbando a new shiny voice modulator?%reset%
+echo %blue_fg_strong%To learn more about XTTS, visit:%reset% https://coqui.ai/blog/tts/open_xtts
+
+REM Ask the user if they want to install XTTS
+set /p install_xtts_requirements=Install XTTS? [Y/N] 
+
+REM Check the user's response
+if /i "%install_xtts_requirements%"=="Y" (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing XTTS...
+
+    REM Run conda deactivate for extras
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Deactivating Conda environment extras...
+    call conda deactivate
+
+    REM Create folders for xtts
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating xtts folders...
+    mkdir "%~dp0xtts"
+    mkdir "%~dp0xtts\speakers"
+    mkdir "%~dp0xtts\output"
+
+    REM Run conda activate from the Miniconda installation
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
+    call "%miniconda_path%\Scripts\activate.bat"
+
+    REM Create a Conda environment named xtts
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment xtts...
+    call conda create -n xtts -y
+
+    REM Activate the xtts environment
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment xtts...
+    call conda activate xtts
+
+    REM Install Python 3.10 in the xtts environment
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python in the Conda environment...
+    conda install python=3.10 -y
+
+    REM Install pip requirements
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements...
+    pip install xtts-api-server
+    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+    REM Run conda deactivate for xtts
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Deactivating Conda environment xtts...
+    call conda deactivate
+
+    REM Activate the extras environment
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment extras...
+    call conda activate extras
+) else (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO] XTTS installation skipped.%reset% 
+)
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-rvc...
 pip install -r requirements-rvc.txt
-
-
-echo %cyan_fg_strong%Yes, If you are seeing errors about Numpy and Librosa then that is completely normal. If facebook updates their fairseq library to python 3.11 then this error will not appear anymore.%reset%
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Extras installed successfully.%reset%
 
 REM Ask if the user wants to create a shortcut
 set /p create_shortcut=Do you want to create a shortcut on the desktop? [Y/n] 
@@ -235,7 +283,17 @@ if /i "%create_shortcut%"=="Y" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Shortcut created on the desktop.%reset%
     pause
 )
-endlocal
+
+
+REM Ask if the user wants to start the launcher.bat
+set /p start_launcher=Start the launcher now? [Y/n] 
+if /i "%start_launcher%"=="Y" (
+    REM Run the launcher
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Running launcher in a new window...
+    cd /d "%~dp0"
+    start cmd /k launcher.bat
+    goto :installer
+)
 goto :installer
 
 
@@ -245,7 +303,6 @@ cls
 echo %blue_fg_strong%/ Installer / SillyTavern%reset%
 echo ---------------------------------------------------------------
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing SillyTavern...
-echo .
 echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning SillyTavern repository...
@@ -269,7 +326,17 @@ if /i "%create_shortcut%"=="Y" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Shortcut created on the desktop.%reset%
     pause
 )
-endlocal
+
+
+REM Ask if the user wants to start the launcher.bat
+set /p start_launcher=Start the launcher now? [Y/n] 
+if /i "%start_launcher%"=="Y" (
+    REM Run the launcher
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Running launcher in a new window...
+    cd /d "%~dp0"
+    start cmd /k launcher.bat
+    goto :installer
+)
 goto :installer
 
 
@@ -279,7 +346,6 @@ cls
 echo %blue_fg_strong%/ Installer / Extras%reset%
 echo ---------------------------------------------------------------
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Extras...
-echo .
 echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Miniconda...
@@ -306,15 +372,15 @@ REM Run conda activate from the Miniconda installation
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
 call "%miniconda_path%\Scripts\activate.bat"
 
-REM Create a Conda environment named sillytavernextras
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment sillytavernextras...
-call conda create -n sillytavernextras -y
+REM Create a Conda environment named extras
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment extras...
+call conda create -n extras -y
 
-REM Activate the sillytavernextras environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment sillytavernextras...
-call conda activate sillytavernextras
+REM Activate the extras environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment extras...
+call conda activate extras
 
-REM Install Python 3.11 and Git in the sillytavernextras environment
+REM Install Python 3.11 and Git in the extras environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
 call conda install python=3.11 git -y
 
@@ -325,15 +391,67 @@ git clone https://github.com/SillyTavern/SillyTavern-extras.git
 REM Navigate to the SillyTavern-extras directory
 cd SillyTavern-extras
 
-REM Install Python dependencies from requirements files
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-complete...
-pip install -r requirements-complete.txt
+REM Install pip requirements
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing modules from requirements.txt...
+pip install -r requirements.txt
+
+REM Provide a link to the XTTS
+echo %blue_fg_strong%[INFO] Feeling excited to give your robotic waifu/husbando a new shiny voice modulator?%reset%
+echo %blue_fg_strong%To learn more about XTTS, visit:%reset% https://coqui.ai/blog/tts/open_xtts
+
+REM Ask the user if they want to install XTTS
+set /p install_xtts_requirements=Install XTTS? [Y/N] 
+
+REM Check the user's response
+if /i "%install_xtts_requirements%"=="Y" (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing XTTS...
+
+    REM Run conda deactivate for extras
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Deactivating Conda environment extras...
+    call conda deactivate
+
+    REM Create folders for xtts
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating xtts folders...
+    mkdir "%~dp0xtts"
+    mkdir "%~dp0xtts\speakers"
+    mkdir "%~dp0xtts\output"
+
+    REM Run conda activate from the Miniconda installation
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
+    call "%miniconda_path%\Scripts\activate.bat"
+
+    REM Create a Conda environment named xtts
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment xtts...
+    call conda create -n xtts -y
+
+    REM Activate the xtts environment
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment xtts...
+    call conda activate xtts
+
+    REM Install Python 3.10 in the xtts environment
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python in the Conda environment...
+    conda install python=3.10 -y
+
+    REM Install pip requirements
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements...
+    pip install xtts-api-server
+    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+    REM Run conda deactivate for xtts
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Deactivating Conda environment xtts...
+    call conda deactivate
+
+    REM Activate the extras environment
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment extras...
+    call conda activate extras
+
+) else (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO] XTTS installation skipped.%reset% 
+)
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-rvc...
 pip install -r requirements-rvc.txt
 
-
-echo %cyan_fg_strong%Yes, If you are seeing errors about Numpy and Librosa then that is completely normal. If facebook updates their fairseq library to python 3.11 then this error will not appear anymore.%reset%
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Extras installed successfully.%reset%
 
 REM Ask if the user wants to create a shortcut
@@ -353,5 +471,15 @@ if /i "%create_shortcut%"=="Y" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Shortcut created on the desktop.%reset%
     pause
 )
-endlocal
+
+
+REM Ask if the user wants to start the launcher.bat
+set /p start_launcher=Start the launcher now? [Y/n] 
+if /i "%start_launcher%"=="Y" (
+    REM Run the launcher
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Running launcher in a new window...
+    cd /d "%~dp0"
+    start cmd /k launcher.bat
+    goto :installer
+)
 goto :installer

@@ -1,23 +1,18 @@
 @echo off
-REM RVC-Launcher
+REM PrivateGPT Launcher
 REM Created by: Deffcolony
-REM Github: https://github.com/Mangio621/Mangio-RVC-Fork
+REM Github: https://github.com/imartinez/privateGPT
 REM
 REM Description:
-REM This script installs winget, 7-zip and Mangio-RVC 
-REM
-REM Usage:
-REM 1. install Mangio-RVC 
-REM 2. Launch this script again and choose option 2 or 3 
+REM This script can install PrivateGPT
 REM
 REM This script is intended for use on Windows systems.
 REM report any issues or bugs on the GitHub repository.
 REM
 REM GitHub: https://github.com/deffcolony/ai-toolbox
 REM Issues: https://github.com/deffcolony/ai-toolbox/issues
+title PrivateGPT Launcher
 setlocal
-
-title Mangio RVC Launcher
 
 REM ANSI Escape Code for Colors
 set "reset=[0m"
@@ -33,44 +28,29 @@ set "cyan_fg_strong=[96m"
 
 REM Normal Background Colors
 set "red_bg=[41m"
-set "yellow_bg=[43m"
 set "blue_bg=[44m"
-
-REM Environment Variables
-set "version=v23.7.0"
-set "dir=%~dp0Mangio-RVC-%version%_INFER_TRAIN\Mangio-RVC-%version%\"
-REM set "logfile=%~dp0install-logs.log"
 
 REM Environment Variables (winget)
 set "winget_path=%userprofile%\AppData\Local\Microsoft\WindowsApps"
 
-REM Environment Variables (7z)
-set "zip7_install_path=%ProgramFiles%\7-Zip"
+REM Environment Variables (TOOLBOX Install Extras)
+set "miniconda_path=%userprofile%\miniconda"
 
 REM Define the paths and filenames for the shortcut creation
-set "shortcutTarget=%~dp0mangio-rvc-launcher.bat"
-set "iconFile=%~dp0mangio-rvc.ico"
+set "shortcutTarget=%~dp0sdw-launcher.bat"
+set "iconFile=%~dp0sdw.ico"
 set "desktopPath=%userprofile%\Desktop"
-set "shortcutName=mangio-rvc-launcher.lnk"
+set "shortcutName=sdw-launcher.lnk"
 set "startIn=%~dp0"
-set "comment=Mangio RVC Launcher"
+set "comment=PrivateGPT Launcher"
 
-
-REM Log your messages test window
-REM echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Something has been launched.
-REM echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] something is not installed on this system.%reset%
-REM echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] An error occurred during the process.%reset%
-REM pause
-
-REM Clear log file
-REM echo. > "%logfile%"
 
 REM Check if Winget is installed; if not, then install it
 winget --version > nul 2>&1
 if %errorlevel% neq 0 (
     echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Winget is not installed on this system.%reset%
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Winget...
-    curl -L -o "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" "https://github.com/microsoft/winget-cli/releases/download/v1.6.2771/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+    bitsadmin /transfer "Microsoft.DesktopAppInstaller_8wekyb3d8bbwe" /download /priority FOREGROUND "https://github.com/microsoft/winget-cli/releases/download/v1.5.2201/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
     start "" "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Winget installed successfully.%reset%
 ) else (
@@ -93,59 +73,39 @@ if %ff_path_exists% neq 0 (
 
     rem Update the PATH value for the current session
     setx PATH "%new_path%" > nul
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%winget added to PATH.%reset%
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%winget successfully added to PATH.%reset%
 ) else (
     set "new_path=%current_path%"
     echo %blue_fg_strong%[INFO] winget already exists in PATH.%reset%
 )
 
-
-REM Check if 7-Zip is installed; if not, then install it
-7z > nul 2>&1
+REM Check if Git is installed if not then install git
+git --version > nul 2>&1
 if %errorlevel% neq 0 (
-    echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] 7-Zip is not installed on this system.%reset%
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing 7-Zip using Winget...
-    winget install -e --id 7zip.7zip
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%7-Zip successfully installed.%reset%
+    echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Git is not installed on this system.%reset%
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Git using Winget...
+    winget install -e --id Git.Git
+    echo echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Git is installed. Please restart the Launcher.%reset%
+    pause
+    exit
 ) else (
-    echo %blue_fg_strong%[INFO] 7-Zip is already installed.%reset%
+    echo %blue_fg_strong%[INFO] Git is already installed.%reset%
 )
-
-rem Get the current PATH value from the registry
-for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v PATH') do set "current_path=%%B"
-
-rem Check if the paths are already in the current PATH
-echo %current_path% | find /i "%zip7_install_path%" > nul
-set "zip7_path_exists=%errorlevel%"
-
-rem Append the new paths to the current PATH only if they don't exist
-if %zip7_path_exists% neq 0 (
-    set "new_path=%current_path%;%zip7_install_path%"
-    echo %green_fg_strong%7-Zip added to PATH.%reset%
-) else (
-    set "new_path=%current_path%"
-    echo %blue_fg_strong%[INFO] 7-Zip already exists in PATH.%reset%
-)
-
-rem Update the PATH value in the registry
-reg add "HKCU\Environment" /v PATH /t REG_EXPAND_SZ /d "%new_path%" /f
-
-rem Update the PATH value for the current session
-setx PATH "%new_path%" > nul
 
 
 REM home Frontend
 :home
-title Mangio RVC [HOME]
+title PrivateGPT [HOME]
 cls
 echo %blue_fg_strong%/ Home %reset%
 echo -------------------------------------
 echo What would you like to do?
-echo 1. Install Mangio RVC
-echo 2. Run go-web.bat : Voice Training, Voice Cover Creation
-echo 3. Run go-realtime-gui.bat : Voice Changer that is useable with Discord, Steam, etc...
-echo 4. Uninstall Mangio RVC
+echo 1. Install PrivateGPT
+echo 2. Run PrivateGPT
+echo 3. Update
+echo 4. Uninstall PrivateGPT
 echo 5. Exit
+
 
 set "choice="
 set /p "choice=Choose Your Destiny: "
@@ -156,13 +116,13 @@ REM if not defined choice set "choice=1"
 
 REM home - Backend
 if "%choice%"=="1" (
-    call :install_mangio_rvc
+    call :install_privategpt
 ) else if "%choice%"=="2" (
-    call :run_goweb
+    call :run_privategpt
 ) else if "%choice%"=="3" (
-    call :run_gorealtime
+    call :update_privategpt
 ) else if "%choice%"=="4" (
-    call :uninstall_mangio_rvc
+    call :uninstall_privategpt
 ) else if "%choice%"=="5" (
     exit
 ) else (
@@ -173,41 +133,44 @@ if "%choice%"=="1" (
 )
 
 
-:install_mangio_rvc
-title Mangio RVC [INSTALL]
+:install_privategpt
+title PrivateGPT [INSTALL]
 cls
-echo %blue_fg_strong%/ Home / Install Mangio RVC%reset%
+echo %blue_fg_strong%/ Home / Install PrivateGPT%reset%
 echo ---------------------------------------------------------------
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Mangio RVC...
-echo --------------------------------
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing PrivateGPT...
 echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
 
-REM Download Mangio-RVC 7z archive
-curl -L -o "%~dp0mangio-rvc.7z" "https://huggingface.co/MangioRVC/Mangio-RVC-Huggingface/resolve/main/Mangio-RVC-%version%_INFER_TRAIN.7z" || (
-    color 4
-    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Download failed.. Please try again.%reset%
-    pause
-    goto :home
-)
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Miniconda...
+winget install -e --id Anaconda.Miniconda3
 
-REM Extract Mangio-RVC 7z archive
-"%ProgramFiles%\7-Zip\7z.exe" x "%~dp0mangio-rvc.7z" -o"%~dp0Mangio-RVC" || (
-    color 4
-    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Extraction failed.. Please try again%reset%
-    pause
-    goto :home
-)
+REM Run conda activate from the Miniconda installation
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
+call "%miniconda_path%\Scripts\activate.bat"
 
-ren "%~dp0Mangio-RVC\Mangio-RVC-%version%" "mangio-rvc-%version%"
+REM Create a Conda environment named privategpt
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment privategpt...
+call conda create -n privategpt -y
 
-REM Move rvc to folder %~dp0
-move /Y "%~dp0Mangio-RVC\mangio-rvc-%version%" "%~dp0mangio-rvc-%version%"
+REM Activate the privategpt environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment privategpt...
+call conda activate privategpt
 
-REM Remove rvc_lightweight leftovers
-del "%~dp0mangio-rvc.7z"
-rd /S /Q "%~dp0Mangio-RVC"
+REM Install Python and Git in the privategpt environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
+call conda install python=3.11 git -y
 
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Audiobook Maker successfully installed.%reset%
+REM Clone the privateGPT repository
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the privateGPT repository...
+git clone https://github.com/imartinez/privateGPT.git
+cd /d "%~dp0privateGPT"
+
+pip install poetry
+poetry install --with ui,local
+poetry run python scripts/setup
+$env:CMAKE_ARGS='-DLLAMA_CUBLAS=on'; poetry run pip install --force-reinstall --no-cache-dir llama-cpp-python
+
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%PrivateGPT successfully installed.%reset%
 
 REM Ask if the user wants to create a shortcut
 set /p create_shortcut=Do you want to create a shortcut on the desktop? [Y/n] 
@@ -228,47 +191,75 @@ if /i "%create_shortcut%"=="Y" (
 )
 goto :home
 
-:run_goweb
-title Mangio RVC [GO-WEB]
+
+:run_privategpt
+title PrivateGPT
 cls
-echo %blue_fg_strong%/ Home / Run go-web.bat%reset%
+echo %blue_fg_strong%/ Home / Run PrivateGPT%reset%
 echo ---------------------------------------------------------------
 
-cd /d "%~dp0mangio-rvc-%version%"
-start cmd /k go-web.bat
+REM Run conda activate from the Miniconda installation
+call "%miniconda_path%\Scripts\activate.bat"
+
+REM Activate the sillytavernextras environment
+call conda activate privategpt
+
+REM Start privategpt
+cd /d "%~dp0privateGPT"
+start cmd /k PGPT_PROFILES=local make run
 goto :home
 
-:run_gorealtime
-title Mangio RVC [GO-REALTIME-GUI]
+
+:update_privategpt
+title PrivateGPT [UPDATE]
 cls
-echo %blue_fg_strong%/ Home / Run go-realtime-gui.bat%reset%
+echo %blue_fg_strong%/ Home / Update%reset%
 echo ---------------------------------------------------------------
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Updating PrivateGPT...
+cd /d "%~dp0privateGPT"
 
-cd /d "%~dp0mangio-rvc-%version%"
-start cmd /k go-realtime-gui.bat
+REM Check if git is installed
+git --version > nul 2>&1
+if %errorlevel% neq 0 (
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] git command not found in PATH. Skipping update.%reset%
+    echo %red_bg%Please make sure Git is installed and added to your PATH.%reset%
+) else (
+    call git pull --rebase --autostash
+    if %errorlevel% neq 0 (
+        REM incase there is still something wrong
+        echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Errors while updating. Please download the latest version manually.%reset%
+    ) else (
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%PrivateGPT updated successfully.%reset%
+    )
+)
+pause
 goto :home
 
-:uninstall_mangio_rvc
-title Mangio RVC [UNINSTALL]
+:uninstall_privategpt
+title PrivateGPT [UNINSTALL]
 setlocal enabledelayedexpansion
 chcp 65001 > nul
 
 REM Confirm with the user before proceeding
 echo.
 echo %red_bg%╔════ DANGER ZONE ══════════════════════════════════════════════════════════════════════════════╗%reset%
-echo %red_bg%║ WARNING: This will delete all data of Mangio RVC                                              ║%reset%
+echo %red_bg%║ WARNING: This will delete all data of PrivateGPT                                              ║%reset%
 echo %red_bg%║ If you want to keep any data, make sure to create a backup before proceeding.                 ║%reset%
 echo %red_bg%╚═══════════════════════════════════════════════════════════════════════════════════════════════╝%reset%
 echo.
 set /p "confirmation=Are you sure you want to proceed? [Y/N]: "
 if /i "%confirmation%"=="Y" (
 
-    REM Remove the folder Mangio RVC
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Mangio RVC directory...
-    cd /d "%~dp0"
-    rmdir /s /q mangio-rvc-%version%
+    REM Remove the Conda environment
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'privategpt'...
+    call conda remove --name privategpt --all -y
 
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Mangio RVC uninstalled successfully.%reset%
+    REM Remove the folder privateGPT
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the privateGPT directory...
+    cd /d "%~dp0"
+    rmdir /s /q privateGPT
+
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%PrivateGPT uninstalled successfully.%reset%
     pause
     goto :home
 ) else (

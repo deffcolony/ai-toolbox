@@ -195,8 +195,8 @@ run_textgen() {
     cd "$PWD/text-generation-webui"
 
     # Start a seperate terminal emulator (adjust the command as needed)
-    #x-terminal-emulator -e "cd $(dirname "$0")./text-generation-webui && python ./one_click.py "$@" --api --listen --listen-port 7910 --loader ExLlama_HF --xformers" &
-    python ./one_click.py "$@" --api --listen --listen-port 7910 --loader ExLlama_HF --xformers
+    #x-terminal-emulator -e "cd $(dirname "$0")./text-generation-webui && python ./one_click.py "$@" --extensions openai --listen --listen-port 7910 --loader ExLlama_HF --xformers" &
+    python ./one_click.py "$@" --extensions openai --listen --listen-port 7910 --loader ExLlama_HF --xformers
     home
 }
 

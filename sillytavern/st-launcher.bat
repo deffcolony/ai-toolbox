@@ -36,7 +36,7 @@ set "zip7_download_path=%TEMP%\%zip7version%.exe"
 
 REM Environment Variables (TOOLBOX FFmpeg)
 set "ffmpeg_url=https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z"
-set "ffdownload_path=%TEMP%\ffmpeg.7z"
+set "ffdownload_path=%~dp0ffmpeg.7z"
 set "ffextract_path=C:\ffmpeg"
 set "bin_path=%ffextract_path%\bin"
 
@@ -51,7 +51,7 @@ set "miniconda_path=%userprofile%\miniconda3"
 
 REM Define variables to track module status
 set "modules_path=%~dp0modules.txt"
-set "coqui_trigger=false"
+set "xtts_trigger=false"
 set "rvc_trigger=false"
 set "talkinghead_trigger=false"
 set "caption_trigger=false"
@@ -72,7 +72,7 @@ winget --version > nul 2>&1
 if %errorlevel% neq 0 (
     echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Winget is not installed on this system.%reset%
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Winget...
-    bitsadmin /transfer "Microsoft.DesktopAppInstaller_8wekyb3d8bbwe" /download /priority FOREGROUND "https://github.com/microsoft/winget-cli/releases/download/v1.6.2771/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+    curl -L -o "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" "https://github.com/microsoft/winget-cli/releases/download/v1.6.2771/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
     start "" "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Winget installed successfully.%reset%
 ) else (
@@ -160,7 +160,7 @@ if not defined choice set "choice=1"
 
 REM Home - backend
 if "%choice%"=="1" (
-    call :start
+    call :start_st
 ) else if "%choice%"=="2" (
     call :start_st_extras
 ) else if "%choice%"=="3" (
@@ -181,7 +181,7 @@ if "%choice%"=="1" (
 )
 
 
-:start
+:start_st
 REM Check if Node.js is installed
 node --version > nul 2>&1
 if %errorlevel% neq 0 (
@@ -214,14 +214,26 @@ start cmd /k start.bat
 REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
 
-REM Activate the sillytavernextras environment
-call conda activate sillytavernextras
+REM Activate the extras environment
+call conda activate extras
 
 
 REM Start SillyTavern Extras with desired configurations
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Extras has been launched.
 cd /d "%~dp0SillyTavern-extras"
-start cmd /k python server.py --coqui-gpu --rvc-save-file --cuda-device=0 --max-content-length=1000 --enable-modules=talkinghead,chromadb,caption,summarize,rvc,coqui-tts
+start cmd /k python server.py --rvc-save-file --cuda-device=0 --max-content-length=1000 --enable-modules=talkinghead,chromadb,caption,summarize,rvc
+
+REM Check if the xtts conda environment exists
+conda activate xtts > nul 2>&1
+if %errorlevel% neq 0 (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% xtts conda environment not found. Skipping xtts_api_server launch.
+    goto :home
+) else (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% xtts conda environment found. Launching xtts_api_server...
+    call conda activate xtts
+    start cmd /k python -m xtts_api_server
+    goto :home
+)
 goto :home
 
 
@@ -547,8 +559,7 @@ if %errorlevel% neq 0 (
 )
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading FFmpeg archive...
-rem bitsadmin /transfer "ffmpeg" /download /priority FOREGROUND "%ffmpeg_url%" "%ffdownload_path%"
-curl -o "%ffdownload_path%" "%ffmpeg_url%"
+curl -L -o "%ffdownload_path%" "%ffmpeg_url%"
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating ffmpeg directory if it doesn't exist...
 if not exist "%ffextract_path%" (
@@ -682,11 +693,11 @@ REM Edit Extras Modules - Frontend
 cls
 echo %blue_fg_strong%/ Home / Toolbox / Edit Extras Modules%reset%
 echo -------------------------------------
-echo Choose extras modules to enable or disable (e.g., "1 2 4" to enable Coqui, RVC, and Caption)
+echo Choose extras modules to enable or disable (e.g., "1 2 4" to enable XTTS, RVC, and Caption)
 REM color 7
 
 REM Display module options with colors based on their status
-call :printModule "1. Coqui (--enable-modules=coqui-tts --coqui-gpu --cuda-device=0)" %coqui_trigger%
+call :printModule "1. XTTS (xtts_api_server --gpu 0 --cuda-device=0)" %xtts_trigger%
 call :printModule "2. RVC (--enable-modules=rvc --rvc-save-file --max-content-length=1000)" %rvc_trigger%
 call :printModule "3. talkinghead (--enable-modules=talkinghead)" %talkinghead_trigger%
 call :printModule "4. caption (--enable-modules=caption)" %caption_trigger%
@@ -700,12 +711,12 @@ set /p module_choices=Choose modules to enable/disable (1-5):
 REM Handle the user's module choices and construct the Python command
 for %%i in (%module_choices%) do (
     if "%%i"=="1" (
-        if "%coqui_trigger%"=="true" (
-            set "coqui_trigger=false"
+        if "%xtts_trigger%"=="true" (
+            set "xtts_trigger=false"
         ) else (
-            set "coqui_trigger=true"
+            set "xtts_trigger=true"
         )
-        set "python_command= --enable-modules=coqui-tts --coqui-gpu --cuda-device=0"
+        set "python_command= xtts_api_server --gpu 0 --cuda-device=0"
     ) else if "%%i"=="2" (
         if "%rvc_trigger%"=="true" (
             set "rvc_trigger=false"
@@ -740,7 +751,7 @@ for %%i in (%module_choices%) do (
 )
 
 REM Save the module flags to modules.txt
-echo coqui_trigger=%coqui_trigger%>"%~dp0modules.txt"
+echo xtts_trigger=%xtts_trigger%>"%~dp0modules.txt"
 echo rvc_trigger=%rvc_trigger%>>"%~dp0modules.txt"
 echo talkinghead_trigger=%talkinghead_trigger%>>"%~dp0modules.txt"
 echo caption_trigger=%caption_trigger%>>"%~dp0modules.txt"
@@ -810,16 +821,21 @@ if /i "!confirmation!"=="Y" (
     echo %blue_fg_strong%SillyTavern Extras%reset%
     echo ---------------------------------------------------------------
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Extras...
-    echo .
     echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
 
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Miniconda...
     winget install -e --id Anaconda.Miniconda3
 
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing vs_BuildTools...
-    bitsadmin /transfer "vs_buildtools" /download /priority FOREGROUND "https://aka.ms/vs/17/release/vs_BuildTools.exe"
-    start "" "%temp%\vs_buildtools.exe" --norestart --passive --downloadThenInstall --includeRecommended --add Microsoft.VisualStudio.Workload.NativeDesktop --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Workload.MSBuildTools
+    curl -L -o "%temp%\vs_buildtools.exe" "https://aka.ms/vs/17/release/vs_BuildTools.exe"
 
+    if %errorlevel% neq 0 (
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Download failed. Please try again%reset%
+    pause
+    goto :toolbox
+    ) else (
+    start "" "%temp%\vs_buildtools.exe" --norestart --passive --downloadThenInstall --includeRecommended --add Microsoft.VisualStudio.Workload.NativeDesktop --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Workload.MSBuildTools
+    )
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Microsoft.VCRedist.2015+.x64...
     winget install -e --id Microsoft.VCRedist.2015+.x64
 
@@ -830,15 +846,15 @@ if /i "!confirmation!"=="Y" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
     call "%miniconda_path%\Scripts\activate.bat"
 
-    REM Create a Conda environment named sillytavernextras
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment sillytavernextras...
-    call conda create -n sillytavernextras -y
+    REM Create a Conda environment named extras
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment extras...
+    call conda create -n extras -y
 
-    REM Activate the sillytavernextras environment
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment sillytavernextras...
-    call conda activate sillytavernextras
+    REM Activate the extras environment
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment extras...
+    call conda activate extras
 
-    REM Install Python 3.11 and Git in the sillytavernextras environment
+    REM Install Python 3.11 and Git in the extras environment
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
     call conda install python=3.11 git -y
 
@@ -849,15 +865,67 @@ if /i "!confirmation!"=="Y" (
     REM Navigate to the SillyTavern-extras directory
     cd SillyTavern-extras
 
-    REM Install Python dependencies from requirements files
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-complete...
-    pip install -r requirements-complete.txt
+    REM Install pip requirements
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing modules from requirements.txt...
+    pip install -r requirements.txt
+
+    REM Provide a link to the XTTS
+    echo %blue_fg_strong%[INFO]Feeling excited to give your robotic waifu/husbando a new shiny voice modulator?%reset%
+    echo %blue_fg_strong%[INFO]%reset% To learn more about XTTS, visit: https://coqui.ai/blog/tts/open_xtts
+
+    REM Ask the user if they want to install XTTS
+    set /p install_xtts_requirements=Install XTTS? [Y/N] 
+
+    REM Check the user's response
+    if /i "%install_xtts_requirements%"=="Y" (
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing XTTS...
+
+        REM Run conda deactivate for extras
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Deactivating Conda environment extras...
+        call conda deactivate
+
+        REM Create folders for xtts
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating xtts folders...
+        mkdir "%~dp0xtts"
+        mkdir "%~dp0xtts\speakers"
+        mkdir "%~dp0xtts\output"
+
+        REM Run conda activate from the Miniconda installation
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
+        call "%miniconda_path%\Scripts\activate.bat"
+
+        REM Create a Conda environment named xtts
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment xtts...
+        call conda create -n xtts -y
+
+        REM Activate the xtts environment
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment xtts...
+        call conda activate xtts
+
+        REM Install Python 3.10 in the xtts environment
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python in the Conda environment...
+        conda install python=3.10 -y
+
+        REM Install pip requirements
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements...
+        pip install xtts-api-server
+        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+        REM Run conda deactivate for xtts
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Deactivating Conda environment xtts...
+        call conda deactivate
+
+        REM Activate the extras environment
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment extras...
+        call conda activate extras
+
+    ) else (
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO] XTTS installation skipped.%reset% 
+    )
 
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-rvc...
     pip install -r requirements-rvc.txt
 
-
-    echo %cyan_fg_strong%Yes, If you are seeing errors about Numpy and Librosa then that is completely normal. If facebook updates their fairseq library to python 3.11 then this error will not appear anymore.%reset%
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Extras installed successfully.%reset%
 ) else (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Reinstall Extras canceled.
@@ -874,7 +942,7 @@ chcp 65001 > nul
 REM Confirm with the user before proceeding
 echo.
 echo %red_bg%╔════ DANGER ZONE ══════════════════════════════════════════════════════════════════════════════╗%reset%
-echo %red_bg%║ WARNING: This will delete all data of SillyTavern + Extras                                    ║%reset%
+echo %red_bg%║ WARNING: This will delete all data of SillyTavern + Extras + XTTS                             ║%reset%
 echo %red_bg%║ If you want to keep any data, make sure to create a backup before proceeding.                 ║%reset%
 echo %red_bg%╚═══════════════════════════════════════════════════════════════════════════════════════════════╝%reset%
 echo.
@@ -882,18 +950,24 @@ set /p "confirmation=Are you sure you want to proceed? [Y/N]: "
 if /i "%confirmation%"=="Y" (
 
     REM Remove the Conda environment
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'sillytavernextras'...
-    call conda remove --name sillytavernextras --all -y
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'extras'...
+    call conda remove --name extras --all -y
+
+    REM Remove the Conda environment
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'xtts'...
+    call conda remove --name xtts --all -y
 
     REM Remove the folder SillyTavern-extras
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the SillyTavern-extras directory...
-    cd /d "%~dp0"
-    rmdir /s /q SillyTavern-extras
+    rmdir /s /q %~dp0SillyTavern-extras
+
+    REM Remove the folder SillyTavern
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the xtts directory...
+    rmdir /s /q %~dp0xtts
 
     REM Remove the folder SillyTavern
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the SillyTavern directory...
-    cd /d "%~dp0"
-    rmdir /s /q SillyTavern
+    rmdir /s /q %~dp0SillyTavern
 
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%SillyTavern + Extras has been uninstalled successfully.%reset%
     pause

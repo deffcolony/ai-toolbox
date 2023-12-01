@@ -15,8 +15,8 @@
 # This script is intended for use on Linux systems. Please
 # report any issues or bugs on the GitHub repository.
 #
-# GitHub: https://github.com/SillyTavern/SillyTavern-Launcher
-# Issues: https://github.com/SillyTavern/SillyTavern-Launcher/issues
+# GitHub: https://github.com/deffcolony/ai-toolbox
+# Issues: https://github.com/deffcolony/ai-toolbox/issues
 # ----------------------------------------------------------
 # Note: Modify the script as needed to fit your requirements.
 # ----------------------------------------------------------
@@ -42,13 +42,11 @@ miniconda_path="$HOME/miniconda"
 miniconda_installer="Miniconda3-latest-Linux-x86_64.sh"
 
 # Define the paths and filenames for the shortcut creation
-shortcutTarget="SillyTavern/st-launcher.sh"
-iconFile="SillyTavern/public/st-launcher.ico"
-desktopPath="$HOME/Desktop"
-shortcutName="ST Launcher.desktop"
-startIn="SillyTavern"
-comment="SillyTavern Launcher"
-
+script_path="$(realpath "$(dirname "$0")")/launcher.sh"
+icon_path="$(realpath "$(dirname "$0")")/st-launcher.ico"
+script_name=st-launcher
+desktop_dir="$(eval echo ~$(logname))/Desktop"
+desktop_file="$desktop_dir/st-launcher.desktop"
 
 # Function to log messages with timestamps and colors
 log_message() {
@@ -79,32 +77,6 @@ log_message() {
 #log_message "DEBUG" "This is a debug message."
 #read -p "Press Enter to continue..."
 
-
-# Function to install D-Bus
-install_dbus() {
-    if command -v apt-get &>/dev/null; then
-        log_message "INFO" "Installing D-Bus on Debian/Ubuntu.${reset}"
-        sudo apt update
-        sudo apt install -y dbus dbus-x11
-    elif command -v yum &>/dev/null; then
-        log_message "INFO" "Installing D-Bus on Red Hat/Fedora.${reset}"
-        sudo yum install -y dbus dbus-x11
-    elif command -v apk &>/dev/null; then
-        log_message "INFO" "Installing D-Bus on Alpine Linux.${reset}"
-        sudo apk update
-        sudo apk add dbus dbus-x11
-    elif command -v pacman &>/dev/null; then
-        log_message "INFO" "Installing D-Bus on Arch Linux.${reset}"
-        sudo pacman -Syu dbus dbus-x11
-    elif command -v emerge &>/dev/null; then
-        log_message "INFO" "Installing D-Bus on Gentoo Linux.${reset}"
-        sudo emerge dbus dbus-x11
-    else
-        log_message "ERROR" "${red_fg_strong}Unsupported package manager. Cannot install D-Bus.${reset}"
-        exit 1
-    fi
-}
-
 # Function to install Git
 install_git() {
     if ! command -v git &> /dev/null; then
@@ -131,6 +103,14 @@ install_git() {
             # Gentoo Linux-based system
             log_message "INFO" "Installing Git using emerge..."
             sudo emerge --ask dev-vcs/git
+        elif command -v brew &>/dev/null; then
+            # macOS
+            log_message "INFO" "Installing Git using Homebrew..."
+            brew install git
+        elif command -v pkg &>/dev/null; then
+            # Termux on Android
+            log_message "INFO" "Installing Git using pkg..."
+            pkg install git
         else
             log_message "ERROR" "${red_fg_strong}Unsupported Linux distribution.${reset}"
             exit 1
@@ -194,6 +174,14 @@ install_nodejs_npm() {
             read -p "Press Enter to continue..."
             nvm install --lts
             nvm use --lts
+        elif command -v pkg &>/dev/null; then
+            # Termux on Android
+            log_message "INFO" "Installing Node.js and npm using pkg..."
+            pkg install nodejs npm
+        elif command -v brew &>/dev/null; then
+            # macOS
+            log_message "INFO" "Installing Node.js and npm using Homebrew..."
+            brew install node
         else
             log_message "ERROR" "${red_fg_strong}Unsupported Linux distribution.${reset}"
             exit 1
@@ -241,11 +229,11 @@ install_st_extras() {
     conda config --set auto_activate_base false
     conda init bash
 
-    log_message "INFO" "Creating Conda environment sillytavernextras..."
-    conda create -n sillytavernextras -y
+    log_message "INFO" "Creating Conda environment extras..."
+    conda create -n extras -y
 
-    log_message "INFO" "Activating Conda environment sillytavernextras..."
-    conda activate sillytavernextras
+    log_message "INFO" "Activating Conda environment extras..."
+    conda activate extras
 
     log_message "INFO" "Installing Python and Git in the Conda environment..."
     conda install python=3.11 git -y
@@ -255,8 +243,20 @@ install_st_extras() {
 
     cd SillyTavern-extras
 
-    log_message "INFO" "Installing pip requirements-complete..."
-    pip install -r requirements-complete.txt
+    log_message "INFO" "Installing modules from requirements.txt..."
+    pip install -r requirements.txt
+
+    log_message "DISCLAIMER" "The installation of Coqui requirements is not recommended unless you have a specific use case. It may conflict with additional dependencies and functionalities to your environment."
+    log_message "INFO" "To learn more about Coqui, visit: https://docs.sillytavern.app/extras/installation/#decide-which-module-to-use"
+
+    read -p "Do you want to install Coqui TTS? [Y/N] " install_coqui_requirements
+
+    if [[ "$install_coqui_requirements" == [Yy] ]]; then
+        log_message "INFO" "Installing pip requirements-coqui..."
+        pip install -r requirements-coqui.txt
+    else
+        log_message "INFO" "Coqui requirements installation skipped."
+    fi
 
     log_message "INFO" "Installing pip requirements-rvc..."
     pip install -r requirements-rvc.txt
@@ -266,6 +266,35 @@ install_st_extras() {
     rm -rf /tmp/$miniconda_installer
     log_message "INFO" "${green_fg_strong}SillyTavern + Extras successfully installed.${reset}"
     
+    # Ask if the user wants to create a desktop shortcut
+    read -p "Do you want to create a shortcut on the desktop? [Y/n] " create_shortcut
+    if [[ "${create_shortcut}" == "Y" || "${create_shortcut}" == "y" ]]; then
+
+    # Create the desktop shortcut
+    echo -e "${blue_bg}[$(date +%T)]${reset} ${blue_fg_strong}[INFO]${reset} Creating desktop shortcut..."
+	
+	echo "[Desktop Entry]" > "$desktop_file"
+	echo "Version=1.0" >> "$desktop_file"
+	echo "Type=Application" >> "$desktop_file"
+	echo "Name=$script_name" >> "$desktop_file"
+	echo "Exec=$script_path" >> "$desktop_file"
+	echo "Icon=$icon_path" >> "$desktop_file"
+	echo "Terminal=true" >> "$desktop_file"
+	echo "Comment=SillyTavern Launcher" >> "$desktop_file"
+	chmod +x "$desktop_file"
+
+    echo -e "${blue_bg}[$(date +%T)]${reset} ${blue_fg_strong}[INFO]${reset} ${green_fg_strong}Desktop shortcut created at: $desktop_file${reset}"
+    fi
+
+    # Ask if the user wants to start the launcher
+    read -p "Start the launcher now? [Y/n] " start_launcher
+    if [[ "${start_launcher}" == "Y" || "${start_launcher}" == "y" ]]; then
+        # Run the launcher
+        echo -e "${blue_bg}[$(date +%T)]${reset} ${blue_fg_strong}[INFO]${reset} Running launcher in a new window..."
+        cd "$(dirname "$0")"
+        chmod +x launcher.sh && ./launcher.sh
+    fi
+
     installer
 }
 
@@ -282,7 +311,35 @@ install_sillytavern() {
     log_message "INFO" "Cloning SillyTavern repository..."
     git clone https://github.com/SillyTavern/SillyTavern.git
     log_message "INFO" "${green_fg_strong}SillyTavern installed successfully.${reset}"
-    read -p "Press Enter to continue..."
+
+    # Ask if the user wants to create a desktop shortcut
+    read -p "Do you want to create a shortcut on the desktop? [Y/n] " create_shortcut
+    if [[ "${create_shortcut}" == "Y" || "${create_shortcut}" == "y" ]]; then
+
+    # Create the desktop shortcut
+    echo -e "${blue_bg}[$(date +%T)]${reset} ${blue_fg_strong}[INFO]${reset} Creating desktop shortcut..."
+	
+	echo "[Desktop Entry]" > "$desktop_file"
+	echo "Version=1.0" >> "$desktop_file"
+	echo "Type=Application" >> "$desktop_file"
+	echo "Name=$script_name" >> "$desktop_file"
+	echo "Exec=$script_path" >> "$desktop_file"
+	echo "Icon=$icon_path" >> "$desktop_file"
+	echo "Terminal=true" >> "$desktop_file"
+	echo "Comment=SillyTavern Launcher" >> "$desktop_file"
+	chmod +x "$desktop_file"
+
+    echo -e "${blue_bg}[$(date +%T)]${reset} ${blue_fg_strong}[INFO]${reset} ${green_fg_strong}Desktop shortcut created at: $desktop_file${reset}"
+    fi
+
+    # Ask if the user wants to start the launcher
+    read -p "Start the launcher now? [Y/n] " start_launcher
+    if [[ "${start_launcher}" == "Y" || "${start_launcher}" == "y" ]]; then
+        # Run the launcher
+        echo -e "${blue_bg}[$(date +%T)]${reset} ${blue_fg_strong}[INFO]${reset} Running launcher in a new window..."
+        cd "$(dirname "$0")"
+        chmod +x launcher.sh && ./launcher.sh
+    fi
 
     installer
 }
@@ -315,11 +372,11 @@ install_extras() {
     conda config --set auto_activate_base false
     conda init bash
 
-    log_message "INFO" "Creating Conda environment sillytavernextras..."
-    conda create -n sillytavernextras -y
+    log_message "INFO" "Creating Conda environment extras..."
+    conda create -n extras -y
 
-    log_message "INFO" "Activating Conda environment sillytavernextras..."
-    conda activate sillytavernextras
+    log_message "INFO" "Activating Conda environment extras..."
+    conda activate extras
 
     log_message "INFO" "Installing Python and Git in the Conda environment..."
     conda install python=3.11 git -y
@@ -378,39 +435,51 @@ installer() {
     fi
 }
 
+# Check if the script is running on macOS
+if [ "$(uname)" == "Darwin" ]; then
+    IS_MACOS="1"
+fi
+
 # Detect the package manager and execute the appropriate installation
-if command -v apt-get &>/dev/null; then
+if [ -n "$IS_MACOS" ]; then
+    log_message "INFO" "${blue_fg_strong}Detected macOS system.${reset}"
+    # macOS
+    install_git
+    install_nodejs_npm
+    installer
+elif command -v apt-get &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected Debian/Ubuntu-based system.${reset}"
     # Debian/Ubuntu
-    install_dbus
     install_git
     install_nodejs_npm
     installer
 elif command -v yum &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected Red Hat/Fedora-based system.${reset}"
     # Red Hat/Fedora
-    install_dbus
     install_git
     install_nodejs_npm
     installer
 elif command -v apk &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected Alpine Linux-based system.${reset}"
     # Alpine Linux
-    install_dbus
     install_git
     install_nodejs_npm
     installer
 elif command -v pacman &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected Arch Linux-based system.${reset}"
     # Arch Linux
-    install_dbus
     install_git
     install_nodejs_npm
     installer
 elif command -v emerge &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected Gentoo Linux-based system. Now you are the real CHAD${reset}"
     # Gentoo Linux
-    install_dbus
+    install_git
+    install_nodejs_npm
+    installer
+elif command -v pkg &>/dev/null; then
+    log_message "INFO" "${blue_fg_strong}Detected pkg System${reset}"
+    # pkg 
     install_git
     install_nodejs_npm
     installer
@@ -418,5 +487,3 @@ else
     log_message "ERROR" "${red_fg_strong}Unsupported package manager. Cannot detect Linux distribution.${reset}"
     exit 1
 fi
-
-
