@@ -157,6 +157,7 @@ REM Install Python in the audiolauncher environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
 call conda install python=3.12 -y
 
+pip install random2
 pip install mutagen
 pip install PySimpleGUI
 
