@@ -230,7 +230,16 @@ title autogen [UPDATE]
 cls
 echo %blue_fg_strong%/ Home / Update%reset%
 echo ---------------------------------------------------------------
-echo Updating...
+
+REM Run conda activate from the Miniconda installation
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
+call "%miniconda_path%\Scripts\activate.bat"
+
+REM Activate the autogen environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment autogen...
+call conda activate autogen
+
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Updating autogen...
 cd /d "%~dp0autogen"
 pip install --upgrade pyautogen
 pause
