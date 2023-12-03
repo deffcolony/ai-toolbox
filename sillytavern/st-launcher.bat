@@ -870,8 +870,8 @@ if /i "!confirmation!"=="Y" (
     pip install -r requirements.txt
 
     REM Provide a link to the XTTS
-    echo %blue_fg_strong%[INFO]Feeling excited to give your robotic waifu/husbando a new shiny voice modulator?%reset%
-    echo %blue_fg_strong%[INFO]%reset% To learn more about XTTS, visit: https://coqui.ai/blog/tts/open_xtts
+    echo %blue_fg_strong%[INFO] Feeling excited to give your robotic waifu/husbando a new shiny voice modulator?%reset%
+    echo %blue_fg_strong%To learn more about XTTS, visit:%reset% https://coqui.ai/blog/tts/open_xtts
 
     REM Ask the user if they want to install XTTS
     set /p install_xtts_requirements=Install XTTS? [Y/N] 
@@ -923,9 +923,11 @@ if /i "!confirmation!"=="Y" (
         echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO] XTTS installation skipped.%reset% 
     )
 
+
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-rvc...
     pip install -r requirements-rvc.txt
 
+    echo %cyan_fg_strong%Yes, If you are seeing errors about Numpy and Librosa then that is completely normal. If facebook updates their fairseq library to python 3.11 then this error will not appear anymore.%reset%
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Extras installed successfully.%reset%
 ) else (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Reinstall Extras canceled.
@@ -959,15 +961,15 @@ if /i "%confirmation%"=="Y" (
 
     REM Remove the folder SillyTavern-extras
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the SillyTavern-extras directory...
-    rmdir /s /q %~dp0SillyTavern-extras
+    rmdir /s /q "%~dp0SillyTavern-extras"
 
     REM Remove the folder SillyTavern
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the xtts directory...
-    rmdir /s /q %~dp0xtts
+    rmdir /s /q "%~dp0xtts"
 
     REM Remove the folder SillyTavern
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the SillyTavern directory...
-    rmdir /s /q %~dp0SillyTavern
+    rmdir /s /q "%~dp0SillyTavern"
 
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%SillyTavern + Extras has been uninstalled successfully.%reset%
     pause
