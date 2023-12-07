@@ -688,7 +688,7 @@ REM Edit Extras Modules - Frontend
 cls
 echo %blue_fg_strong%/ Home / Toolbox / Edit Extras Modules%reset%
 echo -------------------------------------
-echo Choose extras modules to enable or disable (e.g., "1 2 4" to enable Coqui, RVC, and Caption)
+echo Choose extras modules to enable or disable (e.g., "1 2 4" to enable XTTS, RVC, and Caption)
 REM color 7
 
 REM Display module options with colors based on their status
@@ -711,35 +711,35 @@ for %%i in (%module_choices%) do (
         ) else (
             set "xtts_trigger=true"
         )
-        set "python_command= xtts_api_server --gpu 0 --cuda-device=0"
+        @REM set "python_command= xtts_api_server --gpu 0 --cuda-device=0"
     ) else if "%%i"=="2" (
         if "%rvc_trigger%"=="true" (
             set "rvc_trigger=false"
         ) else (
             set "rvc_trigger=true"
         )
-        set "python_command= --enable-modules=rvc --rvc-save-file --max-content-length=1000"
+        @REM set "python_command= --enable-modules=rvc --rvc-save-file --max-content-length=1000"
     ) else if "%%i"=="3" (
         if "%talkinghead_trigger%"=="true" (
             set "talkinghead_trigger=false"
         ) else (
             set "talkinghead_trigger=true"
         )
-        set "python_command= --enable-modules=talkinghead"
+        @REM set "python_command= --enable-modules=talkinghead"
     ) else if "%%i"=="4" (
         if "%caption_trigger%"=="true" (
             set "caption_trigger=false"
         ) else (
             set "caption_trigger=true"
         )
-        set "python_command= --enable-modules=caption"
+        @REM set "python_command= --enable-modules=caption"
     ) else if "%%i"=="5" (
         if "%summarize_trigger%"=="true" (
             set "summarize_trigger=false"
         ) else (
             set "summarize_trigger=true"
         )
-        set "python_command= --enable-modules=summarize"
+        @REM set "python_command= --enable-modules=summarize"
     ) else if "%%i"=="6" (
         goto :toolbox
     )
@@ -752,8 +752,45 @@ echo talkinghead_trigger=%talkinghead_trigger%>>"%~dp0modules.txt"
 echo caption_trigger=%caption_trigger%>>"%~dp0modules.txt"
 echo summarize_trigger=%summarize_trigger%>>"%~dp0modules.txt"
 
+@REM remove modules_enable
+set "modules_enable="
+
+@REM Compile the Python command
+set "python_command=start cmd /k python server.py"
+if "%xtts_trigger%"=="true" (
+    set "python_command=%python_command% xtts_api_server --gpu 0 --cuda-device=0"
+)
+if "%rvc_trigger%"=="true" (
+    set "python_command=%python_command% --rvc-save-file --max-content-length=1000"
+    set "modules_enable=%modules_enable%rvc,"
+)
+if "%talkinghead_trigger%"=="true" (
+    set "modules_enable=%modules_enable%talkinghead,"
+)
+if "%caption_trigger%"=="true" (
+    set "modules_enable=%modules_enable%caption,"
+)
+if "%summarize_trigger%"=="true" (
+    set "modules_enable=%modules_enable%summarize,"
+)
+
+@REM is modules_enable empty?
+if defined modules_enable (
+    @REM remove last comma
+    set "modules_enable=%modules_enable:~0,-1%"
+)
+
+@REM command completed
+if defined modules_enable (
+    set "python_command=%python_command% --enable-modules=%modules_enable%"
+) else (
+    set "python_command=%python_command%"
+)
+
+
 REM Save the constructed Python command to modules.txt for testing
-echo start cmd /k python server.py %python_command%>>"%~dp0modules.txt"
+echo %python_command%>>"%~dp0modules.txt"
+@REM echo start cmd /k python server.py %python_command%>>"%~dp0modules.txt"
 
 REM Construct and execute the Python command
 REM start cmd /k python server.py %python_command%
