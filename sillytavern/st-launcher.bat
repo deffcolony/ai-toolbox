@@ -191,9 +191,8 @@ if %errorlevel% neq 0 (
     pause
     goto :home
 )
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% SillyTavern has been launched.
-cd /d "%~dp0SillyTavern"
-start cmd /k start.bat
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% SillyTavern launched in a new window.
+start cmd /k "title SillyTavern && cd /d %~dp0SillyTavern && call npm install --no-audit && node server.js && pause && popd"
 goto :home
 
 
@@ -207,9 +206,10 @@ if %errorlevel% neq 0 (
     pause
     goto :home
 )
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% SillyTavern has been launched.
-cd /d "%~dp0SillyTavern"
-start cmd /k start.bat
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% SillyTavern launched in a new window.
+start cmd /k "title SillyTavern && cd /d %~dp0SillyTavern && call npm install --no-audit && node server.js && pause && popd"
+
+
 
 REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
@@ -217,23 +217,18 @@ call "%miniconda_path%\Scripts\activate.bat"
 REM Activate the extras environment
 call conda activate extras
 
-
 REM Start SillyTavern Extras with desired configurations
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Extras has been launched.
-cd /d "%~dp0SillyTavern-extras"
-start cmd /k python server.py --rvc-save-file --cuda-device=0 --max-content-length=1000 --enable-modules=talkinghead,chromadb,caption,summarize,rvc
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Extras launched in a new window.
+start cmd /k "title SillyTavern Extras && cd /d %~dp0SillyTavern-extras && python server.py --rvc-save-file --cuda-device=0 --max-content-length=1000 --enable-modules=talkinghead,chromadb,caption,summarize,rvc"
 
-REM Check if the xtts conda environment exists
-conda activate xtts > nul 2>&1
-if %errorlevel% neq 0 (
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% xtts conda environment not found. Skipping xtts_api_server launch.
-    goto :home
-) else (
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% xtts conda environment found. Launching xtts_api_server...
-    call conda activate xtts
-    start cmd /k python -m xtts_api_server
-    goto :home
-)
+
+
+REM Activate the xtts environment
+call conda activate xtts
+
+REM Start XTTS
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% XTTS launched in a new window.
+start cmd /k "title XTTSv2 API Server && cd /d %~dp0xtts && python -m xtts_api_server"
 goto :home
 
 
@@ -693,7 +688,7 @@ REM Edit Extras Modules - Frontend
 cls
 echo %blue_fg_strong%/ Home / Toolbox / Edit Extras Modules%reset%
 echo -------------------------------------
-echo Choose extras modules to enable or disable (e.g., "1 2 4" to enable XTTS, RVC, and Caption)
+echo Choose extras modules to enable or disable (e.g., "1 2 4" to enable Coqui, RVC, and Caption)
 REM color 7
 
 REM Display module options with colors based on their status
@@ -920,7 +915,7 @@ if /i "!confirmation!"=="Y" (
         call conda activate extras
 
     ) else (
-        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO] XTTS installation skipped.%reset% 
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]XTTS installation skipped.%reset% 
     )
 
 
