@@ -688,7 +688,7 @@ REM Edit Extras Modules - Frontend
 cls
 echo %blue_fg_strong%/ Home / Toolbox / Edit Extras Modules%reset%
 echo -------------------------------------
-echo Choose extras modules to enable or disable (e.g., "1 2 4" to enable Coqui, RVC, and Caption)
+echo Choose extras modules to enable or disable (e.g., "1 2 4" to enable XTTS, RVC, and Caption)
 REM color 7
 
 REM Display module options with colors based on their status
