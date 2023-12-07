@@ -7,7 +7,7 @@
 <h1 align="center">AI-ツールボックス - あなたのAIワークフローを効率化。</h1>
 
 <p align="center">
-    【English | <a href="README-Chinese.md">Chinese</a> | <a href="README-Japanese.md">Japanese</a> | <a href="README-Korean.md">Korean</a> | <a href="README-Filipino.md">Filipino</a> | <a href="README-French.md">French</a> | <a href="README-Slovak.md">Slovak</a> | <a href="README-Portuguese.md">Portuguese</a> | <a href="README-Spanish.md">Spanish</a>】
+    【<a href="README.md">English</a>  | <a href="README-Chinese.md">Chinese</a> | Japanese | <a href="README-Korean.md">Korean</a> | <a href="README-Filipino.md">Filipino</a> | <a href="README-French.md">French</a> | <a href="README-Slovak.md">Slovak</a> | <a href="README-Portuguese.md">Portuguese</a> | <a href="README-Spanish.md">Spanish</a>】
   
 [![GitHub Stars](https://img.shields.io/github/stars/deffcolony/AI-Toolbox.svg)](https://github.com/deffcolony/AI-Toolbox/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/deffcolony/AI-Toolbox.svg)](https://github.com/deffcolony/AI-Toolbox/network)
