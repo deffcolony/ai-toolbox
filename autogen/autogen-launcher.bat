@@ -92,7 +92,7 @@ echo 2. Configure autogen
 echo 3. Run autogen
 echo 4. Update
 echo 5. Uninstall autogen
-echo 6. Exit
+echo 0. Exit
 
 
 set "choice="
@@ -113,7 +113,7 @@ if "%choice%"=="1" (
     call :update_autogen
 ) else if "%choice%"=="5" (
     call :uninstall_autogen
-) else if "%choice%"=="6" (
+) else if "%choice%"=="0" (
     exit
 ) else (
     color 6
@@ -218,10 +218,9 @@ REM Activate the autogen environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment autogen...
 call conda activate autogen
 
-REM Start SillyTavern Extras with desired configurations
-echo %blue_fg_strong%[INFO]%reset% AutoGen launched in a new window.
-cd /d "%~dp0autogen"
-start cmd /k python app.py
+REM Start autogen
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% ChatDev launched in a new window.
+start cmd /k "title autogen && cd /d %~dp0autogen && python app.py"
 goto :home
 
 

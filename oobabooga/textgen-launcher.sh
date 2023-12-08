@@ -281,31 +281,26 @@ home() {
     echo "2. Run textgen"
     echo "3. Run textgen + addons"
     echo "4. Uninstall textgen"
-    echo "5. Exit"
+    echo "0. Exit"
 
-    read -p "Choose Your Destiny (default is 1): " choice
+    read -p "Choose Your Destiny: " home_choice
 
     # Default to choice 1 if no input is provided
-    if [ -z "$choice" ]; then
-      choice=1
+    if [ -z "$home_choice" ]; then
+      home_choice=1
     fi
 
-    # Home - Backend
-    if [ "$choice" = "1" ]; then
-        install_textgen
-    elif [ "$choice" = "2" ]; then
-        run_textgen
-    elif [ "$choice" = "3" ]; then
-        run_textgen_addons
-    elif [ "$choice" = "4" ]; then
-        uninstall_textgen
-    elif [ "$choice" = "5" ]; then
-        exit
-    else
-        echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
-        read -p "Press Enter to continue..."
-        home
-    fi
+    # Home menu - Backend
+    case $home_choice in
+        1) install_textgen ;;
+        2) run_textgen ;;
+        3) run_textgen_addons ;;
+        4) uninstall_textgen ;;
+        0) exit ;;
+        *) echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
+           read -p "Press Enter to continue..."
+           home ;;
+    esac
 }
 
 # Detect the package manager and execute the appropriate installation

@@ -91,7 +91,7 @@ echo 2. Configure ChatDev
 echo 3. Run ChatDev webui
 echo 4. Update
 echo 5. Uninstall ChatDev
-echo 6. Exit
+echo 0. Exit
 
 
 set "choice="
@@ -112,7 +112,7 @@ if "%choice%"=="1" (
     call :update_chatdev
 ) else if "%choice%"=="5" (
     call :uninstall_chatdev
-) else if "%choice%"=="6" (
+) else if "%choice%"=="0" (
     exit
 ) else (
     color 6
@@ -224,9 +224,8 @@ title ChatDev
 cls
 echo %blue_fg_strong%/ Home / Run ChatDev%reset%
 echo ---------------------------------------------------------------
-echo %blue_fg_strong%[INFO]%reset% ChatDev has been launched.
-cd /d "%~dp0ChatDev"
-start cmd /k python online_log/app.py
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% ChatDev launched in a new window.
+start cmd /k "title ChatDev && cd /d %~dp0ChatDev && python online_log/app.py"
 goto :home
 
 

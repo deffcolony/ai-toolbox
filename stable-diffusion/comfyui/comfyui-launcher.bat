@@ -104,7 +104,7 @@ echo 1. Install ComfyUI
 echo 2. Run ComfyUI
 echo 3. Update
 echo 4. Toolbox
-echo 5. Exit
+echo 0. Exit
 
 
 set "choice="
@@ -123,7 +123,7 @@ if "%choice%"=="1" (
     call :update_comfyui
 ) else if "%choice%"=="4" (
     call :toolbox
-) else if "%choice%"=="5" (
+) else if "%choice%"=="0" (
     exit
 ) else (
     color 6
@@ -219,9 +219,7 @@ echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda env
 call conda activate comfyui
 
 REM Start ComfyUI clean
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Running ComfyUI in a new window
-cd /d "%~dp0ComfyUI"
-start cmd /k python main.py --auto-launch --listen --port 7901
+start cmd /k "title ComfyUI && cd /d %~dp0ComfyUI && python main.py --auto-launch --listen --port 7901"
 goto :home
 
 

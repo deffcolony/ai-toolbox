@@ -71,7 +71,7 @@ echo -------------------------------------
 echo What would you like to do?
 echo 1. Run Local Videos
 echo 2. Run Online Videos 
-echo 3. Exit
+echo 0. Exit
 
 
 set "choice="
@@ -83,10 +83,10 @@ REM if not defined choice set "choice=1"
 
 REM home - Backend
 if "%choice%"=="1" (
-    call :runlocal
+    call :run_local
 ) else if "%choice%"=="2" (
-    call :runonline
-) else if "%choice%"=="3" (
+    call :run_online
+) else if "%choice%"=="0" (
     exit
 ) else (
     color 6
@@ -95,7 +95,7 @@ if "%choice%"=="1" (
     goto :home
 )
 
-:runlocal
+:run_local
 title Video Launcher [LOCAL]
 cls
 echo %blue_fg_strong%/ Home / Run Local Videos%reset%
@@ -108,7 +108,7 @@ if errorlevel 1 (
     echo %yellow_fg_strong%Please enter a valid number.%reset%
     pause
     cls
-    goto :runlocal
+    goto :run_local
 )
 
 set /p "videoFile=%cyan_fg_strong%Enter filename of video (including extension):%reset% "
@@ -119,7 +119,7 @@ for /l %%i in (1, 1, %numTimes%) do (
 goto :home
 
 
-:runonline
+:run_online
 title Video Launcher [ONLINE]
 cls
 echo %blue_fg_strong%/ Home / Run Online Videos%reset%
@@ -132,7 +132,7 @@ if errorlevel 1 (
     echo %yellow_fg_strong%Please enter a valid number.%reset%
     pause
     cls
-    goto :runonline
+    goto :run_online
 )
 
 set /p "videoLink=%cyan_fg_strong%Enter YouTube link:%reset% "

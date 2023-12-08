@@ -145,7 +145,7 @@ echo 1. Install Mangio RVC
 echo 2. Run go-web.bat : Voice Training, Voice Cover Creation
 echo 3. Run go-realtime-gui.bat : Voice Changer that is useable with Discord, Steam, etc...
 echo 4. Uninstall Mangio RVC
-echo 5. Exit
+echo 0. Exit
 
 set "choice="
 set /p "choice=Choose Your Destiny: "
@@ -163,7 +163,7 @@ if "%choice%"=="1" (
     call :run_gorealtime
 ) else if "%choice%"=="4" (
     call :uninstall_mangio_rvc
-) else if "%choice%"=="5" (
+) else if "%choice%"=="0" (
     exit
 ) else (
     color 6

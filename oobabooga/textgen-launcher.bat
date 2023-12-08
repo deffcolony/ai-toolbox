@@ -92,7 +92,7 @@ echo 3. Run textgen + addons
 echo 4. Run textgen + share
 echo 5. Update
 echo 6. Uninstall textgen
-echo 7. Exit
+echo 0. Exit
 
 
 set "choice="
@@ -115,7 +115,7 @@ if "%choice%"=="1" (
     call :update_textgen
 ) else if "%choice%"=="6" (
     call :uninstall_textgen
-) else if "%choice%"=="7" (
+) else if "%choice%"=="0" (
     exit
 ) else (
     color 6

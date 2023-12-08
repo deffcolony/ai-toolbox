@@ -93,7 +93,7 @@ echo 1. Install Windows ADK
 echo 2. Run Windows ADK
 echo 3. Edit boot.wim
 echo 4. Uninstall Windows ADK
-echo 5. Exit
+echo 0. Exit
 
 
 set "choice="
@@ -112,7 +112,7 @@ if "%choice%"=="1" (
     call :edit_bootwim
 ) else if "%choice%"=="4" (
     call :uninstall_win_adk
-) else if "%choice%"=="5" (
+) else if "%choice%"=="0" (
     exit
 ) else (
     color 6

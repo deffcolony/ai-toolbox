@@ -110,7 +110,7 @@ echo 1. Install Audiobook Maker
 echo 2. Run Audiobook Maker
 echo 3. Update
 echo 4. Uninstall Audiobook Maker
-echo 5. Exit
+echo 0. Exit
 
 
 set "choice="
@@ -129,7 +129,7 @@ if "%choice%"=="1" (
     call :update_audiobook_maker
 ) else if "%choice%"=="4" (
     call :uninstall_audiobook_maker
-) else if "%choice%"=="5" (
+) else if "%choice%"=="0" (
     exit
 ) else (
     color 6

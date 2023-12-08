@@ -257,31 +257,26 @@ home() {
     echo "2. Run LLaVA"
     echo "3. Update"
     echo "4. Uninstall LLaVA"
-    echo "5. Exit"
+    echo "0. Exit"
 
-    read -p "Choose Your Destiny (default is 1): " choice
+    read -p "Choose Your Destiny: " home_choice
 
     # Default to choice 1 if no input is provided
-    if [ -z "$choice" ]; then
-      choice=1
+    if [ -z "$home_choice" ]; then
+      home_choice=1
     fi
 
-    # home - Backend
-    if [ "$choice" = "1" ]; then
-        install_llava
-    elif [ "$choice" = "2" ]; then
-        run_llava
-    elif [ "$choice" = "3" ]; then
-        update_llava
-    elif [ "$choice" = "4" ]; then
-        uninstall_llava
-    elif [ "$choice" = "5" ]; then
-        exit
-    else
-        echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
-        read -p "Press Enter to continue..."
-        home
-    fi
+    # Home menu - Backend
+    case $home_choice in
+        1) install_llava ;;
+        2) run_llava ;;
+        3) update_llava ;;
+        4) uninstall_llava ;;
+        0) exit ;;
+        *) echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
+           read -p "Press Enter to continue..."
+           home ;;
+    esac
 }
 
 # Detect the package manager and execute the appropriate installation

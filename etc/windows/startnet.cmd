@@ -27,7 +27,7 @@ echo What would you like to do?
 echo 1. Install Windows 11
 echo 2. Install Windows 10
 echo 3. Toolbox
-echo 4. Exit
+echo 0. Exit
 
 
 set "choice="
@@ -44,7 +44,7 @@ if "%choice%"=="1" (
     call :install_windows10
 ) else if "%choice%"=="3" (
     call :toolbox
-) else if "%choice%"=="4" (
+) else if "%choice%"=="0" (
     exit
 ) else (
     color 6
@@ -100,14 +100,14 @@ echo %blue_fg_strong%/ Home / Toolbox%reset%
 echo -------------------------------------
 echo What would you like to do?
 echo 1. Run cmd.exe
-echo 2. Back to Home
+echo 0. Back to Home
 
 set /p toolbox_choice=Choose Your Destiny: 
 
 REM Toolbox - Backend
 if "%toolbox_choice%"=="1" (
     call :run_cmd
-) else if "%toolbox_choice%"=="2" (
+) else if "%toolbox_choice%"=="0" (
     goto :home
 ) else (
     color 6
@@ -115,7 +115,6 @@ if "%toolbox_choice%"=="1" (
     pause
     goto :toolbox
 )
-
 
 :run_cmd
 start cmd

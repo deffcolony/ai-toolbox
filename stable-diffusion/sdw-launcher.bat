@@ -233,8 +233,8 @@ REM Activate the sillytavernextras environment
 call conda activate stablediffusionwebui
 
 REM Start stablediffusionwebui clean
-cd /d "%~dp0stable-diffusion-webui"
-start cmd /k python launch.py
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% SillyTavern launched in a new window.
+start cmd /k "title SD web UI && cd /d %~dp0stable-diffusion-webui && python launch.py"
 goto :home
 
 
@@ -252,8 +252,8 @@ echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda env
 call conda activate stablediffusionwebui
 
 REM Start stablediffusionwebui with desired configurations
-cd /d "%~dp0stable-diffusion-webui"
-start cmd /k python launch.py --autolaunch --api --listen --port 7900 --opt-sdp-attention --theme dark
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% SillyTavern launched in a new window.
+start cmd /k "title SD web UI ADDONS && cd /d %~dp0stable-diffusion-webui && python launch.py --autolaunch --api --listen --port 7900 --opt-sdp-attention --theme dark"
 goto :home
 
 
@@ -282,10 +282,8 @@ REM Prompt user for password creation
 powershell -command "$password = Read-Host 'Enter a password' -AsSecureString; $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password); $password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR); Write-Output $password" > temp_pass.txt
 set /p password=<temp_pass.txt
 del temp_pass.txt
-cd /d "%~dp0stable-diffusion-webui"
-start cmd /k python launch.py --autolaunch --opt-sdp-attention --always-batch-cond-uncond --share --port 7900 --gradio-auth %username%:%password% --always-batch-cond-uncond --theme dark
+start cmd /k "title SD web UI SHARE && cd /d %~dp0stable-diffusion-webui && python launch.py --autolaunch --opt-sdp-attention --always-batch-cond-uncond --share --port 7900 --gradio-auth %username%:%password% --always-batch-cond-uncond --theme dark"
 goto :home
-
 
 :update_sdw
 title SD web UI [UPDATE]
@@ -311,8 +309,6 @@ if %errorlevel% neq 0 (
 )
 pause
 goto :home
-
-
 
 
 REM Toolbox Frontend

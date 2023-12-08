@@ -104,7 +104,7 @@ echo 1. Install PrivateGPT
 echo 2. Run PrivateGPT
 echo 3. Update
 echo 4. Uninstall PrivateGPT
-echo 5. Exit
+echo 0. Exit
 
 
 set "choice="
@@ -123,7 +123,7 @@ if "%choice%"=="1" (
     call :update_privategpt
 ) else if "%choice%"=="4" (
     call :uninstall_privategpt
-) else if "%choice%"=="5" (
+) else if "%choice%"=="0" (
     exit
 ) else (
     color 6

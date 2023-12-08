@@ -82,7 +82,7 @@ echo What would you like to do?
 echo 1. Install Open Interpreter
 echo 2. Run Open Interpreter
 echo 3. Uninstall Open Interpreter
-echo 4. Exit
+echo 0. Exit
 
 
 set "choice="
@@ -98,7 +98,7 @@ if "%choice%"=="1" (
     call :run_oi
 ) else if "%choice%"=="3" (
     call :uninstall_oi
-) else if "%choice%"=="4" (
+) else if "%choice%"=="0" (
     exit
 ) else (
     color 6

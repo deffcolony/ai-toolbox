@@ -102,7 +102,7 @@ echo What would you like to do?
 echo 1. Install Audio Launcher
 echo 2. Run Audio Toolbox
 echo 3. Uninstall Audio Launcher
-echo 4. Exit
+echo 0. Exit
 
 
 set "choice="
@@ -119,7 +119,7 @@ if "%choice%"=="1" (
     call :run_audio_toolbox
 ) else if "%choice%"=="3" (
     call :uninstall_audio_launcher
-) else if "%choice%"=="4" (
+) else if "%choice%"=="0" (
     exit
 ) else (
     color 6

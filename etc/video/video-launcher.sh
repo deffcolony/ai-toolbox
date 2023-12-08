@@ -100,8 +100,8 @@ install_mpv() {
     fi
 }
 
-# runlocal
-runlocal() {
+# Run Local
+run_local() {
     echo -e "\033]0;Video Launcher [LOCAL]\007"
     clear
     echo -e "${blue_fg_strong}/ Home / Run Local Videos${reset}"
@@ -112,7 +112,7 @@ runlocal() {
     if ! [[ $numTimes =~ ^[0-9]+$ ]]; then
         echo -e "\033[1;33mPlease enter a valid number.\033[0m"
         read -n 1 -s -r -p "Press any key to continue..."
-        runlocal
+        run_local
     fi
 
     read -p "Enter filename of video (including extension): " videoFile
@@ -124,8 +124,8 @@ runlocal() {
     home
 }
 
-# runonline
-runonline() {
+# Run Online
+run_online() {
     echo -e "\033]0;Video Launcher [ONLINE]\007"
     clear
     echo -e "${blue_fg_strong}/ Home / Run Online Videos${reset}"
@@ -136,7 +136,7 @@ runonline() {
     if ! [[ $numTimes =~ ^[0-9]+$ ]]; then
         echo -e "\033[1;33mPlease enter a valid number.\033[0m"
         read -n 1 -s -r -p "Press any key to continue..."
-        runonline
+        run_online
     fi
 
     read -p "Enter YouTube link: " videoLink
@@ -158,27 +158,24 @@ home() {
     echo "What would you like to do?"
     echo "1. Run Local Videos"
     echo "2. Run Online Videos"
-    echo "3. Exit"
-    
-    read -p "Choose Your Destiny (default is 1): " choice
+    echo "0. Exit"
+
+    read -p "Choose Your Destiny: " home_choice
 
     # Default to choice 1 if no input is provided
-    if [ -z "$choice" ]; then
-      choice=1
+    if [ -z "$home_choice" ]; then
+      home_choice=1
     fi
 
-    # Home - Backend
-    if [ "$choice" = "1" ]; then
-        runlocal
-    elif [ "$choice" = "2" ]; then
-        runonline
-    elif [ "$choice" = "3" ]; then
-        exit
-    else
-        echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
-        read -p "Press Enter to continue..."
-        home
-    fi
+    # Home menu - Backend
+    case $home_choice in
+        1) run_local ;;
+        2) run_online ;;
+        0) exit ;;
+        *) echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
+           read -p "Press Enter to continue..."
+           home ;;
+    esac
 }
 
 # Detect the package manager and execute the appropriate installation
