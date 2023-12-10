@@ -104,6 +104,7 @@ echo 1. Install RVC
 echo 2. Run go-web.bat : Voice Training, Voice Cover Creation
 echo 3. Run go-realtime-gui.bat : Voice Changer that is useable with Discord, Steam, etc...
 echo 4. Update
+echo 5. Uninstall RVC
 echo 0. Exit
 
 
@@ -123,6 +124,8 @@ if "%choice%"=="1" (
     call :run_go_real_time_gui
 ) else if "%choice%"=="4" (
     call :update_rvc
+) else if "%choice%"=="5" (
+    call :uninstall_rvc
 ) else if "%choice%"=="0" (
     exit
 ) else (
@@ -159,6 +162,11 @@ call conda activate rvc
 REM Install Python 3.10.6 and Git in the rvc environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
 call conda install python=3.10.6 git -y
+
+REM Install pip packages that are not in requirements list
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip modules for GUI
+pip install PySimpleGUI
+pip install sounddevice
 
 REM Clone the Retrieval-based-Voice-Conversion-WebUI Extras repository
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the Retrieval-based-Voice-Conversion-WebUI repository...
@@ -199,6 +207,7 @@ if "%gpu_choice%"=="1" (
     REM Install pip requirements
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing modules from requirements.txt in rvc
     pip install -r requirements.txt
+    call conda install -c conda-forge faiss-gpu
 ) else if "%gpu_choice%"=="2" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing modules from requirements-amd.txt in rvc
     pip install -r requirements-amd.txt
