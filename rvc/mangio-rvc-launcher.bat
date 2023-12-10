@@ -160,7 +160,7 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="2" (
     call :run_goweb
 ) else if "%choice%"=="3" (
-    call :run_gorealtime
+    call :run_go_real_time_gui
 ) else if "%choice%"=="4" (
     call :uninstall_mangio_rvc
 ) else if "%choice%"=="0" (
@@ -238,7 +238,7 @@ cd /d "%~dp0mangio-rvc-%version%"
 start cmd /k go-web.bat
 goto :home
 
-:run_gorealtime
+:run_go_real_time_gui
 title Mangio RVC [GO-REALTIME-GUI]
 cls
 echo %blue_fg_strong%/ Home / Run go-realtime-gui.bat%reset%
