@@ -106,7 +106,7 @@ echo 3. Run SD web UI + addons
 echo 4. Run SD web UI + share
 echo 5. Update
 echo 6. Toolbox
-echo 7. Exit
+echo 0. Exit
 
 
 set "choice="
@@ -129,7 +129,7 @@ if "%choice%"=="1" (
     call :update_sdw
 ) else if "%choice%"=="6" (
     call :toolbox
-) else if "%choice%"=="7" (
+) else if "%choice%"=="0" (
     exit
 ) else (
     color 6
@@ -321,9 +321,7 @@ echo What would you like to do?
 echo 1. Enable Lobe Theme
 echo 2. Disable Lobe Theme
 echo 3. Uninstall SD web UI
-echo 4. Back to Home
-
-
+echo 0. Back to Home
 
 
 set "toolbox_choice="
@@ -340,7 +338,7 @@ if "%toolbox_choice%"=="1" (
     call :disable_lobe_theme
 ) else if "%toolbox_choice%"=="3" (
     call :uninstall_sdw
-) else if "%toolbox_choice%"=="4" (
+) else if "%toolbox_choice%"=="0" (
     call :home
 ) else (
     color 6
