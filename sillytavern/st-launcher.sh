@@ -145,7 +145,7 @@ if [[ "$(git rev-list HEAD...origin/$current_branch)" ]]; then
   update_status="Update Available"
 fi
 
-# Function for the home
+# Home Menu - Frontend
 home() {
     echo -e "\033]0;SillyTavern [HOME]\007"
     clear
@@ -158,11 +158,12 @@ home() {
     echo "4. Backup"
     echo "5. Switch branch"
     echo "6. Toolbox"
-    echo "7. Exit"
+    echo "0. Exit"
 
     echo "======== VERSION STATUS ========"
     echo -e "SillyTavern branch: ${cyan_fg_strong}$current_branch${reset}"
-    echo -e "Update Status: $update_status"
+    echo -e "Sillytavern: $update_status"
+    echo -e "Launcher: V1.0.2"
     echo "================================"
 
     read -p "Choose Your Destiny: " home_choice
@@ -172,7 +173,7 @@ home() {
       home_choice=1
     fi
 
-    # Home menu - Backend
+    # Home Menu - Backend
     case $home_choice in
         1) start_st ;;
         2) start_st_extras ;;
@@ -180,7 +181,7 @@ home() {
         4) backup_menu ;;
         5) switch_branch_menu ;;
         6) toolbox ;;
-        7) exit ;;
+        0) exit ;;
         *) echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
            read -p "Press Enter to continue..."
            home ;;
@@ -393,7 +394,7 @@ restore_backup() {
     backup_menu
 }
 
-# Function for backup
+# Backup Menu - Frontend
 backup_menu() {
     echo -e "\033]0;SillyTavern [BACKUP]\007"
     clear
@@ -402,15 +403,15 @@ backup_menu() {
     echo "What would you like to do?"
     echo "1. Create Backup"
     echo "2. Restore Backup"
-    echo "3. Back to Home"
+    echo "0. Back to Home"
 
     read -p "Choose Your Destiny: " backup_choice
 
-    # Backup menu - Backend
+    # Backup Menu - Backend
     case $backup_choice in
         1) create_backup ;;
         2) restore_backup ;;
-        3) home ;;
+        0) home ;;
         *) echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
            read -p "Press Enter to continue..."
            backup_menu ;;
@@ -434,7 +435,7 @@ switch_staging_st() {
     switch_branch_menu
 }
 
-# Function for switching branches
+# Switch Brance Menu - Frontend
 switch_branch_menu() {
     echo -e "\033]0;SillyTavern [SWITCH-BRANCE]\007"
     clear
@@ -443,7 +444,7 @@ switch_branch_menu() {
     echo "What would you like to do?"
     echo "1. Switch to Release - SillyTavern"
     echo "2. Switch to Staging - SillyTavern"
-    echo "3. Back to Home"
+    echo "0. Back to Home"
 
     current_branch=$(git branch --show-current)
     echo "======== VERSION STATUS ========"
@@ -453,11 +454,11 @@ switch_branch_menu() {
 
     read -p "Choose Your Destiny: " branch_choice
 
-    # switch branch menu - Backend
+    # Switch Branch Menu - Backend
     case $branch_choice in
         1) switch_release_st ;;
         2) switch_staging_st ;;
-        3) home ;;
+        0) home ;;
         *) echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
            read -p "Press Enter to continue..."
            switch_branch_menu ;;
@@ -484,6 +485,77 @@ edit_environment() {
         echo "Environment reloaded."
     fi
 }
+
+# Function to print module options with color based on their status
+printModule() {
+    if [ "$2" == "true" ]; then
+        echo -e "\e[32;1m$1 [Enabled]\e[0m"
+    else
+        echo -e "\e[31;1m$1 [Disabled]\e[0m"
+    fi
+}
+
+# Function to edit extras modules
+edit_extras_modules() {
+    echo -e "\033]0;SillyTavern [EDIT-MODULES]\007"
+    clear
+    echo -e "${blue_fg_strong}/ Home / Toolbox / Edit Extras Modules${reset}"
+    echo "-------------------------------------"
+    echo "Choose extras modules to enable or disable (e.g., \"1 2 4\" to enable Cuda, RVC, and Caption)"
+
+    # Display module options with colors based on their status
+    printModule "1. Cuda (--gpu 0 --cuda --cuda-device=0)" "$cuda_trigger"
+    printModule "2. RVC (--enable-modules=rvc --rvc-save-file --max-content-length=1000)" "$rvc_trigger"
+    printModule "3. talkinghead (--enable-modules=talkinghead)" "$talkinghead_trigger"
+    printModule "4. caption (--enable-modules=caption)" "$caption_trigger"
+    printModule "5. summarize (--enable-modules=summarize)" "$summarize_trigger"
+    printModule "6. listen (--listen)" "$listen_trigger"
+    echo "0. Back to Toolbox"
+
+    set "python_command="
+
+    read -p "Choose modules to enable/disable (1-6): " module_choices
+
+    # Handle the user's module choices and construct the Python command
+    for i in $module_choices; do
+        case $i in
+            1) [ "$cuda_trigger" == "true" ] && cuda_trigger=false || cuda_trigger=true ;;
+            2) [ "$rvc_trigger" == "true" ] && rvc_trigger=false || rvc_trigger=true ;;
+            3) [ "$talkinghead_trigger" == "true" ] && talkinghead_trigger=false || talkinghead_trigger=true ;;
+            4) [ "$caption_trigger" == "true" ] && caption_trigger=false || caption_trigger=true ;;
+            5) [ "$summarize_trigger" == "true" ] && summarize_trigger=false || summarize_trigger=true ;;
+            6) [ "$listen_trigger" == "true" ] && listen_trigger=false || listen_trigger=true ;;
+            0) toolbox ;;
+        esac
+    done
+
+    # Save the module flags to modules.txt
+    modules_file="$(dirname "$0")/modules.txt"
+    echo "cuda_trigger=$cuda_trigger" > "$modules_file"
+    echo "rvc_trigger=$rvc_trigger" >> "$modules_file"
+    echo "talkinghead_trigger=$talkinghead_trigger" >> "$modules_file"
+    echo "caption_trigger=$caption_trigger" >> "$modules_file"
+    echo "summarize_trigger=$summarize_trigger" >> "$modules_file"
+    echo "listen_trigger=$listen_trigger" >> "$modules_file"
+
+    # Compile the Python command
+    python_command="python server.py"
+    [ "$listen_trigger" == "true" ] && python_command+=" --listen"
+    [ "$cuda_trigger" == "true" ] && python_command+=" --gpu 0 --cuda --cuda-device=0 "
+    [ "$rvc_trigger" == "true" ] && python_command+=" --rvc-save-file --max-content-length=1000"
+    modules_enable=""
+    [ "$talkinghead_trigger" == "true" ] && modules_enable+="talkinghead,"
+    [ "$caption_trigger" == "true" ] && modules_enable+="caption,"
+    [ "$summarize_trigger" == "true" ] && modules_enable+="summarize,"
+
+    # Remove the last comma from modules_enable
+    modules_enable="${modules_enable%,}"
+
+    # Save the constructed Python command to modules.txt for testing
+    echo "start_command=$python_command --enable-modules=$modules_enable" >> "$modules_file"
+    edit_extras_modules
+}
+
 
 # Function to reinstall SillyTavern
 reinstall_sillytavern() {
@@ -630,7 +702,7 @@ reinstall_extras() {
         cd SillyTavern-extras
 
         log_message "INFO" "Installing modules from requirements.txt..."
-        pip install -r requirements.txt
+        pip3 install -r requirements.txt
 
         log_message "DISCLAIMER" "The installation of Coqui requirements is not recommended unless you have a specific use case. It may conflict with additional dependencies and functionalities to your environment."
         log_message "INFO" "To learn more about Coqui, visit: https://docs.sillytavern.app/extras/installation/#decide-which-module-to-use"
@@ -638,14 +710,14 @@ reinstall_extras() {
         read -p "Do you want to install Coqui TTS? [Y/N] " install_coqui_requirements
 
         if [[ "$install_coqui_requirements" == [Yy] ]]; then
-            log_message "INFO" "Installing pip requirements-coqui..."
-            pip install -r requirements-coqui.txt
+            log_message "INFO" "Installing pip3 requirements-coqui..."
+            pip3 install -r requirements-coqui.txt
         else
             log_message "INFO" "Coqui requirements installation skipped."
         fi
 
-        log_message "INFO" "Installing pip requirements-rvc..."
-        pip install -r requirements-rvc.txt
+        log_message "INFO" "Installing pip3 requirements-rvc..."
+        pip3 install -r requirements-rvc.txt
 
         log_message "INFO" "${green_fg_strong}SillyTavern Extras reinstalled successfully.${reset}"
     else
@@ -657,7 +729,6 @@ reinstall_extras() {
 
 # Function to uninstall SillyTavern + Extras
 uninstall_st_extras() {
-
     echo
     echo -e "${red_bg}╔════ DANGER ZONE ═══════════════════════════════════════════════════════════════════╗${reset}"
     echo -e "${red_bg}║ WARNING: This will delete all data in Sillytavern + Extras                         ║${reset}"
@@ -682,6 +753,7 @@ uninstall_st_extras() {
     toolbox
 }
 
+# Toolbox Menu - Frontend
 toolbox() {
     echo -e "\033]0;SillyTavern [TOOLBOX]\007"
     clear
@@ -696,10 +768,11 @@ toolbox() {
     echo "6. Reinstall SillyTavern"
     echo "7. Reinstall Extras"
     echo "8. Uninstall SillyTavern + Extras"
-    echo "9. Back to Home"
+    echo "0. Back to Home"
 
     read -p "Choose Your Destiny: " toolbox_choice
 
+    # Toolbox Menu - Backend
     case $toolbox_choice in
         1) install_7zip ;;
         2) install_ffmpeg ;;
@@ -709,7 +782,7 @@ toolbox() {
         6) reinstall_sillytavern ;;
         7) reinstall_extras ;;
         8) uninstall_st_extras ;;
-        9) home ;;
+        0) home ;;
         *) echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
            read -p "Press Enter to continue..."
            toolbox ;;

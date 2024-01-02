@@ -141,7 +141,31 @@ log_message() {
             ;;
     esac
 }
+boxDrawingText()
+{
+    local string=$1
+    local maxwidth=$2
+    # empty string
+    local color=
 
+    if [ $# -eq 3 ]; then
+        color=$3
+    fi
+
+    local stringlength=${#string}
+
+    # stringlength < maxwidth ? maxwidth : stringlength
+    local width=$((stringlength < maxwidth ? maxwidth : stringlength))
+
+    local topL="╔"
+    local bottomL="╚"
+    local topR="╗"
+    local bottomR="╝"
+    local middle="║"
+    local space=" "
+
+    echo -e "$color$middle$string$(printf ' %.0s' $(seq 1 $((width - stringlength))))$middle"
+}
 # Log your messages test window
 #log_message "INFO" "Something has been launched."
 #log_message "WARN" "${yellow_fg_strong}Something is not installed on this system.${reset}"
@@ -183,6 +207,10 @@ install_git() {
             # Termux on Android
             log_message "INFO" "Installing Git using pkg..."
             pkg install git
+        elif command -v zypper &>/dev/null; then
+            # openSUSE
+            log_message "INFO" "Installing Git using zypper..."
+            sudo zypper install git
         else
             log_message "ERROR" "${red_fg_strong}Unsupported Linux distribution.${reset}"
             exit 1
@@ -254,6 +282,10 @@ install_nodejs_npm() {
             # macOS
             log_message "INFO" "Installing Node.js and npm using Homebrew..."
             brew install node
+        elif command -v zypper &>/dev/null; then
+            # openSUSE
+            log_message "INFO" "Installing Node.js and npm using zypper..."
+            sudo zypper --non-interactive install nodejs npm
         else
             log_message "ERROR" "${red_fg_strong}Unsupported Linux distribution.${reset}"
             exit 1
@@ -347,10 +379,11 @@ install_st_extras() {
         log_message "INFO" "Installing Python in the Conda environment..."
         conda install python=3.10 -y
 
-        # Install pip requirements
-        log_message "INFO" "Installing pip requirements for xtts..."
-        pip install xtts-api-server
-        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+        # Install pip3 requirements
+        log_message "INFO" "Installing pip3 requirements for xtts..."
+        pip3 install xtts-api-server
+        pip3 install pydub
+        pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
         # Create folders for xtts
         log_message "INFO" "Creating xtts folders..."
@@ -404,22 +437,24 @@ install_st_extras() {
 
     # Check the user's response
     if [ "$gpu_choice" == "1" ]; then
-        # Install pip requirements
+        # Install pip3 requirements
         log_message "INFO" "Installing modules from requirements.txt in extras..."
-        pip install -r requirements.txt
+        pip3 install -r requirements.txt
+        conda install -c conda-forge faiss-gpu -y
     elif [ "$gpu_choice" == "2" ]; then
         log_message "INFO" "Installing modules from requirements-rocm.txt in extras..."
-        pip install -r requirements-rocm.txt
+        pip3 install -r requirements-rocm.txt
     elif [ "$gpu_choice" == "3" ]; then
         log_message "INFO" "Installing modules from requirements-silicon.txt in extras..."
-        pip install -r requirements-silicon.txt
+        pip3 install -r requirements-silicon.txt
     else
         log_message "ERROR" "Invalid GPU choice. Please enter a valid number."
         exit 1
     fi
 
-    log_message "INFO" "Installing pip requirements-rvc in extras environment..."
-    pip install -r requirements-rvc.txt
+    log_message "INFO" "Installing pip3 requirements-rvc in extras environment..."
+    pip3 install -r requirements-rvc.txt
+    pip3 install tensorboardX
 
     # Cleanup the Downloaded file
     rm -rf /tmp/$miniconda_installer
@@ -578,10 +613,11 @@ install_extras() {
         log_message "INFO" "Installing Python in the Conda environment..."
         conda install python=3.10 -y
 
-        # Install pip requirements
-        log_message "INFO" "Installing pip requirements for xtts..."
-        pip install xtts-api-server
-        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+        # Install pip3 requirements
+        log_message "INFO" "Installing pip3 requirements for xtts..."
+        pip3 install xtts-api-server
+        pip3 install pydub
+        pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
         # Create folders for xtts
         log_message "INFO" "Creating xtts folders..."
@@ -623,11 +659,11 @@ install_extras() {
     done < <(lspci | grep VGA | cut -d ':' -f3)
 
     echo ""
-    echo -e "${blue_bg}╔════ GPU INFO ═════════════════════════════════╗${reset}"
-    echo -e "${blue_bg}║                                               ║${reset}"
-    echo -e "${blue_bg}║* ${gpu_info:1}                     ║${reset}"
-    echo -e "${blue_bg}║                                               ║${reset}"
-    echo -e "${blue_bg}╚═══════════════════════════════════════════════╝${reset}"
+    echo -e "${blue_bg}╔════ GPU INFO ═════════════════════════════════════════════════════════════╗${reset}"
+    boxDrawingText "" 75 $blue_bg
+    boxDrawingText "* ${gpu_info:1}" 75 $blue_bg
+    boxDrawingText "" 75 $blue_bg
+    echo -e "${blue_bg}╚═══════════════════════════════════════════════════════════════════════════╝${reset}"
     echo ""
 
     # Prompt for GPU choice
@@ -635,22 +671,24 @@ install_extras() {
 
     # Check the user's response
     if [ "$gpu_choice" == "1" ]; then
-        # Install pip requirements
+        # Install pip3 requirements
         log_message "INFO" "Installing modules from requirements.txt in extras..."
-        pip install -r requirements.txt
+        pip3 install -r requirements.txt
+        conda install -c conda-forge faiss-gpu -y
     elif [ "$gpu_choice" == "2" ]; then
         log_message "INFO" "Installing modules from requirements-rocm.txt in extras..."
-        pip install -r requirements-rocm.txt
+        pip3 install -r requirements-rocm.txt
     elif [ "$gpu_choice" == "3" ]; then
         log_message "INFO" "Installing modules from requirements-silicon.txt in extras..."
-        pip install -r requirements-silicon.txt
+        pip3 install -r requirements-silicon.txt
     else
         log_message "ERROR" "Invalid GPU choice. Please enter a valid number."
         exit 1
     fi
 
-    log_message "INFO" "Installing pip requirements-rvc in extras environment..."
-    pip install -r requirements-rvc.txt
+    log_message "INFO" "Installing pip3 requirements-rvc in extras environment..."
+    pip3 install -r requirements-rvc.txt
+    pip3 install tensorboardX
 
     # Cleanup the Downloaded file
     rm -rf /tmp/$miniconda_installer
@@ -742,6 +780,12 @@ elif command -v emerge &>/dev/null; then
 elif command -v pkg &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected pkg System${reset}"
     # pkg
+    install_git
+    install_nodejs_npm
+    installer
+elif command -v zypper &>/dev/null; then
+    log_message "INFO" "${blue_fg_strong}Detected openSUSE system.${reset}"
+    # openSUSE
     install_git
     install_nodejs_npm
     installer
