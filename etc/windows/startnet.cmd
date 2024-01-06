@@ -99,7 +99,10 @@ cls
 echo %blue_fg_strong%/ Home / Toolbox%reset%
 echo -------------------------------------
 echo What would you like to do?
-echo 1. Run cmd.exe
+echo 1. Run cmd
+echo 2. Run regedit
+echo 3. Run notepad
+echo 4. Run task manager
 echo 0. Back to Home
 
 set /p toolbox_choice=Choose Your Destiny: 
@@ -107,15 +110,33 @@ set /p toolbox_choice=Choose Your Destiny:
 REM Toolbox - Backend
 if "%toolbox_choice%"=="1" (
     call :run_cmd
+) else if "%toolbox_choice%"=="2" (
+    goto :run_regedit
+) else if "%toolbox_choice%"=="3" (
+    goto :run_notepad
+) else if "%toolbox_choice%"=="4" (
+    goto :run_taskmgr
 ) else if "%toolbox_choice%"=="0" (
     goto :home
 ) else (
-    color 6
-    echo WARNING: Invalid number. Please insert a valid number.
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Invalid number. Please enter a valid number.%reset%
     pause
     goto :toolbox
 )
 
+
 :run_cmd
 start cmd
+goto :toolbox
+
+:run_regedit
+start regedit
+goto :toolbox
+
+:run_notepad
+start notepad
+goto :toolbox
+
+:run_taskmgr
+start taskmgr
 goto :toolbox

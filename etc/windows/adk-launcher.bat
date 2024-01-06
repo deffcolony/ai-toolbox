@@ -35,6 +35,10 @@ set "blue_bg=[44m"
 REM Environment Variables (winget)
 set "winget_path=%userprofile%\AppData\Local\Microsoft\WindowsApps"
 
+REM ADK installation path. ADK 10 can be found here: https://docs.microsoft.com/en-us/windows-hardware/get-started/adk-install
+set "adk_path=%programfiles(x86)%\Windows Kits\10\Assessment and Deployment Kit"
+Set "winpe_root=%~dp0WinPE_amd64"
+
 REM Environment Variables (TOOLBOX Install Extras)
 set "miniconda_path=%userprofile%\miniconda"
 
@@ -177,7 +181,7 @@ goto :home
 :run_win_adk
 >nul 2>&1 net session
 if %errorlevel% neq 0 (
-    echo %red_fg_strong%[ERROR] This part requires administrative privileges. Please run the launcher as Administrator.%reset%
+    echo %red_fg_strong%[ERROR] This part requires administrative privileges. Please run as Administrator.%reset%
     pause
     goto :home
 )
@@ -186,9 +190,8 @@ cls
 echo %blue_fg_strong%/ Home / Run Windows ADK%reset%
 echo ---------------------------------------------------------------
 
-
 REM Navigate to the folder
-cd "C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Windows Preinstallation Environment\amd64"
+cd "%programfiles(x86)%\Windows Kits\10\Assessment and Deployment Kit\Windows Preinstallation Environment\amd64"
 
 md %~dp0WinPE_amd64\mount
 timeout /nobreak /t 3 >nul
@@ -222,6 +225,35 @@ REM Mount the boot.wim
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Mounting boot.wim...
 Dism /Mount-Image /ImageFile:"%~dp0WinPE_amd64\media\sources\boot.wim" /index:1 /MountDir:"%~dp0WinPE_amd64\mount"
 
+REM Adding some useful packages. Packages description and dependencies for WinPE 10 can be found here: http://technet.microsoft.com/en-us/library/hh824926.aspx
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Adding useful .cab packages...
+Dism /image:%winpe_root%\mount /Add-Package ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\WinPE-HTA.cab" ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\en-us\WinPE-HTA_en-us.cab" ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\WinPE-WMI.cab" ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\en-us\WinPE-WMI_en-us.cab" ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\WinPE-StorageWMI.cab" ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\en-us\WinPE-StorageWMI_en-us.cab" ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\WinPE-Scripting.cab" ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\en-us\WinPE-Scripting_en-us.cab" ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\WinPE-NetFx.cab" ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\en-us\WinPE-NetFx_en-us.cab" ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\WinPE-PowerShell.cab" ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\en-us\WinPE-PowerShell_en-us.cab" ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\WinPE-DismCmdlets.cab" ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\en-us\WinPE-DismCmdlets_en-us.cab" ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\WinPE-FMAPI.cab" ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\WinPE-SecureBootCmdlets.cab"
+
+
+REM: Bitlocker startup support packages
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Adding Bitlocker startup support .cab packages...
+Dism /image:%winpe_root%\mount /Add-Package ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\WinPE-EnhancedStorage.cab" ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\en-us\WinPE-EnhancedStorage_en-us.cab" ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\WinPE-SecureStartup.cab" ^
+    /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\en-us\WinPE-SecureStartup_en-us.cab"
+
 REM Copy startnet.cmd to mount of boot.wim
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying startnet.cmd into boot.wim...
 copy /Y "%~dp0startnet.cmd" "%~dp0WinPE_amd64\mount\Windows\System32\startnet.cmd"
@@ -246,7 +278,7 @@ goto :home
 :edit_bootwim
 >nul 2>&1 net session
 if %errorlevel% neq 0 (
-    echo %red_fg_strong%[ERROR] This part requires administrative privileges. Please run the launcher as Administrator.%reset%
+    echo %red_fg_strong%[ERROR] This part requires administrative privileges. Please run as Administrator.%reset%
     pause
     goto :home
 )
@@ -266,6 +298,10 @@ mkdir "%~dp0WinPE_amd64\bootwimfiles"
 REM Mount the boot.wim
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Mounting boot.wim...
 Dism /Mount-Image /ImageFile:"%~dp0WinPE_amd64\media\sources\boot.wim" /index:1 /MountDir:"%~dp0WinPE_amd64\mount"
+
+REM Allow winpe background replacement permisions
+TAKEOWN /F "%winpe_root%\mount\Windows\System32\winpe.jpg"
+ICACLS "%winpe_root%\mount\Windows\System32\winpe.jpg" /grant administrators:F
 
 REM Copy startnet.cmd to bootwimfiles folder
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying startnet.cmd into bootwimfiles directory...
