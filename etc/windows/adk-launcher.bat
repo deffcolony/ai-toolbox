@@ -35,7 +35,7 @@ set "blue_bg=[44m"
 REM Environment Variables (winget)
 set "winget_path=%userprofile%\AppData\Local\Microsoft\WindowsApps"
 
-REM ADK installation path. ADK 10 can be found here: https://docs.microsoft.com/en-us/windows-hardware/get-started/adk-install
+REM Environment Variables (ADK, winpe)
 set "adk_path=%programfiles(x86)%\Windows Kits\10\Assessment and Deployment Kit"
 Set "winpe_root=%~dp0WinPE_amd64"
 
@@ -225,7 +225,7 @@ REM Mount the boot.wim
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Mounting boot.wim...
 Dism /Mount-Image /ImageFile:"%~dp0WinPE_amd64\media\sources\boot.wim" /index:1 /MountDir:"%~dp0WinPE_amd64\mount"
 
-REM Adding some useful packages. Packages description and dependencies for WinPE 10 can be found here: http://technet.microsoft.com/en-us/library/hh824926.aspx
+REM Adding some useful packages. Packages description and dependencies for WinPE 11 can be found here: https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/winpe-add-packages--optional-components-reference
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Adding useful .cab packages...
 Dism /image:%winpe_root%\mount /Add-Package ^
     /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\WinPE-HTA.cab" ^
