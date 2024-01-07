@@ -100,9 +100,10 @@ echo %blue_fg_strong%/ Home / Toolbox%reset%
 echo -------------------------------------
 echo What would you like to do?
 echo 1. Run cmd
-echo 2. Run regedit
-echo 3. Run notepad
-echo 4. Run task manager
+echo 2. Run powershell
+echo 3. Run regedit
+echo 4. Run notepad
+echo 5. Run task manager
 echo 0. Back to Home
 
 set /p toolbox_choice=Choose Your Destiny: 
@@ -111,10 +112,12 @@ REM Toolbox - Backend
 if "%toolbox_choice%"=="1" (
     call :run_cmd
 ) else if "%toolbox_choice%"=="2" (
-    goto :run_regedit
+    goto :run_powershell
 ) else if "%toolbox_choice%"=="3" (
-    goto :run_notepad
+    goto :run_regedit
 ) else if "%toolbox_choice%"=="4" (
+    goto :run_notepad
+) else if "%toolbox_choice%"=="5" (
     goto :run_taskmgr
 ) else if "%toolbox_choice%"=="0" (
     goto :home
@@ -127,6 +130,10 @@ if "%toolbox_choice%"=="1" (
 
 :run_cmd
 start cmd
+goto :toolbox
+
+:run_powershell
+start powershell
 goto :toolbox
 
 :run_regedit

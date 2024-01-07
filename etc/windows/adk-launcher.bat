@@ -35,9 +35,10 @@ set "blue_bg=[44m"
 REM Environment Variables (winget)
 set "winget_path=%userprofile%\AppData\Local\Microsoft\WindowsApps"
 
-REM Environment Variables (ADK, winpe)
+REM Environment Variables (ADK, winpe, drivers)
 set "adk_path=%programfiles(x86)%\Windows Kits\10\Assessment and Deployment Kit"
-Set "winpe_root=%~dp0WinPE_amd64"
+set "winpe_root=%~dp0WinPE_amd64"
+set "drivers_path=%winpe_root%\bootwimfiles\add_drivers"
 
 REM Environment Variables (TOOLBOX Install Extras)
 set "miniconda_path=%userprofile%\miniconda"
@@ -191,41 +192,42 @@ echo %blue_fg_strong%/ Home / Run Windows ADK%reset%
 echo ---------------------------------------------------------------
 
 REM Navigate to the folder
-cd "%programfiles(x86)%\Windows Kits\10\Assessment and Deployment Kit\Windows Preinstallation Environment\amd64"
+cd "%adk_path%\Windows Preinstallation Environment\amd64"
 
-md %~dp0WinPE_amd64\mount
+md "%winpe_root%\mount"
 timeout /nobreak /t 3 >nul
 
 REM Unmounting the Windows PE boot image if already mounted
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Unmounting the Windows PE boot image if already mounted...
-Dism /Unmount-Image /MountDir:"%~dp0WinPE_amd64\mount" /commit >nul 2>&1
+Dism /Unmount-Image /MountDir:"%winpe_root%\mount" /commit >nul 2>&1
 
 REM Mounting the Windows PE boot image
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Mounting the Windows PE boot image...
-Dism /Mount-Image /ImageFile:"en-us\winpe.wim" /index:1 /MountDir:"%~dp0WinPE_amd64\mount"
+Dism /Mount-Image /ImageFile:"en-us\winpe.wim" /index:1 /MountDir:"%winpe_root%\mount"
 
 REM Copy files
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying files...
-Xcopy "%~dp0WinPE_amd64\mount\Windows\Boot\EFI\bootmgr.efi" "Media\bootmgr.efi" /Y
-Xcopy "%~dp0WinPE_amd64\mount\Windows\Boot\EFI\bootmgfw.efi" "Media\EFI\Boot\bootx64.efi" /Y
+Xcopy "%winpe_root%\mount\Windows\Boot\EFI\bootmgr.efi" "Media\bootmgr.efi" /Y
+Xcopy "%winpe_root%\mount\Windows\Boot\EFI\bootmgfw.efi" "Media\EFI\Boot\bootx64.efi" /Y
 
 REM Unmount the WinPE image, committing changes
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Unmounting the WinPE image, committing changes...
-Dism /Unmount-Image /MountDir:"%~dp0WinPE_amd64\mount" /commit
+Dism /Unmount-Image /MountDir:"%winpe_root%\mount" /commit
 
 REM Delete the temp folder
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Deleting the temp folder...
-rmdir /s /q %~dp0WinPE_amd64
+rmdir /s /q "%winpe_root%"
 
 REM Create working files in a seperate CMD window
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Opening seperate CMD Window for creating working files
-start /wait cmd.exe /k ""C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\DandISetEnv.bat" && copype amd64 %~dp0WinPE_amd64 && exit"
+start /wait cmd.exe /k ""C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\DandISetEnv.bat" && copype amd64 %winpe_root% && exit"
 
 REM Mount the boot.wim
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Mounting boot.wim...
-Dism /Mount-Image /ImageFile:"%~dp0WinPE_amd64\media\sources\boot.wim" /index:1 /MountDir:"%~dp0WinPE_amd64\mount"
+Dism /Mount-Image /ImageFile:"%winpe_root%\media\sources\boot.wim" /index:1 /MountDir:"%winpe_root%\mount"
 
-REM Adding some useful packages. Packages description and dependencies for WinPE 11 can be found here: https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/winpe-add-packages--optional-components-reference
+REM Adding some useful packages. Packages description and dependencies for WinPE 11 can be found here: 
+REM https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/winpe-add-packages--optional-components-reference
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Adding useful .cab packages...
 Dism /image:%winpe_root%\mount /Add-Package ^
     /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\WinPE-HTA.cab" ^
@@ -245,7 +247,6 @@ Dism /image:%winpe_root%\mount /Add-Package ^
     /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\WinPE-FMAPI.cab" ^
     /PackagePath:"%adk_path%\Windows Preinstallation Environment\amd64\WinPE_OCs\WinPE-SecureBootCmdlets.cab"
 
-
 REM: Bitlocker startup support packages
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Adding Bitlocker startup support .cab packages...
 Dism /image:%winpe_root%\mount /Add-Package ^
@@ -256,21 +257,21 @@ Dism /image:%winpe_root%\mount /Add-Package ^
 
 REM Copy startnet.cmd to mount of boot.wim
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying startnet.cmd into boot.wim...
-copy /Y "%~dp0startnet.cmd" "%~dp0WinPE_amd64\mount\Windows\System32\startnet.cmd"
+copy /Y "%~dp0startnet.cmd" "%winpe_root%\mount\Windows\System32\startnet.cmd"
 
 REM Copy unattend.xml to mount of boot.wim
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying unattend.xml into boot.wim...
-copy /Y "%~dp0unattend.xml" "%~dp0WinPE_amd64\mount\unattend.xml"
+copy /Y "%~dp0unattend.xml" "%winpe_root%\mount\unattend.xml"
 
 REM Unmount the boot.wim, committing changes
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Unmounting the boot.wim, committing changes...
-Dism /Unmount-Image /MountDir:"%~dp0WinPE_amd64\mount" /commit
+Dism /Unmount-Image /MountDir:"%winpe_root%\mount" /commit
 
 REM Build the WinPE ISO in a seperate CMD window
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Opening seperate CMD Window to build bootable WinPE ISO...
-start /wait cmd.exe /k ""C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\DandISetEnv.bat" && MakeWinPEMedia /ISO %~dp0WinPE_amd64 %~dp0WinPE_amd64\WinPE_amd64.iso && exit"
+start /wait cmd.exe /k ""C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\DandISetEnv.bat" && MakeWinPEMedia /ISO %winpe_root% %winpe_root%\WinPE_amd64.iso && exit"
 
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%You can find the WinPE_amd64.iso at: %~dp0WinPE_amd64\WinPE_amd64.iso%reset%
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%You can find the WinPE_amd64.iso at: %winpe_root%\WinPE_amd64.iso%reset%
 pause
 goto :home
 
@@ -289,15 +290,15 @@ echo ---------------------------------------------------------------
 
 REM Remove the WinPE_amd64.iso
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the existing WinPE_amd64.iso...
-del "%~dp0WinPE_amd64\WinPE_amd64.iso" 
+del "%winpe_root%\WinPE_amd64.iso"
 
 REM Create the bootwimfiles directory
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating the bootwimfiles directory...
-mkdir "%~dp0WinPE_amd64\bootwimfiles"
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating the bootwimfiles + add_drivers directory...
+mkdir "%drivers_path%"
 
 REM Mount the boot.wim
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Mounting boot.wim...
-Dism /Mount-Image /ImageFile:"%~dp0WinPE_amd64\media\sources\boot.wim" /index:1 /MountDir:"%~dp0WinPE_amd64\mount"
+Dism /Mount-Image /ImageFile:"%winpe_root%\media\sources\boot.wim" /index:1 /MountDir:"%winpe_root%\mount"
 
 REM Allow winpe background replacement permisions
 TAKEOWN /F "%winpe_root%\mount\Windows\System32\winpe.jpg"
@@ -305,49 +306,54 @@ ICACLS "%winpe_root%\mount\Windows\System32\winpe.jpg" /grant administrators:F
 
 REM Copy startnet.cmd to bootwimfiles folder
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying startnet.cmd into bootwimfiles directory...
-copy /Y "%~dp0WinPE_amd64\mount\Windows\System32\startnet.cmd" "%~dp0WinPE_amd64\bootwimfiles\startnet.cmd" 
+copy /Y "%winpe_root%\mount\Windows\System32\startnet.cmd" "%winpe_root%\bootwimfiles\startnet.cmd"
 
 REM Copy unattend.xml to bootwimfiles folder
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying unattend.xml into bootwimfiles directory...
-copy /Y "%~dp0WinPE_amd64\mount\unattend.xml" "%~dp0WinPE_amd64\bootwimfiles\unattend.xml" 
+copy /Y "%winpe_root%\mount\unattend.xml" "%winpe_root%\bootwimfiles\unattend.xml"
 
 REM Copy winpe.jpg to bootwimfiles folder
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying unattend.xml into bootwimfiles directory...
-copy /Y "%~dp0WinPE_amd64\mount\Windows\System32\winpe.jpg" "%~dp0WinPE_amd64\bootwimfiles\winpe.jpg" 
+copy /Y "%winpe_root%\mount\Windows\System32\winpe.jpg" "%winpe_root%\bootwimfiles\winpe.jpg"
 
 REM Ask user to press enter when done editing
-echo %cyan_fg_strong%You can edit startnet.cmd at: %~dp0WinPE_amd64\bootwimfiles\startnet.cmd%reset%
-echo %cyan_fg_strong%You can edit unattend.xml at: %~dp0WinPE_amd64\bootwimfiles\unattend.xml%reset%
-echo %cyan_fg_strong%Optionally, you can add a custom background at: %~dp0WinPE_amd64\bootwimfiles\winpe.jpg%reset%
+start %winpe_root%\bootwimfiles
+echo %cyan_fg_strong%You can edit scripts at: %winpe_root%\bootwimfiles%reset%
+echo %cyan_fg_strong%You can replace custom background at: %winpe_root%\bootwimfiles\winpe.jpg%reset%
+echo %cyan_fg_strong%You can add drivers at: %drivers_path%
 echo.
 echo %cyan_fg_strong%Done editing?%reset%
 pause
 
 REM Copy startnet.cmd to mount of boot.wim
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying startnet.cmd into boot.wim...
-copy /Y "%~dp0WinPE_amd64\bootwimfiles\startnet.cmd" "%~dp0WinPE_amd64\mount\Windows\System32\startnet.cmd"
+copy /Y "%winpe_root%\bootwimfiles\startnet.cmd" "%winpe_root%\mount\Windows\System32\startnet.cmd"
 
 REM Copy unattend.xml to mount of boot.wim
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying unattend.xml into boot.wim...
-copy /Y "%~dp0WinPE_amd64\bootwimfiles\unattend.xml" "%~dp0WinPE_amd64\mount\unattend.xml"
+copy /Y "%winpe_root%\bootwimfiles\unattend.xml" "%winpe_root%\mount\unattend.xml"
 
 REM Copy winpe.jpg to mount of boot.wim
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying winpe.jpg into boot.wim...
-copy /Y "%~dp0WinPE_amd64\bootwimfiles\winpe.jpg" "%~dp0WinPE_amd64\mount\Windows\System32\winpe.jpg"
+copy /Y "%winpe_root%\bootwimfiles\winpe.jpg" "%winpe_root%\mount\Windows\System32\winpe.jpg"
+
+REM Add drivers to mount of boot.wim
+Dism /image:%winpe_root%\mount /Add-Driver /driver:%drivers_path% /recurse
 
 REM Unmount the boot.wim, committing changes
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Unmounting the boot.wim, committing changes...
-Dism /Unmount-Image /MountDir:"%~dp0WinPE_amd64\mount" /commit
+Dism /Unmount-Image /MountDir:"%winpe_root%\mount" /commit
 
 REM Remove bootwimfiles directory for cleanup
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the bootwimfiles directory...
-rmdir /s /q "%~dp0WinPE_amd64\bootwimfiles"
+rmdir /s /q "%winpe_root%\bootwimfiles"
 
 REM Build the WinPE ISO in a seperate CMD window
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Opening seperate CMD Window to build bootable WinPE ISO...
-start /wait cmd.exe /k ""C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\DandISetEnv.bat" && MakeWinPEMedia /ISO %~dp0WinPE_amd64 %~dp0WinPE_amd64\WinPE_amd64.iso && exit"
+start /wait cmd.exe /k ""C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\DandISetEnv.bat" && MakeWinPEMedia /ISO %winpe_root% %winpe_root%\WinPE_amd64.iso && exit"
 
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%You can find the WinPE_amd64.iso at: %~dp0WinPE_amd64\WinPE_amd64.iso%reset%
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%ISO build completed successfully. You can find the WinPE_amd64.iso at: %winpe_root%\WinPE_amd64.iso%reset%
+start %winpe_root%
 pause
 goto :home
 
@@ -372,7 +378,7 @@ if /i "%confirmation%"=="Y" (
 
     REM Remove the folder WinPE_amd64
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the WinPE_amd64 directory...
-    rmdir /s /q "%~dp0WinPE_amd64"
+    rmdir /s /q "%winpe_root%"
 
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Windows ADK uninstalled successfully.%reset%
     pause
