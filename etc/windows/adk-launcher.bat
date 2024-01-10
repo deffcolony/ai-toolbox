@@ -43,6 +43,11 @@ set "drivers_path=%winpe_root%\bootwimfiles\add_drivers"
 REM Environment Variables (TOOLBOX Install Extras)
 set "miniconda_path=%userprofile%\miniconda"
 
+REM Environment Variables (TOOLBOX 7-Zip)
+set "zip7version=7z2301-x64"
+set "zip7_install_path=%ProgramFiles%\7-Zip"
+set "zip7_download_path=%TEMP%\%zip7version%.exe"
+
 REM Define the paths and filenames for the shortcut creation
 set "shortcutTarget=%~dp0adk-launcher.bat"
 set "iconFile=%~dp0adk.ico"
@@ -97,7 +102,8 @@ echo What would you like to do?
 echo 1. Install Windows ADK
 echo 2. Run Windows ADK
 echo 3. Edit boot.wim
-echo 4. Uninstall Windows ADK
+echo 4. View Windows Editions
+echo 5. Uninstall Windows ADK
 echo 0. Exit
 
 
@@ -116,6 +122,8 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="3" (
     call :edit_bootwim
 ) else if "%choice%"=="4" (
+    call :view_win_editions
+) else if "%choice%"=="5" (
     call :uninstall_win_adk
 ) else if "%choice%"=="0" (
     exit
@@ -352,10 +360,67 @@ REM Build the WinPE ISO in a seperate CMD window
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Opening seperate CMD Window to build bootable WinPE ISO...
 start /wait cmd.exe /k ""C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\DandISetEnv.bat" && MakeWinPEMedia /ISO %winpe_root% %winpe_root%\WinPE_amd64.iso && exit"
 
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%ISO build completed successfully. You can find the WinPE_amd64.iso at: %winpe_root%\WinPE_amd64.iso%reset%
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%ISO build completed successfully. The WinPE_amd64.iso is located at: %winpe_root%\WinPE_amd64.iso%reset%
 start %winpe_root%
 pause
 goto :home
+
+
+:view_win_editions
+>nul 2>&1 net session
+if %errorlevel% neq 0 (
+    echo %red_fg_strong%[ERROR] This part requires administrative privileges. Please run as Administrator.%reset%
+    pause
+    goto :home
+)
+
+REM Check if 7z is installed if not then install git
+    echo %blue_fg_strong%[INFO]%reset% Checking 7-Zip...
+    winget install -e --id 7zip.7zip
+
+    rem Get the current PATH value from the registry
+    for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v PATH') do set "current_path=%%B"
+
+    rem Check if the paths are already in the current PATH
+    echo %current_path% | find /i "%zip7_install_path%" > nul
+    set "zip7_path_exists=%errorlevel%"
+
+    rem Append the new paths to the current PATH only if they don't exist
+    if %zip7_path_exists% neq 0 (
+        set "new_path=%current_path%;%zip7_install_path%"
+        echo %green_fg_strong%7z added to PATH.%reset%
+    ) else (
+        set "new_path=%current_path%"
+        echo %blue_fg_strong%[INFO] 7z already exists in PATH.%reset%
+    )
+
+    rem Update the PATH value in the registry
+    reg add "HKCU\Environment" /v PATH /t REG_EXPAND_SZ /d "%new_path%" /f
+
+    rem Update the PATH value for the current session
+    set PATH=%new_path%
+cls
+echo %cyan_fg_strong%Step 1: Put the Windows ISO in:%reset% %winpe_root%
+echo %cyan_fg_strong%Step 2: Rename the ISO to:%reset% windows.iso
+echo.
+echo %cyan_fg_strong%Done?%reset%
+pause
+
+REM Extract windows.iso to a folder
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Extracting windows.iso...
+7z x "%winpe_root%\windows.iso" -o"%winpe_root%\mount\win_iso_contents"
+
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Saving install.wim info to windows-editions.txt...
+dism /Get-WimInfo /WimFile:"%winpe_root%\mount\win_iso_contents\Sources\install.wim" > "%winpe_root%\windows-editions.txt"
+
+REM Remove the folder win_iso_contents
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the win_iso_contents directory...
+rmdir /s /q "%winpe_root%\mount\win_iso_contents"
+
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong% windows editions successfully saved to: %winpe_root%\windows-editions.txt%reset%
+pause
+goto :home
+
 
 :uninstall_win_adk
 title Windows ADK [UNINSTALL]
