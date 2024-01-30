@@ -58,6 +58,16 @@ set "talkinghead_trigger=false"
 set "caption_trigger=false"
 set "summarize_trigger=false"
 set "listen_trigger=false"
+set "whisper_trigger=false"
+
+REM Define variables to track module status (XTTS)
+set "modules_path=%~dp0modules-xtts.txt"
+set "xtts_cuda_trigger=false"
+set "xtts_hs_trigger=false"
+set "xtts_deepspeed_trigger=false"
+set "xtts_cache_trigger=false"
+set "xtts_listen_trigger=false"
+set "xtts_model_trigger=false"
 
 
 REM Create modules.txt if it doesn't exist
@@ -67,6 +77,15 @@ if not exist modules.txt (
 
 REM Load module flags from modules.txt
 for /f "tokens=*" %%a in (modules.txt) do set "%%a"
+
+
+REM Create modules-xtts.txt if it doesn't exist
+if not exist modules-xtts.txt (
+    type nul > modules-xtts.txt
+)
+
+REM Load module flags from modules-xtts.txt
+for /f "tokens=*" %%a in (modules-xtts.txt) do set "%%a"
 
 
 REM Check if Winget is installed; if not, then install it
@@ -154,11 +173,12 @@ echo -------------------------------------
 echo What would you like to do?
 echo 1. Start SillyTavern
 echo 2. Start Extras
-echo 3. Start SillyTavern + Extras
+echo 3. Start XTTS
 echo 4. Update
 echo 5. Backup
 echo 6. Switch branch
 echo 7. Toolbox
+echo 8. Support
 echo 0. Exit
 
 REM Get the current Git branch
@@ -166,7 +186,7 @@ for /f %%i in ('git branch --show-current') do set current_branch=%%i
 echo ======== VERSION STATUS =========
 echo SillyTavern branch: %cyan_fg_strong%%current_branch%%reset%
 echo SillyTavern: %update_status%
-echo Launcher: V1.0.2
+echo Launcher: V1.0.5
 echo =================================
 
 set "choice="
@@ -181,7 +201,7 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="2" (
     call :start_extras
 ) else if "%choice%"=="3" (
-    call :start_st_extras
+    call :start_xtts
 ) else if "%choice%"=="4" (
     call :update
 ) else if "%choice%"=="5" (
@@ -190,6 +210,8 @@ if "%choice%"=="1" (
     call :switchbrance_menu
 ) else if "%choice%"=="7" (
     call :toolbox
+) else if "%choice%"=="8" (
+    call :support
 ) else if "%choice%"=="0" (
     exit
 ) else (
@@ -216,23 +238,6 @@ goto :home
 
 
 :start_extras
-REM Check if XTTS environment exists
-set "xtts_env_exist="
-call conda activate xtts && set "xtts_env_exist=1" || set "xtts_env_exist="
-
-REM Ask the user if they want to start XTTS only if the environment exists
-if defined xtts_env_exist (
-    set /p start_xtts=Start XTTS as well? [Y/N] 
-    if /i "%start_xtts%"=="Y" (
-        REM Activate the xtts environment
-        call conda activate xtts
-
-        REM Start XTTS
-        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% XTTS launched in a new window.
-        start cmd /k "title XTTSv2 API Server && cd /d %~dp0xtts && python -m xtts_api_server"
-    )
-)
-
 REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
 
@@ -265,23 +270,35 @@ set "start_command=%start_command:start_command=%"
 start cmd /k "title SillyTavern Extras && cd /d %~dp0SillyTavern-extras && %start_command%"
 goto :home
 
-:start_st_extras
-REM Check if XTTS environment exists
-set "xtts_env_exist="
-call conda activate xtts && set "xtts_env_exist=1" || set "xtts_env_exist="
+:start_xtts
+REM Activate the xtts environment
+call conda activate xtts
 
-REM Ask the user if they want to start XTTS only if the environment exists
-if defined xtts_env_exist (
-    set /p start_xtts=Start XTTS as well? [Y/N] 
-    if /i "%start_xtts%"=="Y" (
-        REM Activate the xtts environment
-        call conda activate xtts
+REM Start XTTS
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% XTTS launched in a new window.
 
-        REM Start XTTS
-        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% XTTS launched in a new window.
-        start cmd /k "title XTTSv2 API Server && cd /d %~dp0xtts && python -m xtts_api_server"
-    )
+REM Set the path to modules.txt (in the same directory as the script)
+set "xtts_modules_path=%~dp0modules-xtts.txt"
+
+REM Read modules.txt and find the xtts_start_command line
+set "xtts_start_command="
+
+for /F "tokens=*" %%a in ('findstr /I "xtts_start_command=" "%xtts_modules_path%"') do (
+    set "%%a"
 )
+
+if not defined xtts_start_command (
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] No modules enabled!%reset%
+    echo %red_bg%Please make sure you enabled at least one of the modules from Edit Extras Modules.%reset%
+    echo.
+    echo %blue_bg%We will redirect you to the Edit Extras Modules menu.%reset%
+    pause
+    goto :edit_extras_modules
+)
+
+set "xtts_start_command=%xtts_start_command:xtts_start_command=%"
+start cmd /k "title XTTSv2 API Server && cd /d %~dp0xtts && %xtts_start_command%"
+goto :home
 
 REM Check if Node.js is installed
 node --version > nul 2>&1
@@ -332,47 +349,80 @@ goto :home
 
 :update
 title SillyTavern [UPDATE]
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Updating SillyTavern...
-cd /d "%~dp0SillyTavern"
-REM Check if git is installed
-git --version > nul 2>&1
-if %errorlevel% neq 0 (
-    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] git command not found in PATH. Skipping update.%reset%
-    echo %red_bg%Please make sure Git is installed and added to your PATH.%reset%
-) else (
-    call git pull --rebase --autostash
-    if %errorlevel% neq 0 (
-        REM incase there is still something wrong
-        echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Errors while updating. Please download the latest version manually.%reset%
-    ) else (
-        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%SillyTavern updated successfully.%reset%
-    )
-)
+REM Update SillyTavern-Launcher
+set max_retries=3
+set retry_count=0
 
-REM Check if SillyTavern-extras directory exists
-if not exist "%~dp0SillyTavern-extras" (
-    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] SillyTavern-extras directory not found. Skipping extras update.%reset%
+:retry_update_st_launcher
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Updating SillyTavern-Launcher...
+cd /d "%~dp0"
+call git pull
+if %errorlevel% neq 0 (
+    set /A retry_count+=1
+    echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Retry %retry_count% of %max_retries%%reset%
+    if %retry_count% lss %max_retries% goto :retry_update_st_launcher
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Failed to update SillyTavern-Launcher repository after %max_retries% retries.%reset%
     pause
     goto :home
 )
 
-cd /d "%~dp0SillyTavern-extras"
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Updating SillyTavern-extras...
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%SillyTavern-Launcher updated successfully.%reset%
 
-REM Check if git is installed
-git --version > nul 2>&1
+REM Update SillyTavern
+set max_retries=3
+set retry_count=0
+
+:retry_update_st
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Updating SillyTavern...
+cd /d "%~dp0SillyTavern"
+call git pull
 if %errorlevel% neq 0 (
-    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] git command not found in PATH. Skipping update.%reset%
-    echo %red_bg%Please make sure Git is installed and added to your PATH.%reset%
-) else (
-    call git pull
-    if %errorlevel% neq 0 (
-        REM incase there is still something wrong
-        echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Errors while updating. Please download the latest version manually.%reset%
-    ) else (
-        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%SillyTavern-extras updated successfully.%reset%
-    )
+    set /A retry_count+=1
+    echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Retry %retry_count% of %max_retries%%reset%
+    if %retry_count% lss %max_retries% goto :retry_update_st
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Failed to update SillyTavern repository after %max_retries% retries.%reset%
+    pause
+    goto :home
 )
+
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%SillyTavern updated successfully.%reset%
+
+
+REM Check if SillyTavern-extras directory exists
+if not exist "%~dp0SillyTavern-extras" (
+    echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] SillyTavern-extras directory not found. Skipping extras update.%reset%
+    goto :update_xtts
+)
+
+REM Update SillyTavern-extras
+set max_retries=3
+set retry_count=0
+
+:retry_update_extras
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Updating SillyTavern-extras...
+cd /d "%~dp0SillyTavern-extras"
+call git pull
+if %errorlevel% neq 0 (
+    set /A retry_count+=1
+    echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Retry %retry_count% of %max_retries%%reset%
+    if %retry_count% lss %max_retries% goto :retry_update_extras
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Failed to update SillyTavern-extras repository after %max_retries% retries.%reset%
+    pause
+    goto :home
+)
+
+:update_xtts
+REM Check if XTTS directory exists
+if not exist "%~dp0xtts" (
+    echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] xtts directory not found. Skipping XTTS update.%reset%
+    pause
+    goto :home
+)
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Updating XTTS...
+call conda activate xtts
+pip install --upgrade xtts-api-server
+call conda deactivate
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%XTTS updated successfully.%reset%
 pause
 goto :home
 
@@ -568,11 +618,11 @@ echo %blue_fg_strong%/ Home / Toolbox%reset%
 echo -------------------------------------
 echo What would you like to do?
 REM color 7
-echo 1. Install 7-Zip
-echo 2. Install FFmpeg
-echo 3. Install Node.js
+echo 1. App Installer
+echo 2. Edit Extras Modules
+echo 3. Edit XTTS Modules
 echo 4. Edit Environment
-echo 5. Edit Extras Modules
+echo 5. Remove node_modules folder
 echo 6. Reinstall SillyTavern
 echo 7. Reinstall Extras
 echo 8. Uninstall SillyTavern + Extras
@@ -582,15 +632,15 @@ set /p toolbox_choice=Choose Your Destiny:
 
 REM Toolbox - Backend
 if "%toolbox_choice%"=="1" (
-    call :install_7zip
+    call :app_installer
 ) else if "%toolbox_choice%"=="2" (
-    call :install_ffmpeg
+    call :edit_extras_modules
 ) else if "%toolbox_choice%"=="3" (
-    call :install_nodejs
+    call :edit_xtts_modules
 ) else if "%toolbox_choice%"=="4" (
     call :edit_environment
 ) else if "%toolbox_choice%"=="5" (
-    call :edit_extras_modules
+    call :remove_node_modules
 ) else if "%toolbox_choice%"=="6" (
     call :reinstall_sillytavern
 ) else if "%toolbox_choice%"=="7" (
@@ -604,6 +654,37 @@ if "%toolbox_choice%"=="1" (
     echo WARNING: Invalid number. Please insert a valid number.
     pause
     goto :toolbox
+)
+
+REM App Installer - Frontend
+:app_installer
+title SillyTavern [APP INSTALLER]
+cls
+echo %blue_fg_strong%/ Home / Toolbox / App Installer%reset%
+echo ------------------------------------------------
+echo What would you like to do?
+REM color 7
+echo 1. Install 7-Zip
+echo 2. Install FFmpeg
+echo 3. Install Node.js
+echo 0. Back to Toolbox
+
+set /p app_installer_choice=Choose Your Destiny: 
+
+REM App Installer - Backend
+if "%app_installer_choice%"=="1" (
+    call :install_7zip
+) else if "%app_installer_choice%"=="2" (
+    call :install_ffmpeg
+) else if "%app_installer_choice%"=="3" (
+    call :install_nodejs
+) else if "%app_installer_choice%"=="0" (
+    goto :toolbox
+) else (
+    color 6
+    echo WARNING: Invalid number. Please insert a valid number.
+    pause
+    goto :app_installer
 )
 
 
@@ -781,7 +862,7 @@ if "%2"=="true" (
 exit /b
 
 :edit_extras_modules
-title SillyTavern [EDIT-MODULES]
+title SillyTavern [EXTRAS-MODULES]
 REM Edit Extras Modules - Frontend
 cls
 echo %blue_fg_strong%/ Home / Toolbox / Edit Extras Modules%reset%
@@ -796,6 +877,7 @@ call :printModule "3. talkinghead (--enable-modules=talkinghead --talkinghead-gp
 call :printModule "4. caption (--enable-modules=caption)" %caption_trigger%
 call :printModule "5. summarize (--enable-modules=summarize)" %summarize_trigger%
 call :printModule "6. listen (--listen)" %listen_trigger%
+call :printModule "7. whisper (--enable-modules=whisper-stt)" %whisper_trigger%
 echo 0. Back to Toolbox
 
 set "python_command="
@@ -845,6 +927,13 @@ for %%i in (%module_choices%) do (
             set "listen_trigger=true"
         )
         REM set "python_command= --listen"
+    ) else if "%%i"=="7" (
+        if "%whisper_trigger%"=="true" (
+            set "whisper_trigger=false"
+        ) else (
+            set "whisper_trigger=true"
+        )
+        REM set "python_command= --enable-modules=whisper-stt"
     ) else if "%%i"=="0" (
         goto :toolbox
     )
@@ -857,6 +946,7 @@ echo talkinghead_trigger=%talkinghead_trigger%>>"%~dp0modules.txt"
 echo caption_trigger=%caption_trigger%>>"%~dp0modules.txt"
 echo summarize_trigger=%summarize_trigger%>>"%~dp0modules.txt"
 echo listen_trigger=%listen_trigger%>>"%~dp0modules.txt"
+echo whisper_trigger=%whisper_trigger%>>"%~dp0modules.txt"
 
 REM remove modules_enable
 set "modules_enable="
@@ -883,6 +973,9 @@ if "%caption_trigger%"=="true" (
 if "%summarize_trigger%"=="true" (
     set "modules_enable=%modules_enable%summarize,"
 )
+if "%whisper_trigger%"=="true" (
+    set "modules_enable=%modules_enable%whisper-stt,"
+)
 
 REM is modules_enable empty?
 if defined modules_enable (
@@ -899,6 +992,140 @@ REM Save the constructed Python command to modules.txt for testing
 echo start_command=%python_command%>>"%~dp0modules.txt"
 goto :edit_extras_modules
 
+REM ==================================================================================================================================================
+
+REM Function to print module options with color based on their status
+:printModule
+if "%2"=="true" (
+    echo %green_fg_strong%%1 [Enabled]%reset%
+) else (
+    echo %red_fg_strong%%1 [Disabled]%reset%
+)
+exit /b
+
+:edit_xtts_modules
+title SillyTavern [XTTS-MODULES]
+REM Edit XTTS Modules - Frontend
+cls
+echo %blue_fg_strong%/ Home / Toolbox / Edit XTTS Modules%reset%
+echo -------------------------------------
+echo Choose XTTS modules to enable or disable (e.g., "1 2 4" to enable Cuda, hs, and cache)
+REM color 7
+
+REM Display module options with colors based on their status
+call :printModule "1. cuda (--device cuda)" %xtts_cuda_trigger%
+call :printModule "2. hs (-hs 0.0.0.0)" %xtts_hs_trigger%
+call :printModule "3. deepspeed (--deepspeed)" %xtts_deepspeed_trigger%
+call :printModule "4. cache (--use-cache)" %xtts_cache_trigger%
+call :printModule "5. listen (--listen)" %xtts_listen_trigger%
+call :printModule "6. model (--model-source local)" %xtts_model_trigger%
+echo 0. Back to Toolbox
+
+set "python_command="
+
+set /p xtts_module_choices=Choose modules to enable/disable (1-6): 
+
+REM Handle the user's module choices and construct the Python command
+for %%i in (%xtts_module_choices%) do (
+    if "%%i"=="1" (
+        if "%xtts_cuda_trigger%"=="true" (
+            set "xtts_cuda_trigger=false"
+        ) else (
+            set "xtts_cuda_trigger=true"
+        )
+        REM set "python_command= --device cuda"
+    ) else if "%%i"=="2" (
+        if "%xtts_hs_trigger%"=="true" (
+            set "xtts_hs_trigger=false"
+        ) else (
+            set "xtts_hs_trigger=true"
+        )
+        REM set "python_command= -hs 0.0.0.0"
+    ) else if "%%i"=="3" (
+        if "%xtts_deepspeed_trigger%"=="true" (
+            set "xtts_deepspeed_trigger=false"
+        ) else (
+            set "xtts_deepspeed_trigger=true"
+        )
+        REM set "python_command= --deepspeed"
+    ) else if "%%i"=="4" (
+        if "%xtts_cache_trigger%"=="true" (
+            set "xtts_cache_trigger=false"
+        ) else (
+            set "xtts_cache_trigger=true"
+        )
+        REM set "python_command= --use-cache"
+    ) else if "%%i"=="5" (
+        if "%xtts_listen_trigger%"=="true" (
+            set "xtts_listen_trigger=false"
+        ) else (
+            set "xtts_listen_trigger=true"
+        )
+    ) else if "%%i"=="6" (
+        if "%xtts_model_trigger%"=="true" (
+            set "xtts_model_trigger=false"
+        ) else (
+            set "xtts_model_trigger=true"
+        )
+        REM set "python_command= --model-source local"
+    ) else if "%%i"=="0" (
+        goto :toolbox
+    )
+)
+
+REM Save the module flags to modules-xtts.txt
+echo xtts_cuda_trigger=%xtts_cuda_trigger%>"%~dp0modules-xtts.txt"
+echo xtts_hs_trigger=%xtts_hs_trigger%>>"%~dp0modules-xtts.txt"
+echo xtts_deepspeed_trigger=%xtts_deepspeed_trigger%>>"%~dp0modules-xtts.txt"
+echo xtts_cache_trigger=%xtts_cache_trigger%>>"%~dp0modules-xtts.txt"
+echo xtts_listen_trigger=%xtts_listen_trigger%>>"%~dp0modules-xtts.txt"
+echo xtts_model_trigger=%xtts_model_trigger%>>"%~dp0modules-xtts.txt"
+
+REM remove modules_enable
+set "modules_enable="
+
+REM Compile the Python command
+set "python_command=python -m xtts_api_server"
+if "%xtts_cuda_trigger%"=="true" (
+    set "python_command=%python_command% --device cuda"
+)
+if "%xtts_hs_trigger%"=="true" (
+    set "python_command=%python_command% -hs 0.0.0.0"
+)
+if "%xtts_deepspeed_trigger%"=="true" (
+    set "python_command=%python_command% --deepspeed"
+)
+if "%xtts_cache_trigger%"=="true" (
+    set "python_command=%python_command% --use-cache"
+)
+if "%xtts_listen_trigger%"=="true" (
+    set "python_command=%python_command% --listen"
+)
+if "%xtts_model_trigger%"=="true" (
+    set "python_command=%python_command% --model-source local"
+)
+
+REM is modules_enable empty?
+if defined modules_enable (
+    REM remove last comma
+    set "modules_enable=%modules_enable:~0,-1%"
+)
+
+REM command completed
+if defined modules_enable (
+    set "python_command=%python_command% --enable-modules=%modules_enable%"
+)
+
+REM Save the constructed Python command to modules-xtts.txt for testing
+echo xtts_start_command=%python_command%>>"%~dp0modules-xtts.txt"
+goto :edit_xtts_modules
+
+
+:remove_node_modules
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing node_modules folder...
+cd /d "%~dp0SillyTavern"
+rmdir /s /q "node_modules"
+goto :toolbox
 
 :reinstall_extras
 title SillyTavern [REINSTALL-EXTRAS]
@@ -952,15 +1179,16 @@ if /i "!confirmation!"=="Y" (
     rmdir /s /q "%temp%\SillyTavern-extras-TEMP"
 
     endlocal    
+    :what_gpu
     cls
-    echo %blue_fg_strong%SillyTavern Extras%reset%
+    echo %blue_fg_strong%/ Home / Toolbox / Reinstall Extras%reset%
     echo ---------------------------------------------------------------
 
-    :what_gpu
     echo What is your GPU?
     echo 1. NVIDIA
     echo 2. AMD
     echo 3. None (CPU-only mode)
+    echo 0. Cancel Reinstall
 
     setlocal enabledelayedexpansion
     chcp 65001 > nul
@@ -994,8 +1222,10 @@ if /i "!confirmation!"=="Y" (
     ) else if "%gpu_choice%"=="3" (
         echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Using CPU-only mode
         goto :reinstall_extras_pre
+    ) else if "%gpu_choice%"=="0" (
+        goto :toolbox
     ) else (
-        echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR]%reset% Invalid GPU choice. Please enter a valid number.
+        echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Invalid number. Please enter a valid number.%reset%
         pause
         goto what_gpu
     )
@@ -1195,7 +1425,49 @@ if /i "%confirmation%"=="Y" (
     pause
     goto :home
 ) else (
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Uninstall SillyTavern + Extras canceled.
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Uninstall canceled.
     pause
     goto :home
 )
+
+REM Support menu - Frontend
+:support
+title SillyTavern [SUPPORT]
+cls
+echo %blue_fg_strong%/ Home / Support%reset%
+echo -------------------------------------
+echo What would you like to do?
+echo 1. I want to report a issue
+echo 2. Documentation
+echo 3. Discord
+echo 0. Back to Home
+
+set /p support_choice=Choose Your Destiny: 
+
+REM Support menu - Backend
+if "%support_choice%"=="1" (
+    call :issue_report
+) else if "%support_choice%"=="2" (
+    call :documentation
+) else if "%support_choice%"=="3" (
+    call :discord
+) else if "%support_choice%"=="0" (
+    goto :home
+) else (
+    color 6
+    echo WARNING: Invalid number. Please insert a valid number.
+    pause
+    goto :support
+)
+
+:issue_report
+start "" "https://github.com/SillyTavern/SillyTavern-Launcher/issues/new/choose"
+goto :support
+
+:documentation
+start "" "https://docs.sillytavern.app/"
+goto :support
+
+:discord
+start "" "https://discord.gg/sillytavern"
+goto :support

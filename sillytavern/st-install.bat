@@ -126,7 +126,7 @@ if exist "%LOCALAPPDATA%\Microsoft\WindowsApps\python3.exe" (
 )
 
 
-REM Installer - Frontend
+REM Installer menu - Frontend
 :installer
 title SillyTavern [INSTALLER]
 cls
@@ -136,7 +136,8 @@ echo What would you like to do?
 echo 1. Install SillyTavern + Extras
 echo 2. Install SillyTavern
 echo 3. Install Extras
-echo 4. Exit
+echo 4. Support
+echo 0. Exit
 
 set "choice="
 set /p "choice=Choose Your Destiny (default is 1): "
@@ -144,7 +145,7 @@ set /p "choice=Choose Your Destiny (default is 1): "
 REM Default to choice 1 if no input is provided
 if not defined choice set "choice=1"
 
-REM Installer - Backend
+REM Installer menu - Backend
 if "%choice%"=="1" (
     call :install_st_extras
 ) else if "%choice%"=="2" (
@@ -152,10 +153,11 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="3" (
     call :install_extras
 ) else if "%choice%"=="4" (
+    call :support
+) else if "%choice%"=="0" (
     exit
 ) else (
-    color 6
-    echo WARNING: Invalid number. Please insert a valid number.
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Invalid number. Please enter a valid number.%reset%
     pause
     goto :installer
 )
@@ -167,11 +169,12 @@ cls
 echo %blue_fg_strong%/ Installer / SillyTavern + Extras%reset%
 echo ---------------------------------------------------------------
 
-:what_gpu
+REM GPU menu - Frontend
 echo What is your GPU?
 echo 1. NVIDIA
 echo 2. AMD
 echo 3. None (CPU-only mode)
+echo 0. Cancel install
 
 setlocal enabledelayedexpansion
 chcp 65001 > nul
@@ -191,6 +194,7 @@ echo.
 endlocal
 set /p gpu_choice=Enter number corresponding to your GPU: 
 
+REM GPU menu - Backend
 REM Set the GPU choice in an environment variable for choise callback
 set "GPU_CHOICE=%gpu_choice%"
 
@@ -205,19 +209,34 @@ if "%gpu_choice%"=="1" (
 ) else if "%gpu_choice%"=="3" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Using CPU-only mode
     goto :install_st_extras_pre
+) else if "%gpu_choice%"=="0" (
+    goto :installer
 ) else (
-    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR]%reset% Invalid GPU choice. Please enter a valid number.
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Invalid number. Please enter a valid number.%reset%
     pause
-    goto what_gpu
+    goto :install_st_extras
 )
 
 :install_st_extras_pre
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing SillyTavern + Extras...
-
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing SillyTavern...
 
+set max_retries=3
+set retry_count=0
+
+:retry_st_extras_pre
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning SillyTavern repository...
 git clone https://github.com/SillyTavern/SillyTavern.git
+
+if %errorlevel% neq 0 (
+    set /A retry_count+=1
+    echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Retry %retry_count% of %max_retries%%reset%
+    if %retry_count% lss %max_retries% goto :retry_st_extras_pre
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Failed to clone repository after %max_retries% retries.%reset%
+    pause
+    goto :installer
+)
+
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%SillyTavern installed successfully.%reset%
 
 REM Clone the SillyTavern Extras repository
@@ -242,45 +261,32 @@ if /i "%install_xtts_requirements%"=="Y" (
 
     REM Create a Conda environment named xtts
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment xtts...
-    call conda create -n xtts -y
+    call conda create -n xtts python=3.10 git -y
 
     REM Activate the xtts environment
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment xtts...
     call conda activate xtts
 
-    REM Check if activation was successful
-    if %errorlevel% equ 0 (
-        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Conda environment xtts activated successfully.
-    ) else (
-        echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Failed to activate Conda environment xtts.%reset%
-        echo %blue_bg%[%time%]%reset% %red_fg_strong%[INFO] Press any key to try again otherwise close the installer and restart%reset%
-        goto :install_st_extras_pre
+    REM Use the GPU choice made earlier to set the correct PyTorch index-url
+    if "%GPU_CHOICE%"=="1" (
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing NVIDIA version of PyTorch for xtts...
+        pip install torch==2.1.1+cu118 torchvision torchaudio==2.1.1+cu118 --index-url https://download.pytorch.org/whl/cu118
+        goto :install_xtts
+    ) else if "%GPU_CHOICE%"=="2" (
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing AMD version of PyTorch for xtts...
+        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm5.6
+        goto :install_xtts
+    ) else if "%GPU_CHOICE%"=="3" (
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing CPU-only version of PyTorch for xtts...
+        pip install torch torchvision torchaudio
+        goto :install_xtts
     )
-
-    REM Install Python 3.10 in the xtts environment
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python in the Conda environment...
-    call conda install python=3.10 -y
 
     REM Install pip requirements
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements for xtts...
     pip install xtts-api-server
     pip install pydub
-    pip install stream2sentence==0.2.2
-
-    REM Use the GPU choice made earlier to set the correct PyTorch index-url
-    if "%GPU_CHOICE%"=="1" (
-        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing NVIDIA version of PyTorch
-        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-        goto :install_xtts
-    ) else if "%GPU_CHOICE%"=="2" (
-        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing AMD version of PyTorch
-        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm5.6
-        goto :install_xtts
-    ) else if "%GPU_CHOICE%"=="3" (
-        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing CPU-only version of PyTorch
-        pip install torch torchvision torchaudio
-        goto :install_xtts
-    )
+    pip install stream2sentence
 
     :install_xtts
     REM Create folders for xtts
@@ -298,13 +304,14 @@ if /i "%install_xtts_requirements%"=="Y" (
 
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the xtts-api-server directory...
     rmdir /s /q "%~dp0xtts-api-server"
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%XTTS installed successfully%reset%
 ) else (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO] XTTS installation skipped.%reset% 
 )
 
 REM Create a Conda environment named extras
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment extras...
-call conda create -n extras -y
+call conda create -n extras python=3.11 git -y
 
 REM Activate the extras environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment extras...
@@ -313,12 +320,11 @@ call conda activate extras
 REM Navigate to the SillyTavern-extras directory
 cd "%~dp0SillyTavern-extras"
 
-
 REM Use the GPU choice made earlier to install requirements for extras
 if "%GPU_CHOICE%"=="1" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing modules for NVIDIA from requirements.txt in extras
-    pip install -r requirements.txt
     call conda install -c conda-forge faiss-gpu -y
+    pip install -r requirements.txt
     goto :install_st_extras_post
 ) else if "%GPU_CHOICE%"=="2" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing modules for AMD from requirements-rocm.txt in extras
@@ -331,6 +337,10 @@ if "%GPU_CHOICE%"=="1" (
 )
 
 :install_st_extras_post
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-rvc in extras environment...
+pip install -r requirements-rvc.txt
+pip install tensorboardX
+
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Microsoft.VCRedist.2015+.x64...
 winget install -e --id Microsoft.VCRedist.2015+.x64
 
@@ -347,25 +357,6 @@ if %errorlevel% neq 0 (
 ) else (
   start "" "%temp%\vs_buildtools.exe" --norestart --passive --downloadThenInstall --includeRecommended --add Microsoft.VisualStudio.Workload.NativeDesktop --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Workload.MSBuildTools
 )
-
-REM Activate the extras environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment extras...
-call conda activate extras
-
-REM Check if activation was successful
-if %errorlevel% equ 0 (
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Conda environment extras activated successfully.
-) else (
-    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Failed to activate Conda environment extras.%reset%
-)
-
-REM Install Python 3.11 and Git in the extras environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
-call conda install python=3.11 git -y
-
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-rvc in extras environment...
-pip install -r requirements-rvc.txt
-pip install tensorboardX
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Extras installed successfully.%reset%
 
@@ -407,8 +398,22 @@ echo %blue_fg_strong%/ Installer / SillyTavern%reset%
 echo ---------------------------------------------------------------
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing SillyTavern...
 
+set max_retries=3
+set retry_count=0
+
+:retry_install_sillytavern
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning SillyTavern repository...
 git clone https://github.com/SillyTavern/SillyTavern.git
+
+if %errorlevel% neq 0 (
+    set /A retry_count+=1
+    echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Retry %retry_count% of %max_retries%%reset%
+    if %retry_count% lss %max_retries% goto :retry_install_sillytavern
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Failed to clone repository after %max_retries% retries.%reset%
+    pause
+    goto :installer
+)
+
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%SillyTavern installed successfully.%reset%
 
 REM Ask if the user wants to create a shortcut
@@ -447,11 +452,12 @@ cls
 echo %blue_fg_strong%/ Installer / Extras%reset%
 echo ---------------------------------------------------------------
 
-:what_gpu
+REM GPU menu - Frontend
 echo What is your GPU?
 echo 1. NVIDIA
 echo 2. AMD
 echo 3. None (CPU-only mode)
+echo 0. Cancel install
 
 setlocal enabledelayedexpansion
 chcp 65001 > nul
@@ -471,6 +477,7 @@ echo.
 endlocal
 set /p gpu_choice=Enter number corresponding to your GPU: 
 
+REM GPU menu - Backend
 REM Set the GPU choice in an environment variable for choise callback
 set "GPU_CHOICE=%gpu_choice%"
 
@@ -485,18 +492,34 @@ if "%gpu_choice%"=="1" (
 ) else if "%gpu_choice%"=="3" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Using CPU-only mode
     goto :install_extras_pre
+) else if "%gpu_choice%"=="0" (
+    goto :installer
 ) else (
-    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR]%reset% Invalid GPU choice. Please enter a valid number.
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Invalid number. Please enter a valid number.%reset%
     pause
-    goto what_gpu
+    goto :install_extras
 )
 
 :install_extras_pre
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Extras...
 
+set max_retries=3
+set retry_count=0
+
+:retry_extras_pre
 REM Clone the SillyTavern Extras repository
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning SillyTavern-extras repository...
 git clone https://github.com/SillyTavern/SillyTavern-extras.git
+
+if %errorlevel% neq 0 (
+    set /A retry_count+=1
+    echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Retry %retry_count% of %max_retries%%reset%
+    if %retry_count% lss %max_retries% goto :retry_extras_pre
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Failed to clone repository after %max_retries% retries.%reset%
+    pause
+    goto :installer
+)
+
 
 REM Provide a link to the XTTS
 echo %blue_fg_strong%[INFO] Feeling excited to give your robotic waifu/husbando a new shiny voice modulator?%reset%
@@ -515,40 +538,29 @@ if /i "%install_xtts_requirements%"=="Y" (
 
     REM Create a Conda environment named xtts
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment xtts...
-    call conda create -n xtts -y
+    call conda create -n xtts python=3.10 git -y
 
     REM Activate the xtts environment
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment xtts...
     call conda activate xtts
 
-    REM Check if activation was successful
-    if %errorlevel% equ 0 (
-        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Conda environment xtts activated successfully.
-    ) else (
-        echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Failed to activate Conda environment xtts.%reset%
-    )
-
-    REM Install Python 3.10 in the xtts environment
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python in the Conda environment...
-    call conda install python=3.10 -y
-
     REM Install pip requirements
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements for xtts...
     pip install xtts-api-server
     pip install pydub
-    pip install stream2sentence==0.2.2
+    pip install stream2sentence
     
     REM Use the GPU choice made earlier to set the correct PyTorch index-url
     if "%GPU_CHOICE%"=="1" (
-        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing NVIDIA version of PyTorch
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing NVIDIA version of PyTorch for xtts...
         pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
         goto :install_xtts
     ) else if "%GPU_CHOICE%"=="2" (
-        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing AMD version of PyTorch
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing AMD version of PyTorch for xtts...
         pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm5.6
         goto :install_xtts
     ) else if "%GPU_CHOICE%"=="3" (
-        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing CPU-only version of PyTorch
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing CPU-only version of PyTorch for xtts...
         pip install torch torchvision torchaudio
         goto :install_xtts
     )
@@ -575,7 +587,7 @@ if /i "%install_xtts_requirements%"=="Y" (
 
 REM Create a Conda environment named extras
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment extras...
-call conda create -n extras -y
+call conda create -n extras python=3.11 git -y
 
 REM Activate the extras environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment extras...
@@ -587,8 +599,8 @@ cd "%~dp0SillyTavern-extras"
 REM Use the GPU choice made earlier to install requirements for extras
 if "%GPU_CHOICE%"=="1" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing modules for NVIDIA from requirements.txt in extras
-    pip install -r requirements.txt
     call conda install -c conda-forge faiss-gpu -y
+    pip install -r requirements.txt
     goto :install_extras_post
 ) else if "%GPU_CHOICE%"=="2" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing modules for AMD from requirements-rocm.txt in extras
@@ -601,6 +613,10 @@ if "%GPU_CHOICE%"=="1" (
 )
 
 :install_extras_post
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-rvc in extras environment...
+pip install -r requirements-rvc.txt
+pip install tensorboardX
+
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Microsoft.VCRedist.2015+.x64...
 winget install -e --id Microsoft.VCRedist.2015+.x64
 
@@ -617,25 +633,6 @@ if %errorlevel% neq 0 (
 ) else (
   start "" "%temp%\vs_buildtools.exe" --norestart --passive --downloadThenInstall --includeRecommended --add Microsoft.VisualStudio.Workload.NativeDesktop --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Workload.MSBuildTools
 )
-
-REM Activate the extras environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment extras...
-call conda activate extras
-
-REM Check if activation was successful
-if %errorlevel% equ 0 (
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Conda environment extras activated successfully.
-) else (
-    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Failed to activate Conda environment extras.%reset%
-)
-
-REM Install Python 3.11 and Git in the extras environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
-call conda install python=3.11 git -y
-
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements-rvc in extras environment...
-pip install -r requirements-rvc.txt
-pip install tensorboardX
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Extras installed successfully.%reset%
 
@@ -667,3 +664,44 @@ if /i "%start_launcher%"=="Y" (
     exit
 )
 goto :installer
+
+REM Support menu - Frontend
+:support
+title SillyTavern [SUPPORT]
+cls
+echo %blue_fg_strong%/ Installer / Support%reset%
+echo -------------------------------------
+echo What would you like to do?
+echo 1. I want to report a issue
+echo 2. Documentation
+echo 3. Discord
+echo 0. Back to Installer
+
+set /p support_choice=Choose Your Destiny: 
+
+REM Support menu - Backend
+if "%support_choice%"=="1" (
+    call :issue_report
+) else if "%support_choice%"=="2" (
+    call :documentation
+) else if "%support_choice%"=="3" (
+    call :discord
+) else if "%support_choice%"=="0" (
+    goto :installer
+) else (
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Invalid number. Please enter a valid number.%reset%
+    pause
+    goto :support
+)
+
+:issue_report
+start "" "https://github.com/SillyTavern/SillyTavern-Launcher/issues/new/choose"
+goto :support
+
+:documentation
+start "" "https://docs.sillytavern.app/"
+goto :support
+
+:discord
+start "" "https://discord.gg/sillytavern"
+goto :support
