@@ -101,11 +101,13 @@ echo %blue_fg_strong%/ Home %reset%
 echo -------------------------------------
 echo What would you like to do?
 echo 1. Install SD web UI
-echo 2. Run SD web UI
-echo 3. Run SD web UI + addons
-echo 4. Run SD web UI + share
-echo 5. Update
-echo 6. Toolbox
+echo 2. Install painthua
+echo 3. Run SD web UI
+echo 4. Run SD web UI + addons
+echo 5. Run SD web UI + share
+echo 6. Run painthua
+echo 7. Update
+echo 8. Toolbox
 echo 0. Exit
 
 
@@ -120,14 +122,18 @@ REM home - Backend
 if "%choice%"=="1" (
     call :install_sdw
 ) else if "%choice%"=="2" (
-    call :run_sdw
+    call :install_painthua
 ) else if "%choice%"=="3" (
-    call :run_sdw_addons
+    call :run_sdw
 ) else if "%choice%"=="4" (
-    call :run_sdw_share
+    call :run_sdw_addons
 ) else if "%choice%"=="5" (
-    call :update_sdw
+    call :run_sdw_share
 ) else if "%choice%"=="6" (
+    call :run_painthua
+) else if "%choice%"=="7" (
+    call :update_sdw
+) else if "%choice%"=="8" (
     call :toolbox
 ) else if "%choice%"=="0" (
     exit
@@ -189,8 +195,6 @@ git clone https://github.com/Gourieff/sd-webui-reactor.git
 git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui-rembg.git
 
 
-
-
 REM Installs better upscaler models
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Better Upscaler models...
 cd /d "%~dp0stable-diffusion-webui/models"
@@ -219,6 +223,53 @@ if /i "%create_shortcut%"=="Y" (
 )
 goto :home
 
+:install_painthua
+title painthua [INSTALL]
+cls
+echo %blue_fg_strong%/ Home / Install painthua%reset%
+echo ---------------------------------------------------------------
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing painthua...
+
+REM Clone the painthua-flask repository
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the painthua-flask repository...
+git clone https://github.com/daswer123/painthua-flask
+
+cd /d "%~dp0painthua-flask"
+
+REM Create a Conda environment named painthua
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment painthua...
+call conda create -n painthua -y
+
+REM Activate the stablediffusionwebui environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment stablediffusionwebui...
+call conda activate painthua
+
+REM Install Python 3.10 in the painthua environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python in the Conda environment...
+call conda install python=3.10 -y
+
+pip install requests
+
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%painthua successfully installed.%reset%
+pause
+goto :home
+
+:run_painthua
+title painthua
+cls
+echo %blue_fg_strong%/ Home / Run painthua%reset%
+echo ---------------------------------------------------------------
+
+REM Run conda activate from the Miniconda installation
+call "%miniconda_path%\Scripts\activate.bat"
+
+REM Activate the sillytavernextras environment
+call conda activate painthua
+
+REM Start painthua clean
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% painthua launched in a new window.
+start cmd /k "title painthua && cd /d %~dp0painthua-flask && python app.py --listen-port 7905"
+goto :home
 
 :run_sdw
 title SD web UI
@@ -233,7 +284,7 @@ REM Activate the sillytavernextras environment
 call conda activate stablediffusionwebui
 
 REM Start stablediffusionwebui clean
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% SillyTavern launched in a new window.
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% SD web UI launched in a new window.
 start cmd /k "title SD web UI && cd /d %~dp0stable-diffusion-webui && python launch.py"
 goto :home
 
@@ -252,8 +303,8 @@ echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda env
 call conda activate stablediffusionwebui
 
 REM Start stablediffusionwebui with desired configurations
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% SillyTavern launched in a new window.
-start cmd /k "title SD web UI ADDONS && cd /d %~dp0stable-diffusion-webui && python launch.py --autolaunch --api --listen --port 7900 --opt-sdp-attention --theme dark"
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% SD web UI launched in a new window.
+start cmd /k "title SD web UI ADDONS && cd /d %~dp0stable-diffusion-webui && python launch.py --autolaunch --api --listen --port 7900 --opt-sdp-attention --theme dark --cors-allow-origins=http://127.0.0.1:7905"
 goto :home
 
 
@@ -321,6 +372,7 @@ echo What would you like to do?
 echo 1. Enable Lobe Theme
 echo 2. Disable Lobe Theme
 echo 3. Uninstall SD web UI
+echo 4. Uninstall painthua
 echo 0. Back to Home
 
 
@@ -338,6 +390,8 @@ if "%toolbox_choice%"=="1" (
     call :disable_lobe_theme
 ) else if "%toolbox_choice%"=="3" (
     call :uninstall_sdw
+) else if "%toolbox_choice%"=="4" (
+    call :uninstall_painthua
 ) else if "%toolbox_choice%"=="0" (
     call :home
 ) else (
@@ -386,6 +440,39 @@ if /i "%confirmation%"=="Y" (
     rmdir /s /q stable-diffusion-webui
 
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Stable Diffusion Web UI uninstalled successfully.%reset%
+    pause
+    goto :home
+) else (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Uninstall canceled.
+    pause
+    goto :home
+)
+
+:uninstall_painthua
+title painthua [UNINSTALL]
+setlocal enabledelayedexpansion
+chcp 65001 > nul
+
+REM Confirm with the user before proceeding
+echo.
+echo %red_bg%╔════ DANGER ZONE ══════════════════════════════════════════════════════════════════════════════╗%reset%
+echo %red_bg%║ WARNING: This will delete all data of painthua                                                ║%reset%
+echo %red_bg%║ If you want to keep any data, make sure to create a backup before proceeding.                 ║%reset%
+echo %red_bg%╚═══════════════════════════════════════════════════════════════════════════════════════════════╝%reset%
+echo.
+set /p "confirmation=Are you sure you want to proceed? [Y/N]: "
+if /i "%confirmation%"=="Y" (
+
+    REM Remove the Conda environment
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'painthua'...
+    call conda remove --name painthua --all -y
+
+    REM Remove the folder stable-diffusion-webui
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the painthua-flask directory...
+    cd /d "%~dp0"
+    rmdir /s /q painthua-flask
+
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%painthua uninstalled successfully.%reset%
     pause
     goto :home
 ) else (
