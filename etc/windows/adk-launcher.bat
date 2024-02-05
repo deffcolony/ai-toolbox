@@ -57,38 +57,48 @@ set "startIn=%~dp0"
 set "comment=Windows Assessment and Deployment Kit (ADK) Launcher"
 
 
+REM Get the current PATH value from the registry
+for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v PATH') do set "current_path=%%B"
+
+REM Check if the paths are already in the current PATH
+echo %current_path% | find /i "%winget_path%" > nul
+set "ff_path_exists=%errorlevel%"
+
+setlocal enabledelayedexpansion
+
+REM Append the new paths to the current PATH only if they don't exist
+if %ff_path_exists% neq 0 (
+    set "new_path=%current_path%;%winget_path%"
+    echo.
+    echo [DEBUG] "current_path is:%cyan_fg_strong% %current_path%%reset%"
+    echo.
+    echo [DEBUG] "winget_path is:%cyan_fg_strong% %winget_path%%reset%"
+    echo.
+    echo [DEBUG] "new_path is:%cyan_fg_strong% !new_path!%reset%"
+
+    REM Update the PATH value in the registry
+    reg add "HKCU\Environment" /v PATH /t REG_EXPAND_SZ /d "!new_path!" /f
+
+    REM Update the PATH value for the current session
+    setx PATH "!new_path!" > nul
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%winget added to PATH.%reset%
+) else (
+    set "new_path=%current_path%"
+    echo %blue_fg_strong%[INFO] winget already exists in PATH.%reset%
+)
+
 REM Check if Winget is installed; if not, then install it
 winget --version > nul 2>&1
 if %errorlevel% neq 0 (
     echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Winget is not installed on this system.%reset%
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Winget...
-    bitsadmin /transfer "Microsoft.DesktopAppInstaller_8wekyb3d8bbwe" /download /priority FOREGROUND "https://github.com/microsoft/winget-cli/releases/download/v1.5.2201/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+    curl -L -o "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" "https://github.com/microsoft/winget-cli/releases/download/v1.6.2771/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
     start "" "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Winget installed successfully.%reset%
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Winget installed successfully. Please restart the Launcher.%reset%
+    pause
+    exit
 ) else (
     echo %blue_fg_strong%[INFO] Winget is already installed.%reset%
-)
-
-rem Get the current PATH value from the registry
-for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v PATH') do set "current_path=%%B"
-
-rem Check if the paths are already in the current PATH
-echo %current_path% | find /i "%winget_path%" > nul
-set "ff_path_exists=%errorlevel%"
-
-rem Append the new paths to the current PATH only if they don't exist
-if %ff_path_exists% neq 0 (
-    set "new_path=%current_path%;%winget_path%"
-
-    rem Update the PATH value in the registry
-    reg add "HKCU\Environment" /v PATH /t REG_EXPAND_SZ /d "%new_path%" /f
-
-    rem Update the PATH value for the current session
-    setx PATH "%new_path%" > nul
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%winget successfully added to PATH.%reset%
-) else (
-    set "new_path=%current_path%"
-    echo %blue_fg_strong%[INFO] winget already exists in PATH.%reset%
 )
 
 
@@ -375,30 +385,40 @@ if %errorlevel% neq 0 (
 )
 
 REM Check if 7z is installed if not then install git
-    echo %blue_fg_strong%[INFO]%reset% Checking 7-Zip...
-    winget install -e --id 7zip.7zip
+winget install -e --id 7zip.7zip
 
-    rem Get the current PATH value from the registry
-    for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v PATH') do set "current_path=%%B"
+rem Get the current PATH value from the registry
+for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v PATH') do set "current_path=%%B"
 
-    rem Check if the paths are already in the current PATH
-    echo %current_path% | find /i "%zip7_install_path%" > nul
-    set "zip7_path_exists=%errorlevel%"
+rem Check if the paths are already in the current PATH
+echo %current_path% | find /i "%zip7_install_path%" > nul
+set "zip7_path_exists=%errorlevel%"
 
-    rem Append the new paths to the current PATH only if they don't exist
-    if %zip7_path_exists% neq 0 (
-        set "new_path=%current_path%;%zip7_install_path%"
-        echo %green_fg_strong%7z added to PATH.%reset%
-    ) else (
-        set "new_path=%current_path%"
-        echo %blue_fg_strong%[INFO] 7z already exists in PATH.%reset%
-    )
+setlocal enabledelayedexpansion
 
-    rem Update the PATH value in the registry
-    reg add "HKCU\Environment" /v PATH /t REG_EXPAND_SZ /d "%new_path%" /f
+REM Append the new paths to the current PATH only if they don't exist
+if %zip7_path_exists% neq 0 (
+    set "new_path=%current_path%;%zip7_install_path%"
+    echo.
+    echo [DEBUG] "current_path is:%cyan_fg_strong% %current_path%%reset%"
+    echo.
+    echo [DEBUG] "zip7_install_path is:%cyan_fg_strong% %zip7_install_path%%reset%"
+    echo.
+    echo [DEBUG] "new_path is:%cyan_fg_strong% !new_path!%reset%"
 
-    rem Update the PATH value for the current session
-    set PATH=%new_path%
+    REM Update the PATH value in the registry
+    reg add "HKCU\Environment" /v PATH /t REG_EXPAND_SZ /d "!new_path!" /f
+
+    REM Update the PATH value for the current session
+    setx PATH "!new_path!" > nul
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%7-zip added to PATH.%reset%
+) else (
+    set "new_path=%current_path%"
+    echo %blue_fg_strong%[INFO] 7-Zip already exists in PATH.%reset%
+)
+
+rem Update the PATH value for the current session
+set PATH=%new_path%
 cls
 echo %cyan_fg_strong%Step 1: Put the Windows ISO in:%reset% %winpe_root%
 echo %cyan_fg_strong%Step 2: Rename the ISO to:%reset% windows.iso
