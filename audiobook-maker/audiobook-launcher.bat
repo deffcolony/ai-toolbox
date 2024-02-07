@@ -157,6 +157,22 @@ echo ---------------------------------------------------------------
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Audiobook Maker...
 echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
 
+set max_retries=3
+set retry_count=0
+
+:retry_install_audiobook_maker
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the Audiobook Maker repository...
+git clone https://github.com/JarodMica/audiobook_maker.git
+
+if %errorlevel% neq 0 (
+    set /A retry_count+=1
+    echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Retry %retry_count% of %max_retries%%reset%
+    if %retry_count% lss %max_retries% goto :retry_install_audiobook_maker
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Failed to clone repository after %max_retries% retries.%reset%
+    pause
+    goto :home
+)
+
 echo %blue_fg_strong%[INFO]%reset% Installing 7-Zip...
 winget install -e --id 7zip.7zip
 
@@ -243,11 +259,6 @@ if %ff_path_exists% neq 0 (
 )
 del "%ffdownload_path%"
 echo %green_fg_strong%FFmpeg is installed. Please restart the Launcher.%reset%
-
-
-REM Clone the Audiobook Maker repository
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the Audiobook Maker repository...
-git clone https://github.com/JarodMica/audiobook_maker.git
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Miniconda...
 winget install -e --id Anaconda.Miniconda3

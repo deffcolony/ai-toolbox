@@ -141,6 +141,22 @@ echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing ChatDev...
 
+set max_retries=3
+set retry_count=0
+
+:retry_install_chatdev
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the ChatDev repository...
+git clone https://github.com/OpenBMB/ChatDev.git
+
+if %errorlevel% neq 0 (
+    set /A retry_count+=1
+    echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Retry %retry_count% of %max_retries%%reset%
+    if %retry_count% lss %max_retries% goto :retry_install_chatdev
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Failed to clone repository after %max_retries% retries.%reset%
+    pause
+    goto :home
+)
+
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Miniconda...
 winget install -e --id Anaconda.Miniconda3
 
@@ -160,12 +176,8 @@ REM Install Python and Git in the chatdev environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
 call conda install python=3.9 git -y
 
-REM Clone the ChatDev repository
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the ChatDev repository...
-git clone https://github.com/OpenBMB/ChatDev.git
-
 REM Navigate to the ChatDev directory
-cd ChatDev
+cd "%~dp0ChatDev"
 
 REM Install Python dependencies from requirements files
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements...

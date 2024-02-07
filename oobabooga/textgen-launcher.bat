@@ -142,8 +142,23 @@ echo %blue_fg_strong%/ Home / Install textgen%reset%
 echo ---------------------------------------------------------------
 echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
 
-echo %blue_fg_strong%[INFO]%reset% Installing textgen...
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing textgen...
+
+set max_retries=3
+set retry_count=0
+
+:retry_install_textgen
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the text-generation-webui repository...
 git clone https://github.com/oobabooga/text-generation-webui.git
+
+if %errorlevel% neq 0 (
+    set /A retry_count+=1
+    echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Retry %retry_count% of %max_retries%%reset%
+    if %retry_count% lss %max_retries% goto :retry_install_textgen
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Failed to clone repository after %max_retries% retries.%reset%
+    pause
+    goto :home
+)
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Miniconda...
 winget install -e --id Anaconda.Miniconda3

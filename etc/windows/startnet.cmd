@@ -104,6 +104,7 @@ echo 2. Run powershell
 echo 3. Run regedit
 echo 4. Run notepad
 echo 5. Run task manager
+echo 6. Run network check
 echo 0. Back to Home
 
 set /p toolbox_choice=Choose Your Destiny: 
@@ -119,6 +120,8 @@ if "%toolbox_choice%"=="1" (
     goto :run_notepad
 ) else if "%toolbox_choice%"=="5" (
     goto :run_taskmgr
+) else if "%toolbox_choice%"=="6" (
+    goto :run_networkcheck
 ) else if "%toolbox_choice%"=="0" (
     goto :home
 ) else (
@@ -146,4 +149,15 @@ goto :toolbox
 
 :run_taskmgr
 start taskmgr
+goto :toolbox
+
+:run_networkcheck
+REM Retrieve external IP address
+for /f "tokens=1* delims=: " %%A in (
+  'nslookup myip.opendns.com. resolver1.opendns.com 2^>NUL^|find "Address:"'
+) Do set ExtIP=%%B
+
+REM Display results
+echo External IP is: %cyan_fg_strong%%ExtIP%%reset%
+pause
 goto :toolbox

@@ -149,7 +149,22 @@ cls
 echo %blue_fg_strong%/ Home / Install PrivateGPT%reset%
 echo ---------------------------------------------------------------
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing PrivateGPT...
-echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
+
+set max_retries=3
+set retry_count=0
+
+:retry_install_privategpt
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the privateGPT repository...
+git clone https://github.com/imartinez/privateGPT.git
+
+if %errorlevel% neq 0 (
+    set /A retry_count+=1
+    echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Retry %retry_count% of %max_retries%%reset%
+    if %retry_count% lss %max_retries% goto :retry_install_privategpt
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Failed to clone repository after %max_retries% retries.%reset%
+    pause
+    goto :home
+)
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Miniconda...
 winget install -e --id Anaconda.Miniconda3
@@ -170,9 +185,6 @@ REM Install Python and Git in the privategpt environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
 call conda install python=3.11 git -y
 
-REM Clone the privateGPT repository
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the privateGPT repository...
-git clone https://github.com/imartinez/privateGPT.git
 cd /d "%~dp0privateGPT"
 
 pip install poetry

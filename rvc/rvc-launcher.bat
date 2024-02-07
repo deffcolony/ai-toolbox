@@ -152,7 +152,22 @@ cls
 echo %blue_fg_strong%/ Home / Install RVC%reset%
 echo ---------------------------------------------------------------
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing RVC...
-echo %cyan_fg_strong%This may take a while. Please be patient.%reset%
+
+set max_retries=3
+set retry_count=0
+
+:retry_install_rvc
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the Retrieval-based-Voice-Conversion-WebUI repository...
+git clone https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI.git
+
+if %errorlevel% neq 0 (
+    set /A retry_count+=1
+    echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Retry %retry_count% of %max_retries%%reset%
+    if %retry_count% lss %max_retries% goto :retry_install_rvc
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Failed to clone repository after %max_retries% retries.%reset%
+    pause
+    goto :home
+)
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Miniconda...
 winget install -e --id Anaconda.Miniconda3
@@ -177,10 +192,6 @@ REM Install pip packages that are not in requirements list
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip modules for GUI
 pip install PySimpleGUI
 pip install sounddevice
-
-REM Clone the Retrieval-based-Voice-Conversion-WebUI Extras repository
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the Retrieval-based-Voice-Conversion-WebUI repository...
-git clone https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI.git
 
 REM Navigate to the Retrieval-based-Voice-Conversion-WebUI directory
 cd "%~dp0Retrieval-based-Voice-Conversion-WebUI"
