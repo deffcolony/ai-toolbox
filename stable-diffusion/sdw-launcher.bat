@@ -273,7 +273,7 @@ echo ---------------------------------------------------------------
 REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
 
-REM Activate the sillytavernextras environment
+REM Activate the painthua environment
 call conda activate painthua
 
 REM Start painthua clean
@@ -290,7 +290,7 @@ echo ---------------------------------------------------------------
 REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
 
-REM Activate the sillytavernextras environment
+REM Activate the stablediffusionwebui environment
 call conda activate stablediffusionwebui
 
 REM Start stablediffusionwebui clean
@@ -308,7 +308,7 @@ echo ---------------------------------------------------------------
 REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
 
-REM Activate the sillytavernextras environment
+REM Activate the stablediffusionwebui environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment stablediffusionwebui...
 call conda activate stablediffusionwebui
 
