@@ -170,7 +170,7 @@ REM Install Python 3.11 and Git in the comfyui environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
 call conda install python=3.11 git -y
 
-REM Clone the ComfyUI Extras repository
+REM Clone the ComfyUI repository
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the ComfyUI repository...
 git clone https://github.com/comfyanonymous/ComfyUI.git
 

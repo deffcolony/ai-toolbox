@@ -39,12 +39,11 @@ blue_bg="\033[44m"
 yellow_bg="\033[43m"
 
 
-function find_conda {
+# Function to find Miniconda installation directory
+find_conda() {
     local paths=(
         "$HOME/miniconda3"
         "$HOME/miniconda"
-        "$HOME/opt/miniconda3"
-        "$HOME/opt/miniconda"
         "/opt/miniconda3"
         "/opt/miniconda"
         "/usr/local/miniconda3"
@@ -53,8 +52,6 @@ function find_conda {
         "/usr/miniconda"
         "$HOME/anaconda3"
         "$HOME/anaconda"
-        "$HOME/opt/anaconda3"
-        "$HOME/opt/anaconda"
         "/opt/anaconda3"
         "/opt/anaconda"
         "/usr/local/anaconda3"
@@ -63,11 +60,6 @@ function find_conda {
         "/usr/anaconda"
     )
 
-    if [ "$(uname)" == "Darwin" ]; then
-        paths+=("/opt/homebrew-cask/Caskroom/miniconda")
-        paths+=("/usr/local/Caskroom/miniconda/base")
-    fi
-
     for path in "${paths[@]}"; do
         if [ -d "$path" ]; then
             echo "$path"
@@ -75,43 +67,59 @@ function find_conda {
         fi
     done
 
-    echo "ERROR: Could not find miniconda installation" >&2
     return 1
 }
 
-if [ -n "$CONDA_PATH" ]; then
-    CONDA_PATH="$(find_conda)"
-fi
+# Function to install Miniconda
+install_miniconda() {
+    # Check if Miniconda is already installed
+    if command -v conda &>/dev/null; then
+        echo "Miniconda is already installed. Skipping installation."
+        installer
+        return 0  # Exit the function with success status
+    fi
 
-# miniconda_installer="Miniconda3-latest-Linux-x86_64.sh"
-os_name="$(uname -s)"
-arch="$(uname -m)"
-if [ "$os_name" == "Linux" ]; then
-    if [ "$arch" == "x86_64" ]; then
-        miniconda_installer="Miniconda3-latest-Linux-x86_64.sh"
-    elif [ "$arch" == "aarch64" ]; then
-        miniconda_installer="Miniconda3-latest-Linux-aarch64.sh"
-    else
-        echo "ERROR: Unsupported architecture: $arch" >&2
-        exit 1
-    fi
-elif [ "$os_name" == "Darwin" ]; then
-    if [ "$arch" == "x86_64" ]; then
-        miniconda_installer="Miniconda3-latest-MacOSX-x86_64.sh"
-    else
-        miniconda_installer="Miniconda3-latest-MacOSX-arm64.sh"
-    fi
-else
-    echo "ERROR: Unsupported operating system: $os_name, using the linux installer (on $arch)" >&2
-    if [ "$arch" == "x86_64" ]; then
-        miniconda_installer="Miniconda3-latest-Linux-x86_64.sh"
-    elif [ "$arch" == "aarch64" ]; then
-        miniconda_installer="Miniconda3-latest-Linux-aarch64.sh"
-    else
-        echo "ERROR: Unsupported architecture: $arch" >&2
-        exit 1
-    fi
-fi
+    # Determine Miniconda installer based on OS and architecture
+    os_name="$(uname -s)"
+    arch="$(uname -m)"
+    case "$os_name" in
+        Linux)
+            case "$arch" in
+                x86_64) miniconda_installer="Miniconda3-latest-Linux-x86_64.sh" ;;
+                aarch64) miniconda_installer="Miniconda3-latest-Linux-aarch64.sh" ;;
+                *) echo "ERROR: Unsupported architecture: $arch" >&2; return 1 ;;
+            esac
+            ;;
+        Darwin)
+            case "$arch" in
+                x86_64) miniconda_installer="Miniconda3-latest-MacOSX-x86_64.sh" ;;
+                arm64) miniconda_installer="Miniconda3-latest-MacOSX-arm64.sh" ;;
+                *) echo "ERROR: Unsupported architecture: $arch" >&2; return 1 ;;
+            esac
+            ;;
+        *)
+            echo "ERROR: Unsupported operating system: $os_name" >&2
+            return 1
+            ;;
+    esac
+
+    # Download the Miniconda installer script
+    wget "https://repo.anaconda.com/miniconda/$miniconda_installer" -O /tmp/miniconda_installer.sh
+
+    # Run the installer script
+    bash /tmp/miniconda_installer.sh -b -p "$HOME/miniconda"
+
+    # Add Miniconda to PATH
+    export PATH="$HOME/miniconda/bin:$PATH"
+
+    # Activate Conda environment
+    source "$HOME/miniconda/etc/profile.d/conda.sh"
+
+    # Clean up the Downloaded file
+    rm /tmp/miniconda_installer.sh
+
+    echo "Miniconda installed successfully in $HOME/miniconda"
+}
 
 # Define the paths and filenames for the shortcut creation
 script_path="$(realpath "$(dirname "$0")")/launcher.sh"
@@ -298,125 +306,19 @@ install_nodejs_npm() {
 }
 
 
-
-# Function to install SillyTavern + Extras
-install_st_extras() {
-    echo -e "\033]0;SillyTavern [INSTALL-ST-EXTRAS]\007"
+# Function to install SillyTavern + Extras + XTTS
+install_all() {
+    echo -e "\033]0;SillyTavern [INSTALL-SILLYTAVERN-EXTRAS-XTTS]\007"
     clear
-    echo -e "${blue_fg_strong}/ Installer / SillyTavern + Extras${reset}"
+    echo -e "${blue_fg_strong}/ Installer / SillyTavern + Extras + XTTS${reset}"
     echo "---------------------------------------------------------------"
-    log_message "INFO" "Installing SillyTavern + Extras..."
-    echo -e "${cyan_fg_strong}This may take a while. Please be patient.${reset}"
-
-    log_message "INFO" "Installing SillyTavern..."
-    git clone https://github.com/SillyTavern/SillyTavern.git
-    log_message "INFO" "${green_fg_strong}SillyTavern installed successfully.${reset}"
-
-    log_message "INFO" "Installing Extras..."
-
-    log_message "INFO" "Cloning SillyTavern-extras repository..."
-    git clone https://github.com/SillyTavern/SillyTavern-extras.git
-
-    # Download the Miniconda installer script
-    wget https://repo.anaconda.com/miniconda/$miniconda_installer -P /tmp
-    chmod +x /tmp/$miniconda_installer
-
-    # Run the installer script
-    bash /tmp/$miniconda_installer -b -u -p $CONDA_PATH
-
-    # Update PATH to include Miniconda
-    export PATH="$CONDA_PATH/bin:$PATH"
-
-    # Activate Conda environment
-    log_message "INFO" "Activating Miniconda environment..."
-    source $CONDA_PATH/etc/profile.d/conda.sh
-
-    # Create and activate the Conda environment
-    log_message "INFO" "Disabling conda auto activate..."
-    conda config --set auto_activate_base false
-    conda init bash
-
-    log_message "INFO" "Creating Conda environment extras..."
-    conda create -n extras -y
-
-    log_message "INFO" "Activating Conda environment extras..."
-    conda activate extras
-
-    log_message "INFO" "Installing Python and Git in the Conda environment..."
-    conda install python=3.11 git -y
-
-    # Provide a link to XTTS
-    log_message "INFO" "${blue_fg_strong}Feeling excited to give your robotic waifu/husbando a new shiny voice modulator?${reset}"
-    log_message "INFO" "${blue_fg_strong}To learn more about XTTS, visit:${reset} https://coqui.ai/blog/tts/open_xtts"
-
-    # Ask the user if they want to install XTTS
-    read -p "Install XTTS? [Y/N]: " install_xtts_requirements
-
-    # Check the user's response
-    if [[ "$install_xtts_requirements" == "Y" || "$install_xtts_requirements" == "y" ]]; then
-        log_message "INFO" "Installing XTTS..."
-
-        # Activate the Miniconda installation
-        log_message "INFO" "Activating Miniconda environment..."
-        source "$miniconda_path/bin/activate"
-
-        # Create a Conda environment named xtts
-        log_message "INFO" "Creating Conda environment xtts..."
-        conda create -n xtts -y
-
-        # Activate the xtts environment
-        log_message "INFO" "Activating Conda environment xtts..."
-        source activate xtts
-
-        # Check if activation was successful
-        if [ $? -eq 0 ]; then
-            log_message "INFO" "Conda environment xtts activated successfully."
-        else
-            log_message "ERROR" "Failed to activate Conda environment xtts."
-        fi
-
-        # Install Python 3.10 in the xtts environment
-        log_message "INFO" "Installing Python in the Conda environment..."
-        conda install python=3.10 -y
-
-        # Install pip3 requirements
-        log_message "INFO" "Installing pip3 requirements for xtts..."
-        pip3 install xtts-api-server
-        pip3 install pydub
-        pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-
-        # Create folders for xtts
-        log_message "INFO" "Creating xtts folders..."
-        mkdir "$PWD/xtts"
-        mkdir "$PWD/xtts/speakers"
-        mkdir "$PWD/xtts/output"
-
-        # Clone the xtts-api-server repository for voice examples
-        log_message "INFO" "Cloning xtts-api-server repository..."
-        git clone https://github.com/daswer123/xtts-api-server.git
-
-        log_message "INFO" "Adding voice examples to speakers directory..."
-        cp -r "$PWD/xtts-api-server/example/"* "$PWD/xtts/speakers/"
-
-        log_message "INFO" "Removing the xtts-api-server directory..."
-        rm -rf "$PWD/xtts-api-server"
-
-    else
-        log_message "INFO" "XTTS installation skipped."
-    fi
-
-    # Activate the extras environment
-    log_message "INFO" "Activating Conda environment extras..."
-    conda activate extras
-
-    # Navigate to the SillyTavern-extras directory
-    cd "$PWD/SillyTavern-extras"
 
     # Ask the user about the GPU
     echo -e "What is your GPU?"
     echo -e "1. NVIDIA"
     echo -e "2. AMD"
     echo -e "3. None (CPU-only mode)"
+    echo -e "0. Cancel install"
 
     # Get GPU information
     gpu_info=""
@@ -425,43 +327,171 @@ install_st_extras() {
     done < <(lspci | grep VGA | cut -d ':' -f3)
 
     echo ""
-    echo -e "${blue_bg}╔════ GPU INFO ═════════════════════════════════╗${reset}"
-    echo -e "${blue_bg}║                                               ║${reset}"
-    echo -e "${blue_bg}║* ${gpu_info:1}                     ║${reset}"
-    echo -e "${blue_bg}║                                               ║${reset}"
-    echo -e "${blue_bg}╚═══════════════════════════════════════════════╝${reset}"
+    echo -e "${blue_bg}╔════ GPU INFO ═════════════════════════════════════════════════════════════╗${reset}"
+    boxDrawingText "" 75 $blue_bg
+    boxDrawingText "* ${gpu_info:1}" 75 $blue_bg
+    boxDrawingText "" 75 $blue_bg
+    echo -e "${blue_bg}╚═══════════════════════════════════════════════════════════════════════════╝${reset}"
     echo ""
 
     # Prompt for GPU choice
-    read -p "Enter the number corresponding to your GPU: " gpu_choice
+    read -p "Enter number corresponding to your GPU: " gpu_choice
+
+    # GPU menu - Backend
+    # Set the GPU choice in an environment variable for choice callback
+    export GPU_CHOICE=$gpu_choice
 
     # Check the user's response
     if [ "$gpu_choice" == "1" ]; then
-        # Install pip3 requirements
-        log_message "INFO" "Installing modules from requirements.txt in extras..."
-        pip3 install -r requirements.txt
-        conda install -c conda-forge faiss-gpu -y
+        log_message "INFO" "GPU choice set to NVIDIA"
+        install_all_pre
     elif [ "$gpu_choice" == "2" ]; then
-        log_message "INFO" "Installing modules from requirements-rocm.txt in extras..."
-        pip3 install -r requirements-rocm.txt
+        log_message "INFO" "GPU choice set to AMD"
+        install_all_pre
     elif [ "$gpu_choice" == "3" ]; then
-        log_message "INFO" "Installing modules from requirements-silicon.txt in extras..."
-        pip3 install -r requirements-silicon.txt
+        log_message "INFO" "Using CPU-only mode"
+        install_all_pre
+    elif [ "$gpu_choice" == "0" ]; then
+        installer
     else
-        log_message "ERROR" "Invalid GPU choice. Please enter a valid number."
-        exit 1
+        log_message "ERROR" "${red_fg_strong}Invalid number. Please enter a valid number.${reset}"
+        read -p "Press Enter to continue..."
+        install_all
     fi
+}
 
-    log_message "INFO" "Installing pip3 requirements-rvc in extras environment..."
+
+install_all_pre() {
+    log_message "INFO" "Installing SillyTavern + Extras + XTTS"
+    echo -e "${cyan_fg_strong}This may take a while. Please be patient.${reset}"
+
+    log_message "INFO" "Installing SillyTavern..."
+    git clone https://github.com/SillyTavern/SillyTavern.git
+    log_message "INFO" "${green_fg_strong}SillyTavern installed successfully.${reset}"
+
+    log_message "INFO" "Installing Extras..."
+    log_message "INFO" "Cloning SillyTavern-extras repository..."
+    git clone https://github.com/SillyTavern/SillyTavern-extras.git
+
+# Install script for XTTS 
+    log_message "INFO" "Installing XTTS..."
+
+    # Activate the Miniconda installation
+    log_message "INFO" "Activating Miniconda environment..."
+    source "$miniconda_path/bin/activate"
+
+    # Create a Conda environment named xtts
+    log_message "INFO" "Creating Conda environment: xtts"
+    conda create -n xtts python=3.10 git -y
+
+    # Activate the xtts environment
+    log_message "INFO" "Activating Conda environment: xtts"
+    source activate xtts
+
+    # Check if xtts activation was successful
+    if [ $? -eq 0 ]; then
+        log_message "INFO" "Successfully activated Conda environment: xtts"
+        install_all_pre_successful
+    else
+        log_message "ERROR" "${red_fg_strong}Failed to activate Conda environment: xtts${reset}"
+        log_message "INFO" "Press Enter to try again otherwise close the installer and restart."
+        read -p "Press Enter to try again..."
+        install_all_pre
+    fi
+}
+
+install_all_pre_successful() {
+    # Create folders for xtts
+    log_message "INFO" "Creating xtts folders..."
+    mkdir "$PWD/xtts"
+    mkdir "$PWD/xtts/speakers"
+    mkdir "$PWD/xtts/output"
+
+    # Clone the xtts-api-server repository for voice examples
+    log_message "INFO" "Cloning xtts-api-server repository..."
+    git clone https://github.com/daswer123/xtts-api-server.git
+
+    log_message "INFO" "Adding voice examples to speakers directory..."
+    cp -r "$PWD/xtts-api-server/example/"* "$PWD/xtts/speakers/"
+
+    log_message "INFO" "Removing the xtts-api-server directory..."
+    rm -rf "$PWD/xtts-api-server"
+
+    # Install pip3 requirements
+    log_message "INFO" "Installing pip3 requirements for xtts..."
+    pip3 install xtts-api-server
+    pip3 install pydub
+    pip3 install stream2sentence
+
+
+    # Use the GPU choice made earlier to install requirements for XTTS
+    if [ "$GPU_CHOICE" == "1" ]; then
+        log_message "INFO" "Installing NVIDIA version of PyTorch"
+        pip3 install torch==2.1.1+cu118 torchvision torchaudio==2.1.1+cu118 --index-url https://download.pytorch.org/whl/cu118
+        install_all_post
+    elif [ "$GPU_CHOICE" == "2" ]; then
+        log_message "INFO" "Installing AMD version of PyTorch"
+        pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm5.6
+        install_all_post
+    elif [ "$GPU_CHOICE" == "3" ]; then
+        log_message "INFO" "Installing CPU-only version of PyTorch"
+        pip3 install torch torchvision torchaudio
+        install_all_post
+    fi
+}
+# End of install script for XTTS
+
+
+install_all_post() {
+    # Create a Conda environment named extras
+    log_message "INFO" "Creating Conda environment: extras"
+    conda create -n extras python=3.11 git -y
+
+    log_message "INFO" "Activating Conda environment: extras"
+    conda activate extras
+
+    # Check if extras activation was successful
+    if [ $? -eq 0 ]; then
+        log_message "INFO" "Successfully activated Conda environment: extras"
+        install_all_post_successful
+    else
+        log_message "ERROR" "${red_fg_strong}Failed to activate Conda environment: extras${reset}"
+        log_message "INFO" "Press Enter to try again otherwise close the installer and restart."
+        read -p "Press Enter to try again..."
+        install_all_post
+    fi
+}
+
+install_all_post_successful() {
+    # Navigate to the SillyTavern-extras directory
+    cd "$PWD/SillyTavern-extras"
+
+    log_message "INFO" "Installing pip requirements from requirements-rvc.txt in Conda enviroment: ${cyan_fg_strong}extras${reset}"
     pip3 install -r requirements-rvc.txt
     pip3 install tensorboardX
 
-    # Cleanup the Downloaded file
-    rm -rf /tmp/$miniconda_installer
+    # Use the GPU choice made earlier to install requirements for extras
+    if [ "$GPU_CHOICE" == "1" ]; then
+        log_message "INFO" "Installing modules for NVIDIA from requirements.txt in extras"
+        pip3 install -r requirements.txt
+        conda install -c conda-forge faiss-gpu -y
+        log_message "INFO" "${green_fg_strong}SillyTavern + Extras + XTTS successfully installed.${reset}"
+        install_all_final
+    elif [ "$GPU_CHOICE" == "2" ]; then
+        log_message "INFO" "Installing modules for AMD from requirements-rocm.txt in extras"
+        pip3 install -r requirements-rocm.txt
+        log_message "INFO" "${green_fg_strong}SillyTavern + Extras + XTTS successfully installed.${reset}"
+        install_all_final
+    elif [ "$GPU_CHOICE" == "3" ]; then
+        log_message "INFO" "Installing modules for CPU from requirements-silicon.txt in extras"
+        pip3 install -r requirements-silicon.txt
+        log_message "INFO" "${green_fg_strong}SillyTavern + Extras + XTTS successfully installed.${reset}"
+        install_all_final
+    fi
+}
 
-    log_message "INFO" "${green_fg_strong}SillyTavern + Extras successfully installed.${reset}"
-    
-    # Ask if the user wants to create a desktop shortcut
+install_all_final() {
+    # Ask if the user wants to create a shortcut
     read -p "Do you want to create a shortcut on the desktop? [Y/n] " create_shortcut
     if [[ "${create_shortcut}" == "Y" || "${create_shortcut}" == "y" ]]; then
 
@@ -492,7 +522,6 @@ install_st_extras() {
 
     installer
 }
-
 
 
 # Function to install SillyTavern
@@ -546,111 +575,13 @@ install_extras() {
     clear
     echo -e "${blue_fg_strong}/ Installer / Extras${reset}"
     echo "---------------------------------------------------------------"
-    log_message "INFO" "Installing Extras..."
-
-    log_message "INFO" "Cloning SillyTavern-extras repository..."
-    git clone https://github.com/SillyTavern/SillyTavern-extras.git
-
-    # Download the Miniconda installer script
-    wget https://repo.anaconda.com/miniconda/$miniconda_installer -P /tmp
-    chmod +x /tmp/$miniconda_installer
-
-    # Run the installer script
-    bash /tmp/$miniconda_installer -b -u -p $CONDA_PATH
-
-    # Update PATH to include Miniconda
-    export PATH="$CONDA_PATH/bin:$PATH"
-
-    # Activate Conda environment
-    log_message "INFO" "Activating Miniconda environment..."
-    source $CONDA_PATH/etc/profile.d/conda.sh
-
-    # Create and activate the Conda environment
-    log_message "INFO" "Disabling conda auto activate..."
-    conda config --set auto_activate_base false
-    conda init bash
-
-    log_message "INFO" "Creating Conda environment extras..."
-    conda create -n extras -y
-
-    log_message "INFO" "Activating Conda environment extras..."
-    conda activate extras
-
-    log_message "INFO" "Installing Python and Git in the Conda environment..."
-    conda install python=3.11 git -y
-
-    # Provide a link to XTTS
-    log_message "INFO" "${blue_fg_strong}Feeling excited to give your robotic waifu/husbando a new shiny voice modulator?${reset}"
-    log_message "INFO" "${blue_fg_strong}To learn more about XTTS, visit:${reset} https://coqui.ai/blog/tts/open_xtts"
-
-    # Ask the user if they want to install XTTS
-    read -p "Install XTTS? [Y/N]: " install_xtts_requirements
-
-    # Check the user's response
-    if [[ "$install_xtts_requirements" == "Y" || "$install_xtts_requirements" == "y" ]]; then
-        log_message "INFO" "Installing XTTS..."
-
-        # Activate the Miniconda installation
-        log_message "INFO" "Activating Miniconda environment..."
-        source "$miniconda_path/bin/activate"
-
-        # Create a Conda environment named xtts
-        log_message "INFO" "Creating Conda environment xtts..."
-        conda create -n xtts -y
-
-        # Activate the xtts environment
-        log_message "INFO" "Activating Conda environment xtts..."
-        source activate xtts
-
-        # Check if activation was successful
-        if [ $? -eq 0 ]; then
-            log_message "INFO" "Conda environment xtts activated successfully."
-        else
-            log_message "ERROR" "Failed to activate Conda environment xtts."
-        fi
-
-        # Install Python 3.10 in the xtts environment
-        log_message "INFO" "Installing Python in the Conda environment..."
-        conda install python=3.10 -y
-
-        # Install pip3 requirements
-        log_message "INFO" "Installing pip3 requirements for xtts..."
-        pip3 install xtts-api-server
-        pip3 install pydub
-        pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-
-        # Create folders for xtts
-        log_message "INFO" "Creating xtts folders..."
-        mkdir "$PWD/xtts"
-        mkdir "$PWD/xtts/speakers"
-        mkdir "$PWD/xtts/output"
-
-        # Clone the xtts-api-server repository for voice examples
-        log_message "INFO" "Cloning xtts-api-server repository..."
-        git clone https://github.com/daswer123/xtts-api-server.git
-
-        log_message "INFO" "Adding voice examples to speakers directory..."
-        cp -r "$PWD/xtts-api-server/example/"* "$PWD/xtts/speakers/"
-
-        log_message "INFO" "Removing the xtts-api-server directory..."
-        rm -rf "$PWD/xtts-api-server"
-
-    else
-        log_message "INFO" "XTTS installation skipped."
-    fi
-
-    # Activate the extras environment
-    log_message "INFO" "Activating Conda environment extras..."
-    conda activate extras
-
-    # Navigate to the SillyTavern-extras directory
-    cd "$PWD/SillyTavern-extras"
 
     # Ask the user about the GPU
     echo -e "What is your GPU?"
     echo -e "1. NVIDIA"
     echo -e "2. AMD"
     echo -e "3. None (CPU-only mode)"
+    echo -e "0. Cancel install"
 
     # Get GPU information
     gpu_info=""
@@ -667,50 +598,154 @@ install_extras() {
     echo ""
 
     # Prompt for GPU choice
-    read -p "Enter the number corresponding to your GPU: " gpu_choice
+    read -p "Enter number corresponding to your GPU: " gpu_choice
+
+    # GPU menu - Backend
+    # Set the GPU choice in an environment variable for choice callback
+    export GPU_CHOICE=$gpu_choice
 
     # Check the user's response
     if [ "$gpu_choice" == "1" ]; then
-        # Install pip3 requirements
-        log_message "INFO" "Installing modules from requirements.txt in extras..."
-        pip3 install -r requirements.txt
-        conda install -c conda-forge faiss-gpu -y
+        log_message "INFO" "GPU choice set to NVIDIA"
+        install_extras_pre
     elif [ "$gpu_choice" == "2" ]; then
-        log_message "INFO" "Installing modules from requirements-rocm.txt in extras..."
-        pip3 install -r requirements-rocm.txt
+        log_message "INFO" "GPU choice set to AMD"
+        install_extras_pre
     elif [ "$gpu_choice" == "3" ]; then
-        log_message "INFO" "Installing modules from requirements-silicon.txt in extras..."
-        pip3 install -r requirements-silicon.txt
+        log_message "INFO" "Using CPU-only mode"
+        install_extras_pre
+    elif [ "$gpu_choice" == "0" ]; then
+        installer
     else
-        log_message "ERROR" "Invalid GPU choice. Please enter a valid number."
-        exit 1
+        log_message "ERROR" "${red_fg_strong}Invalid number. Please enter a valid number.${reset}"
+        read -p "Press Enter to continue..."
+        install_extras
     fi
+}
 
-    log_message "INFO" "Installing pip3 requirements-rvc in extras environment..."
+
+
+install_extras_pre() {
+    log_message "INFO" "Installing Extras..."
+    log_message "INFO" "Cloning SillyTavern-extras repository..."
+    git clone https://github.com/SillyTavern/SillyTavern-extras.git
+
+
+    log_message "INFO" "Creating Conda environment: ${cyan_fg_strong}extras${reset}"
+    conda create -n extras python=3.11 git -y
+
+    log_message "INFO" "Activating Conda environment: ${cyan_fg_strong}extras${reset}"
+    conda init bash
+    conda activate extras
+
+    # Check if extras activation was successful
+    if [ $? -eq 0 ]; then
+        log_message "INFO" "Successfully activated Conda environment: extras"
+        install_extras_successful
+    else
+        log_message "ERROR" "${red_fg_strong}Failed to activate Conda environment: extras${reset}"
+        log_message "INFO" "Press Enter to try again otherwise close the installer and restart."
+        read -p "Press Enter to try again..."
+        install_extras_pre
+    fi
+}
+
+install_extras_successful() {
+    # Navigate to the SillyTavern-extras directory
+    cd "$PWD/SillyTavern-extras"
+
+    log_message "INFO" "Installing pip3 requirements-rvc in Conda environment: ${cyan_fg_strong}extras${reset}"
     pip3 install -r requirements-rvc.txt
     pip3 install tensorboardX
 
-    # Cleanup the Downloaded file
-    rm -rf /tmp/$miniconda_installer
-    log_message "INFO" "${green_fg_strong}Extras has been successfully installed.${reset}"
+    # Use the GPU choice made earlier to install requirements in the Conda environment extras
+    if [ "$GPU_CHOICE" == "1" ]; then
+        log_message "INFO" "Installing modules for NVIDIA from requirements.txt in Conda environment: ${cyan_fg_strong}extras${reset}"
+        pip3 install -r requirements.txt
+        conda install -c conda-forge faiss-gpu -y
+        log_message "INFO" "${green_fg_strong}Extras successfully installed.${reset}"
+        installer
+    elif [ "$GPU_CHOICE" == "2" ]; then
+        log_message "INFO" "Installing modules for AMD from requirements-rocm.txt in Conda environment: ${cyan_fg_strong}extras${reset}"
+        pip3 install -r requirements-rocm.txt
+        log_message "INFO" "${green_fg_strong}Extras successfully installed.${reset}"
+        installer
+    elif [ "$GPU_CHOICE" == "3" ]; then
+        log_message "INFO" "Installing modules for CPU from requirements-silicon.txt in Conda environment: ${cyan_fg_strong}extras${reset}"
+        pip3 install -r requirements-silicon.txt
+        log_message "INFO" "${green_fg_strong}Extras successfully installed.${reset}"
+        installer
+    fi
+}
+
+
+# Function to install XTTS
+install_xtts() {
+    log_message "INFO" "Installing XTTS..."
+
+    # Activate the Miniconda installation
+    log_message "INFO" "Activating Miniconda environment..."
+    source "$miniconda_path/bin/activate"
+
+    # Create a Conda environment named xtts
+    log_message "INFO" "Creating Conda environment: xtts"
+    conda create -n xtts python=3.10 git -y
+
+    # Activate the xtts environment
+    log_message "INFO" "Activating Conda environment: xtts"
+    conda activate xtts
+
+    # Check if activation was successful
+    if [ $? -eq 0 ]; then
+        log_message "INFO" "Successfully activated Conda environment: xtts"
+    else
+        log_message "ERROR" "${red_fg_strong}Failed to activate Conda environment: xtts${reset}"
+        log_message "INFO" "Press Enter to try again otherwise close the installer and restart."
+        read -p "Press Enter to try again..."
+        install_xtts
+    fi
+
+    # Create folders for xtts
+    log_message "INFO" "Creating xtts folders..."
+    mkdir "$PWD/xtts"
+    mkdir "$PWD/xtts/speakers"
+    mkdir "$PWD/xtts/output"
+
+    # Clone the xtts-api-server repository for voice examples
+    log_message "INFO" "Cloning xtts-api-server repository..."
+    git clone https://github.com/daswer123/xtts-api-server.git
+
+    log_message "INFO" "Adding voice examples to speakers directory..."
+    cp -r "$PWD/xtts-api-server/example/"* "$PWD/xtts/speakers/"
+
+    log_message "INFO" "Removing the xtts-api-server directory..."
+    rm -rf "$PWD/xtts-api-server"
+
+    # Install pip3 requirements
+    log_message "INFO" "Installing pip3 requirements for xtts..."
+    pip3 install xtts-api-server
+    pip3 install pydub
+    pip3 install stream2sentence
 
     installer
 }
 
 
-
-
-# Function for the installer menu
+############################################################
+################# INSTALLER - FRONTEND #####################
+############################################################
 installer() {
     echo -e "\033]0;SillyTavern [INSTALLER]\007"
     clear
     echo -e "${blue_fg_strong}/ Installer${reset}"
     echo "-------------------------------------"
     echo "What would you like to do?"
-    echo "1. Install SillyTavern + Extras"
+    echo "1. Install SillyTavern + Extras + XTTS"
     echo "2. Install SillyTavern"
     echo "3. Install Extras"
-    echo "4. Exit"
+    echo "4. Install XTTS"
+    echo "5. Support"
+    echo "0. Exit"
 
     read -p "Choose Your Destiny (default is 1): " choice
 
@@ -719,20 +754,88 @@ installer() {
       choice=1
     fi
 
-    # Installer - Backend
-    if [ "$choice" = "1" ]; then
-        install_st_extras
-    elif [ "$choice" = "2" ]; then
-        install_sillytavern
-    elif [ "$choice" = "3" ]; then
-        install_extras
-    elif [ "$choice" = "4" ]; then
-        exit
+################# INSTALLER - BACKEND #####################
+    case $choice in
+        1) install_all ;;
+        2) install_sillytavern ;;
+        3) install_extras ;;
+        4) install_xtts ;;
+        5) support ;;
+        0) exit ;;
+        *) echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
+           read -p "Press Enter to continue..."
+           installer ;;
+    esac
+}
+
+# Functions for Support Menu - Backend
+issue_report() {
+    if [ "$EUID" -eq 0 ]; then
+        log_message "ERROR" "${red_fg_strong}Cannot run xdg-open as root. Please run the script without root permission.${reset}"
     else
-        echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
-        read -p "Press Enter to continue..."
-        installer
+        if [ "$(uname -s)" == "Darwin" ]; then
+            open https://github.com/SillyTavern/SillyTavern-Launcher/issues/new/choose
+        else
+            xdg-open https://github.com/SillyTavern/SillyTavern-Launcher/issues/new/choose
+        fi
     fi
+    read -p "Press Enter to continue..."
+    support
+}
+
+documentation() {
+    if [ "$EUID" -eq 0 ]; then
+        log_message "ERROR" "${red_fg_strong}Cannot run xdg-open as root. Please run the script without root permission.${reset}"
+    else
+        if [ "$(uname -s)" == "Darwin" ]; then
+            open https://docs.sillytavern.app/
+        else
+            xdg-open https://docs.sillytavern.app/
+        fi
+    fi
+    read -p "Press Enter to continue..."
+    support
+}
+
+discord() {
+    if [ "$EUID" -eq 0 ]; then
+        log_message "ERROR" "${red_fg_strong}Cannot run xdg-open as root. Please run the script without root permission.${reset}"
+    else
+        if [ "$(uname -s)" == "Darwin" ]; then
+            open https://discord.gg/sillytavern
+        else
+            xdg-open https://discord.gg/sillytavern
+        fi
+    fi
+    read -p "Press Enter to continue..."
+    support
+}
+
+
+# Support Menu - Frontend
+support() {
+    echo -e "\033]0;SillyTavern [SUPPORT]\007"
+    clear
+    echo -e "${blue_fg_strong}/ Home / Support${reset}"
+    echo "-------------------------------------"
+    echo "What would you like to do?"
+    echo "1. I want to report an issue"
+    echo "2. Documentation"
+    echo "3. Discord"
+    echo "0. Back to installer"
+
+    read -p "Choose Your Destiny: " support_choice
+
+    # Support Menu - Backend
+    case $support_choice in
+        1) issue_report ;;
+        2) documentation ;;
+        3) discord ;;
+        0) installer ;;
+        *) echo -e "${yellow_fg_strong}WARNING: Invalid number. Please insert a valid number.${reset}"
+           read -p "Press Enter to continue..."
+           support ;;
+    esac
 }
 
 # Check if the script is running on macOS
@@ -746,48 +849,56 @@ if [ -n "$IS_MACOS" ]; then
     # macOS
     install_git
     install_nodejs_npm
+    install_miniconda
     installer
 elif command -v apt-get &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected Debian/Ubuntu-based system.${reset}"
     # Debian/Ubuntu
     install_git
     install_nodejs_npm
+    install_miniconda
     installer
 elif command -v yum &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected Red Hat/Fedora-based system.${reset}"
     # Red Hat/Fedora
     install_git
     install_nodejs_npm
+    install_miniconda
     installer
 elif command -v apk &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected Alpine Linux-based system.${reset}"
     # Alpine Linux
     install_git
     install_nodejs_npm
+    install_miniconda
     installer
 elif command -v pacman &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected Arch Linux-based system.${reset}"
     # Arch Linux
     install_git
     install_nodejs_npm
+    install_miniconda
     installer
 elif command -v emerge &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected Gentoo Linux-based system. Now you are the real CHAD${reset}"
     # Gentoo Linux
     install_git
     install_nodejs_npm
+    install_miniconda
     installer
 elif command -v pkg &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected pkg System${reset}"
     # pkg
     install_git
     install_nodejs_npm
+    install_miniconda
     installer
 elif command -v zypper &>/dev/null; then
     log_message "INFO" "${blue_fg_strong}Detected openSUSE system.${reset}"
     # openSUSE
     install_git
     install_nodejs_npm
+    install_miniconda
     installer
 else
     log_message "ERROR" "${red_fg_strong}Unsupported package manager. Cannot detect Linux distribution.${reset}"

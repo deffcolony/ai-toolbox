@@ -170,17 +170,17 @@ REM Run conda activate from the Miniconda installation
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Miniconda environment...
 call "%miniconda_path%\Scripts\activate.bat"
 
-REM Create a Conda environment named stablediffusionwebui
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment stablediffusionwebui...
-call conda create -n stablediffusionwebui -y
+REM Create a Conda environment named sdwebui
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment sdwebui...
+call conda create -n sdwebui -y
 
-REM Activate the stablediffusionwebui environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment stablediffusionwebui...
-call conda activate stablediffusionwebui
+REM Activate the sdwebui environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment sdwebui...
+call conda activate sdwebui
 
-REM Install Python 3.10.6 and Git in the stablediffusionwebui environment
+REM Install Python 3.10.6 in the sdwebui environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
-call conda install python=3.10.6 git -y
+call conda install python=3.10.6 -y
 
 REM Clone the stable-diffusion-webui Extras repository
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the stable-diffusion-webui repository...
@@ -209,7 +209,7 @@ REM Installs better upscaler models
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Better Upscaler models...
 cd /d "%~dp0stable-diffusion-webui/models"
 mkdir ESRGAN && cd ESRGAN
-curl -o 4x-AnimeSharp.pth https://huggingface.co/konohashinobi4/4xAnimesharp/resolve/main/4x-AnimeSharp.pth
+curl -o 4x-AnimeSharp.pth https://huggingface.co/Kim2091/AnimeSharp/resolve/main/4x-AnimeSharp.pth
 curl -o 4x-UltraSharp.pth https://huggingface.co/lokCX/4x-Ultrasharp/resolve/main/4x-UltraSharp.pth
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Stable Diffusion web UI successfully installed.%reset%
@@ -290,10 +290,10 @@ echo ---------------------------------------------------------------
 REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
 
-REM Activate the stablediffusionwebui environment
-call conda activate stablediffusionwebui
+REM Activate the sdwebui environment
+call conda activate sdwebui
 
-REM Start stablediffusionwebui clean
+REM Start sdwebui clean
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% SD web UI launched in a new window.
 start cmd /k "title SD web UI && cd /d %~dp0stable-diffusion-webui && python launch.py"
 goto :home
@@ -308,11 +308,11 @@ echo ---------------------------------------------------------------
 REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
 
-REM Activate the stablediffusionwebui environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment stablediffusionwebui...
-call conda activate stablediffusionwebui
+REM Activate the sdwebui environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment sdwebui...
+call conda activate sdwebui
 
-REM Start stablediffusionwebui with desired configurations
+REM Start sdwebui with desired configurations
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% SD web UI launched in a new window.
 start cmd /k "title SD web UI ADDONS && cd /d %~dp0stable-diffusion-webui && python launch.py --autolaunch --api --listen --port 7900 --opt-sdp-attention --theme dark --cors-allow-origins=http://127.0.0.1:7905"
 goto :home
@@ -328,9 +328,9 @@ REM Run conda activate from the Miniconda installation
 call "%miniconda_path%\Scripts\activate.bat"
 echo %blue_fg_strong%[INFO]%reset% Running SD web UI + share...
 
-REM Activate the stablediffusionwebui environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment stablediffusionwebui...
-call conda activate stablediffusionwebui
+REM Activate the sdwebui environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment sdwebui...
+call conda activate sdwebui
 
 cls
 echo %blue_fg_strong%/ Home / SD web UI + share%reset%
@@ -441,8 +441,8 @@ set /p "confirmation=Are you sure you want to proceed? [Y/N]: "
 if /i "%confirmation%"=="Y" (
 
     REM Remove the Conda environment
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'stablediffusionwebui'...
-    call conda remove --name stablediffusionwebui --all -y
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'sdwebui'...
+    call conda remove --name sdwebui --all -y
 
     REM Remove the folder stable-diffusion-webui
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the stable-diffusion-webui directory...
