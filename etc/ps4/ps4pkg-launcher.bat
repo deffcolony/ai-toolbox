@@ -117,7 +117,7 @@ echo %blue_fg_strong%/ Home%reset%
 echo -------------------------------------
 echo What would you like to do?
 echo 1. Install PS4 PKG Viewer
-echo 2. Dump all contents from pkg
+echo 2. Dump all contents from pkg to folder
 echo 3. Extract all contents from pkg to xml
 echo 4. Uninstall PS4 PKG Viewer
 echo 0. Exit
@@ -146,8 +146,6 @@ if "%choice%"=="1" (
     pause
     goto :home
 )
-
-
 
 :install_ps4pkgviewer
 title PS4 PKG Viewer [INSTALL]
@@ -221,10 +219,10 @@ goto :home
 :run_ps4pkgviewer_dump
 title PS4 PKG Viewer [DUMP CONTENTS]
 cls
-echo %blue_fg_strong%/ Home / Dump from pkg file%reset%
+echo %blue_fg_strong%/ Home / Dump all contents from pkg to folder%reset%
 echo -------------------------------------
 
-REM Activate the sillytavernextras environment
+REM Activate the ps4pkgviewer environment
 call conda activate ps4pkgviewer
 
 REM Run the extract program
@@ -242,10 +240,10 @@ goto :home
 :run_ps4pkgviewer_extract
 title PS4 PKG Viewer [EXTRACT TO XML]
 cls
-echo %blue_fg_strong%/ Home / Dump from pkg file%reset%
+echo %blue_fg_strong%/ Home / Extract all contents from pkg to xml%reset%
 echo -------------------------------------
 
-REM Activate the sillytavernextras environment
+REM Activate the ps4pkgviewer environment
 call conda activate ps4pkgviewer
 
 REM Run the extract program
