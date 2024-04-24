@@ -274,7 +274,9 @@ if /i "%confirmation%"=="Y" (
 
     REM Remove the Conda environment
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'ps4pkgviewer'...
+    call conda deactivate
     call conda remove --name ps4pkgviewer --all -y
+    call conda clean -a -y
 
     REM Remove the folder ps4pkgviewer
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the ps4pkgviewer directory...

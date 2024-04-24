@@ -442,7 +442,9 @@ if /i "%confirmation%"=="Y" (
 
     REM Remove the Conda environment
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'sdwebui'...
+    call conda deactivate
     call conda remove --name sdwebui --all -y
+    call conda clean -a -y
 
     REM Remove the folder stable-diffusion-webui
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the stable-diffusion-webui directory...
@@ -475,7 +477,9 @@ if /i "%confirmation%"=="Y" (
 
     REM Remove the Conda environment
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'painthua'...
+    call conda deactivate
     call conda remove --name painthua --all -y
+    call conda clean -a -y
 
     REM Remove the folder stable-diffusion-webui
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the painthua-flask directory...

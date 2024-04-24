@@ -346,7 +346,9 @@ if /i "%confirmation%"=="Y" (
 
     REM Remove the Conda environment
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'rvc'...
+    call conda deactivate
     call conda remove --name rvc --all -y
+    call conda clean -a -y
 
     REM Remove the folder Retrieval-based-Voice-Conversion-WebUI
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Retrieval-based-Voice-Conversion-WebUI directory...

@@ -274,7 +274,9 @@ if /i "%confirmation%"=="Y" (
 
     REM Remove the Conda environment
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'privategpt'...
+    call conda deactivate
     call conda remove --name privategpt --all -y
+    call conda clean -a -y
 
     REM Remove the folder privateGPT
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the privateGPT directory...

@@ -385,7 +385,9 @@ if /i "%confirmation%"=="Y" (
 
     REM Remove the Conda environment
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'audiocraft'...
+    call conda deactivate
     call conda remove --name audiocraft --all -y
+    call conda clean -a -y
 
     REM Remove the folder audiocraft
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the audiocraft directory...

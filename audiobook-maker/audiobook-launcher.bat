@@ -394,7 +394,9 @@ if /i "%confirmation%"=="Y" (
 
     REM Remove the Conda environment
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'audiobook-maker'...
+    call conda deactivate
     call conda remove --name audiobook-maker --all -y
+    call conda clean -a -y
 
     REM Remove the folder audiobook_maker
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the audiobook_maker Maker directory...

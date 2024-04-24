@@ -192,7 +192,9 @@ if /i "%confirmation%"=="Y" (
 
     REM Remove the Conda environment
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the Conda environment 'openinterpreter'...
+    call conda deactivate
     call conda remove --name openinterpreter --all -y
+    call conda clean -a -y
 
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%ComfyUI uninstalled successfully.%reset%
     pause
