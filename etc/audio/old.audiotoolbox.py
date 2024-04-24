@@ -3,7 +3,7 @@ from mutagen.mp3 import MP3
 from datetime import timedelta
 import datetime
 import traceback
-from PySimpleGUI import PySimpleGUI as sg
+from FreeSimpleGUI import FreeSimpleGUI as sg
 import webbrowser
 import json
 

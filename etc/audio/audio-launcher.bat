@@ -169,7 +169,7 @@ call conda install python=3.12 -y
 
 pip install random2
 pip install mutagen
-pip install PySimpleGUI
+pip install FreeSimpleGUI
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Audio Launcher installed.%reset%
 

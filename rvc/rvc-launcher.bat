@@ -190,7 +190,7 @@ call conda install python=3.10.6 git -y
 
 REM Install pip packages that are not in requirements list
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip modules for GUI
-pip install PySimpleGUI
+pip install FreeSimpleGUI
 pip install sounddevice
 
 REM Navigate to the Retrieval-based-Voice-Conversion-WebUI directory
