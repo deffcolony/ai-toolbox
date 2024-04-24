@@ -190,9 +190,8 @@ cd /d "PS4-pkg-viewer"
 
 REM Install pip requirements
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements
-pip install Tkinter
+pip install tk
 pip install Pillow
-pip install re
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%PS4 PKG Viewer installed.%reset%
 
