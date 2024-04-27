@@ -24,6 +24,11 @@ set "blue_bg=[44m"
 REM Environment Variables (winget)
 set "winget_path=%userprofile%\AppData\Local\Microsoft\WindowsApps"
 
+REM Define variables for logging
+set "log_path=%~dp0logs.log"
+set "log_invalidinput=[ERROR] Invalid input. Please enter a valid number."
+set "echo_invalidinput=%red_fg_strong%[ERROR] Invalid input. Please enter a valid number.%reset%"
+
 
 REM Get the current PATH value from the registry
 for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v PATH') do set "current_path=%%B"
@@ -99,8 +104,7 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="0" (
     exit
 ) else (
-    color 6
-    echo WARNING: Invalid number. Please insert a valid number.
+    echo %red_bg%[%time%]%reset% %echo_invalidinput%
     pause
     goto :home
 )

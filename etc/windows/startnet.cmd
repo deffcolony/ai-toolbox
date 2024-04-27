@@ -17,6 +17,12 @@ REM Normal Background Colors
 set "red_bg=[41m"
 set "blue_bg=[44m"
 
+REM Define variables for logging
+set "log_path=%~dp0logs.log"
+set "log_invalidinput=[ERROR] Invalid input. Please enter a valid number."
+set "echo_invalidinput=%red_fg_strong%[ERROR] Invalid input. Please enter a valid number.%reset%"
+
+
 REM home Frontend
 :home
 title WinPE Setup [HOME]
@@ -47,8 +53,7 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="0" (
     exit
 ) else (
-    color 6
-    echo WARNING: Invalid number. Please insert a valid number.
+    echo %red_bg%[%time%]%reset% %echo_invalidinput%
     pause
     goto :home
 )
