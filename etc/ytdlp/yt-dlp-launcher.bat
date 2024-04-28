@@ -51,6 +51,14 @@ set "ytdlp_audio_path=%~dp0yt-dlp-downloads\audio"
 set "ytdlp_video_path=%~dp0yt-dlp-downloads\video"
 set "ytdlp_path=%~dp0yt-dlp-downloads"
 
+REM Define the paths and filenames for the shortcut creation (yt-dlp-launcher.bat)
+set "shortcutTarget=%~dp0yt-dlp-launcher.bat"
+set "iconFile=%~dp0logo.ico"
+set "desktopPath=%userprofile%\Desktop"
+set "shortcutName=yt-dlp-launcher.lnk"
+set "startIn=%~dp0"
+set "comment=yt-dlp-launcher"
+
 
 REM Define variables for logging
 set "log_path=%~dp0yt-dlp-downloads\logs.log"
@@ -265,11 +273,28 @@ REM Check if the file exists
 if not exist "%ytdlp_download_path%" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing yt-dlp...
     curl -L -o "%ytdlp_download_path%" "%ytdlp_download_url%"
+
+    REM Ask if the user wants to create a shortcut
+    set /p create_shortcut=Do you want to create a shortcut on the desktop? [Y/n] 
+    if /i "%create_shortcut%"=="Y" (
+
+        REM Create the shortcut
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating shortcut for yt-dlp-launcher...
+        %SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe -Command ^
+            "$WshShell = New-Object -ComObject WScript.Shell; " ^
+            "$Shortcut = $WshShell.CreateShortcut('%desktopPath%\%shortcutName%'); " ^
+            "$Shortcut.TargetPath = '%shortcutTarget%'; " ^
+            "$Shortcut.IconLocation = '%iconFile%'; " ^
+            "$Shortcut.WorkingDirectory = '%startIn%'; " ^
+            "$Shortcut.Description = '%comment%'; " ^
+            "$Shortcut.Save()"
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Shortcut created on the desktop.%reset%\
+    )
+
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%yt-dlp installed successfully. Please restart yt-dlp-launcher%reset%
     pause
     exit
 )
-
 
 REM Change the directory
 cd /d "%ytdlp_path%"
