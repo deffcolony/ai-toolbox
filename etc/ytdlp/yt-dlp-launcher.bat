@@ -273,24 +273,29 @@ REM Check if the file exists
 if not exist "%ytdlp_download_path%" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing yt-dlp...
     curl -L -o "%ytdlp_download_path%" "%ytdlp_download_url%"
+    goto :create_shortcut
+) else (
+    goto :home
+)
 
-    REM Ask if the user wants to create a shortcut
-    set /p create_shortcut=Do you want to create a shortcut on the desktop? [Y/n] 
-    if /i "%create_shortcut%"=="Y" (
-
-        REM Create the shortcut
-        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating shortcut for yt-dlp-launcher...
-        %SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe -Command ^
-            "$WshShell = New-Object -ComObject WScript.Shell; " ^
-            "$Shortcut = $WshShell.CreateShortcut('%desktopPath%\%shortcutName%'); " ^
-            "$Shortcut.TargetPath = '%shortcutTarget%'; " ^
-            "$Shortcut.IconLocation = '%iconFile%'; " ^
-            "$Shortcut.WorkingDirectory = '%startIn%'; " ^
-            "$Shortcut.Description = '%comment%'; " ^
-            "$Shortcut.Save()"
-        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Shortcut created on the desktop.%reset%\
-    )
-
+:create_shortcut
+set /p create_shortcut=Do you want to create a shortcut on the desktop? [Y/n] 
+if /i "%create_shortcut%"=="Y" (
+    REM Create the shortcut
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating shortcut for yt-dlp-launcher...
+    %SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe -Command ^
+        "$WshShell = New-Object -ComObject WScript.Shell; " ^
+        "$Shortcut = $WshShell.CreateShortcut('%desktopPath%\%shortcutName%'); " ^
+        "$Shortcut.TargetPath = '%shortcutTarget%'; " ^
+        "$Shortcut.IconLocation = '%iconFile%'; " ^
+        "$Shortcut.WorkingDirectory = '%startIn%'; " ^
+        "$Shortcut.Description = '%comment%'; " ^
+        "$Shortcut.Save()"
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Shortcut created on the desktop.%reset%
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%yt-dlp installed successfully. Please restart yt-dlp-launcher%reset%
+    pause
+    exit
+) else (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%yt-dlp installed successfully. Please restart yt-dlp-launcher%reset%
     pause
     exit
@@ -310,7 +315,7 @@ echo -------------------------------------------------------------
 echo What would you like to do?
 echo 1. Download mp4 video
 echo 2. Download mp3 audio
-echo 3. Download a YouTube playlist
+echo 3. Editor
 echo 4. Update
 echo 5. Uninstall yt-dlp
 echo 0. Exit
@@ -327,7 +332,7 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="2" (
     call :start_ytdlp_mp3
 ) else if "%choice%"=="3" (
-    call :start_ytdlp_playlist
+    call :editor
 ) else if "%choice%"=="4" (
     call :update_ytdlp
 ) else if "%choice%"=="5" (
@@ -385,7 +390,7 @@ pause
 goto :home
 
 
-:start_ytdlp_playlist
+:editor
 COMING SOON
 pause
 goto :home
@@ -434,5 +439,4 @@ if /i "%confirmation%"=="Y" (
     pause
     goto :home
 )
-
 
