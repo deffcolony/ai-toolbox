@@ -49,7 +49,26 @@ set "ytdlp_download_url=https://github.com/yt-dlp/yt-dlp/releases/latest/downloa
 set "ytdlp_download_path=%~dp0yt-dlp-downloads\yt-dlp.exe"
 set "ytdlp_audio_path=%~dp0yt-dlp-downloads\audio"
 set "ytdlp_video_path=%~dp0yt-dlp-downloads\video"
+set "ytdlp_settings_path=%~dp0yt-dlp-downloads\settings"
 set "ytdlp_path=%~dp0yt-dlp-downloads"
+
+REM Define variables to track module status (audio)
+set "audio_modules_path=%~dp0yt-dlp-downloads\settings\modules-audio.txt"
+set "audio_sponsorblock_trigger=false"
+set "audio_format_trigger=false"
+set "audio_quality_trigger=false"
+set "audio_acodec_trigger=false"
+set "audio_metadata_trigger=false"
+
+REM Define variables to track module status (video)
+set "video_modules_path=%~dp0yt-dlp-downloads\settings\modules-video.txt"
+set "video_sponsorblock_trigger=false"
+set "video_mergeoutputformat_trigger=false"
+set "video_resolution_trigger=false"
+set "video_acodec_trigger=false"
+set "video_vcodec_trigger=false"
+set "video_metadata_trigger=false"
+
 
 REM Define the paths and filenames for the shortcut creation (yt-dlp-launcher.bat)
 set "shortcutTarget=%~dp0yt-dlp-launcher.bat"
@@ -100,6 +119,25 @@ if not exist "%ytdlp_video_path%" (
     mkdir "%ytdlp_video_path%"
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Created folder: "video"  
 )
+REM Check if the folder exists
+if not exist "%ytdlp_settings_path%" (
+    mkdir "%ytdlp_settings_path%"
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Created folder: "settings"  
+)
+REM Create modules-audio if it doesn't exist
+if not exist %audio_modules_path% (
+    type nul > %audio_modules_path%
+)
+REM Load modules-audio flags from modules
+for /f "tokens=*" %%a in (%audio_modules_path%) do set "%%a"
+
+REM Create modules-video if it doesn't exist
+if not exist %video_modules_path% (
+    type nul > %video_modules_path%
+)
+REM Load modules-video flags from modules-video
+for /f "tokens=*" %%a in (%video_modules_path%) do set "%%a"
+
 
 
 REM Get the current PATH value from the registry
@@ -313,24 +351,24 @@ cls
 echo %blue_fg_strong%/ Home%reset%
 echo -------------------------------------------------------------
 echo What would you like to do?
-echo 1. Download mp4 video
-echo 2. Download mp3 audio
+echo 1. Download mp3 audio
+echo 2. Download mp4 video
 echo 3. Editor
 echo 4. Update
 echo 5. Uninstall yt-dlp
 echo 0. Exit
 
 set "choice="
-set /p "choice=Choose Your Destiny (default is 1): "
+set /p "choice=Choose Your Destiny: "
 
 REM Default to choice 1 if no input is provided
-if not defined choice set "choice=1"
+REM if not defined choice set "choice=1"
 
 REM ################## HOME - BACKEND #########################
 if "%choice%"=="1" (
-    call :start_ytdlp_mp4
-) else if "%choice%"=="2" (
     call :start_ytdlp_mp3
+) else if "%choice%"=="2" (
+    call :start_ytdlp_mp4
 ) else if "%choice%"=="3" (
     call :editor
 ) else if "%choice%"=="4" (
@@ -345,28 +383,6 @@ if "%choice%"=="1" (
     pause
     goto :home
 )
-
-:start_ytdlp_mp4
-title YT-DLP [DOWNLOAD MP4]
-cls
-set /p weburl="(0 to cancel) Insert URL: "
-
-if "%weburl%"=="0" goto :home
-
-REM Check if the URL input starts with "http", "https", or "www"
-echo %weburl% | findstr /R /C:"^https*://" /C:"^www\." > nul
-if errorlevel 1 (
-    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Invalid input. Please enter a valid URL.%reset%
-    echo %red_fg_strong%URL must start with one of the following: http://, https://, or www.%reset%
-    pause
-    goto :start_ytdlp_mp4
-)
-
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Downloading: %weburl%
-"%ytdlp_download_path%" -P "%ytdlp_video_path%" --embed-chapters -f "bv*[height>=4320]+ba/b[height>=4320] / bv*[height>=2160]+ba/b[height>=2160] / bv*[height>=1440]+ba/b[height>=1440] / bv*[height>=1080]+ba/b[height>=1080] / bv+ba/b" --merge-output-format mp4 -S vcodec:h264 -S acodec:mp3 --embed-metadata --embed-thumbnail -o "%%(title)s.%%(ext)s" -w %weburl% && echo [%DATE% %TIME%] [VIDEO] - %weburl%>>"%log_path%"
-pause
-goto :home
-
 
 :start_ytdlp_mp3
 title YT-DLP [DOWNLOAD MP3]
@@ -384,17 +400,722 @@ if errorlevel 1 (
     goto :start_ytdlp_mp3
 )
 
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading...
-"%ytdlp_download_path%" -P "%ytdlp_audio_path%" --embed-chapters -f "ba/b" -x --audio-format "mp3" -S acodec:mp3 --embed-metadata --embed-thumbnail -o "%%(title)s.%%(ext)s" -w %weburl% && echo [%DATE% %TIME%] [AUDIO] - %weburl%>>"%log_path%"
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading audio...
+REM echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading... "%ytdlp_download_path%" --print filename -o "%(title)s.%(ext)s" %weburl%
+"%ytdlp_download_path%" -P "%ytdlp_audio_path%" %audio_start_command% -f ba/b -x --embed-metadata --embed-chapters --embed-thumbnail -o "%%(title)s.%%(ext)s" -w %weburl% && echo [%DATE% %TIME%] [AUDIO] - %weburl%>>"%log_path%"
 pause
 goto :home
 
 
+:start_ytdlp_mp4
+title YT-DLP [DOWNLOAD MP4]
+cls
+set /p weburl="(0 to cancel) Insert URL: "
+
+if "%weburl%"=="0" goto :home
+
+REM Check if the URL input starts with "http", "https", or "www"
+echo %weburl% | findstr /R /C:"^https*://" /C:"^www\." > nul
+if errorlevel 1 (
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Invalid input. Please enter a valid URL.%reset%
+    echo %red_fg_strong%URL must start with one of the following: http://, https://, or www.%reset%
+    pause
+    goto :start_ytdlp_mp4
+)
+
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading video... 
+REM echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading... "%ytdlp_download_path%" --print filename -o "%(title)s.%(ext)s" %weburl%
+
+REM Read modules-video and find the video_start_command line
+set "video_start_command="
+for /F "tokens=*" %%a in ('findstr /I "video_start_command=" "%video_modules_path%"') do (
+    set "%%a"
+)
+set "video_start_command=%video_start_command:video_start_command=%"
+
+"%ytdlp_download_path%" -P "%ytdlp_video_path%" %video_start_command% -o "%%(title)s.%%(ext)s" -w %weburl% && echo [%DATE% %TIME%] [VIDEO] - %weburl%>>"%log_path%"
+pause
+goto :home
+
+
+REM ############################################################
+REM ################# EDITOR - FRONTEND ########################
+REM ############################################################
 :editor
-COMING SOON
-pause
-goto :home
+title YT-DLP [EDITOR]
+cls
+echo %blue_fg_strong%/ Home / Editor%reset%
+echo -------------------------------------------------------------
+echo What would you like to do?
 
+echo 1. Edit Audio Modules
+echo 2. Edit Video Modules 
+echo 0. Back
+
+set /p editor_choice=Choose Your Destiny: 
+
+REM ################# EDITOR - BACKEND ########################
+if "%editor_choice%"=="1" (
+    call :edit_audio_modules
+) else if "%editor_choice%"=="2" (
+    call :edit_video_modules
+) else if "%editor_choice%"=="0" (
+    goto :home
+) else (
+    echo [%DATE% %TIME%] %log_invalidinput% >> %log_path%
+    echo %red_bg%[%time%]%reset% %echo_invalidinput%
+    pause
+    goto :editor
+)
+
+REM ##################################################################################################################################################
+REM ##################################################################################################################################################
+REM ##################################################################################################################################################
+
+
+REM Function to print module options with color based on their status
+:printModule
+if "%2"=="true" (
+    echo %green_fg_strong%%1 [Enabled]%reset%
+) else (
+    echo %red_fg_strong%%1 [Disabled]%reset%
+)
+exit /b
+
+REM ############################################################
+REM ############## EDIT AUDIO MODULES - FRONTEND ###############
+REM ############################################################
+:edit_audio_modules
+title YT-DLP [EDIT AUDIO MODULES]
+cls
+echo %blue_fg_strong%/ Home / Editor / Edit Audio Modules%reset%
+echo -------------------------------------------------------------
+echo Choose Audio modules to enable or disable
+
+REM Display module options with colors based on their status
+call :printModule "1. SponsorBlock (--sponsorblock-remove all)" %audio_sponsorblock_trigger%
+call :printModule "2. Audio Format (--audio-format %audio_format%)" %audio_format_trigger%
+call :printModule "3. Audio Quality (--audio-quality %audio_quality%)" %audio_quality_trigger%
+call :printModule "4. Audio Codec (-S acodec:%audio_acodec%)" %audio_acodec_trigger%
+call :printModule "5. Metadata (--embed-metadata --embed-chapters --embed-thumbnail)" %audio_metadata_trigger%
+call :printModule "6. verbose (--verbose)" %audio_verbose_trigger%
+
+echo 00. Quick Download Audio
+echo 0. Back
+
+set "audio_command="
+
+set /p audio_module_choices=Choose modules to enable/disable: 
+
+REM Handle the user's module choices and construct the Python command
+for %%i in (%audio_module_choices%) do (
+    if "%%i"=="1" (
+        if "%audio_sponsorblock_trigger%"=="true" (
+            set "audio_sponsorblock_trigger=false"
+        ) else (
+            set "audio_sponsorblock_trigger=true"
+        )
+
+    ) else if "%%i"=="2" (
+        if "%audio_format_trigger%"=="true" (
+            set "audio_format_trigger=false"
+            goto :save_module_choise
+        ) else (
+            set "audio_format_trigger=true"
+        )
+
+        REM ############## SELECT AUDIO FORMAT - FRONTEND ###############
+        :audio_format_menu
+        title YT-DLP [SELECT AUDIO FORMAT]
+        cls
+        echo %blue_fg_strong%/ Home / Editor / Edit Audio Modules / SELECT AUDIO FORMAT%reset%
+        echo -------------------------------------------------------------
+        echo Select Audio Codec:
+        echo 1. mp3
+        echo 2. wav
+        echo 3. flac
+        echo 4. opus
+        echo 5. vorbis
+        echo 6. aac
+        echo 7. m4a
+        echo 8. alac
+        set /p audio_format_choice=Choose Your Destiny: 
+
+        REM ############## SELECT AUDIO FORMAT - BACKEND ################
+        if "%audio_format_choice%"=="1" (
+            set "audio_format=mp3"
+            goto :save_module_choise
+        ) else if "%audio_format_choice%"=="2" (
+            set "audio_format=wav"
+            goto :save_module_choise
+        ) else if "%audio_format_choice%"=="3" (
+            set "audio_format=flac"
+            goto :save_module_choise
+        ) else if "%audio_format_choice%"=="4" (
+            set "audio_format=opus"
+            goto :save_module_choise
+        ) else if "%audio_format_choice%"=="5" (
+            set "audio_format=vorbis"
+            goto :save_module_choise
+        ) else if "%audio_format_choice%"=="6" (
+            set "audio_format=aac"
+            goto :save_module_choise
+        ) else if "%audio_format_choice%"=="7" (
+            set "audio_format=m4a"
+            goto :save_module_choise
+        ) else if "%audio_format_choice%"=="8" (
+            set "audio_format=alac"
+            goto :save_module_choise
+        ) else (
+            echo [%DATE% %TIME%] [audio_format_menu] %log_invalidinput% >> %log_path%
+            echo %red_bg%[%time%] [audio_format_menu]%reset% %echo_invalidinput%
+            pause
+            goto :audio_format_menu
+        )
+
+
+    ) else if "%%i"=="3" (
+        if "%audio_quality_trigger%"=="true" (
+            set "audio_quality_trigger=false"
+            goto :save_module_choise
+        ) else (
+            set "audio_quality_trigger=true"
+        )
+
+        REM ############## SELECT AUDIO QUALITY - FRONTEND ###############
+        :audio_quality_menu
+        title YT-DLP [SELECT AUDIO QUALITY]
+        cls
+        echo %blue_fg_strong%/ Home / Editor / Edit Audio Modules / SELECT AUDIO QUALITY%reset%
+        echo -------------------------------------------------------------
+        echo Select Audio Quality:
+        echo 1. [0 Best]
+        echo 2. [1]
+        echo 3. [2]
+        echo 4. [3]
+        echo 5. [4]
+        echo 6. [5]
+        echo 7. [6]
+        echo 8. [7]
+        echo 9. [8]
+        echo 10. [9]
+        echo 11. [10 Worst]
+        set /p audio_quality_choice=Choose Your Destiny: 
+
+        REM ############## SELECT AUDIO QUALITY - BACKEND ################
+        if "%audio_quality_choice%"=="1" (
+            set "audio_quality=0"
+            goto :save_module_choise
+        ) else if "%audio_quality_choice%"=="2" (
+            set "audio_quality=1"
+            goto :save_module_choise
+        ) else if "%audio_quality_choice%"=="3" (
+            set "audio_quality=2"
+            goto :save_module_choise
+        ) else if "%audio_quality_choice%"=="4" (
+            set "audio_quality=3"
+            goto :save_module_choise
+        ) else if "%audio_quality_choice%"=="5" (
+            set "audio_quality=4"
+            goto :save_module_choise
+        ) else if "%audio_quality_choice%"=="6" (
+            set "audio_quality=5"
+            goto :save_module_choise
+        ) else if "%audio_quality_choice%"=="7" (
+            set "audio_quality=6"
+            goto :save_module_choise
+        ) else if "%audio_quality_choice%"=="8" (
+            set "audio_quality=7"
+            goto :save_module_choise
+        ) else if "%audio_quality_choice%"=="9" (
+            set "audio_quality=8"
+            goto :save_module_choise
+        ) else if "%audio_quality_choice%"=="10" (
+            set "audio_quality=9"
+            goto :save_module_choise
+        ) else if "%audio_quality_choice%"=="11" (
+            set "audio_quality=10"
+            goto :save_module_choise
+        ) else (
+            echo [%DATE% %TIME%] [audio_quality_menu] %log_invalidinput% >> %log_path%
+            echo %red_bg%[%time%] [audio_quality_menu]%reset% %echo_invalidinput%
+            pause
+            goto :audio_quality_menu
+        )
+
+    ) else if "%%i"=="4" (
+        if "%audio_acodec_trigger%"=="true" (
+            set "audio_acodec_trigger=false"
+            goto :save_module_choise
+        ) else (
+            set "audio_acodec_trigger=true"
+        )
+
+        REM ############## SELECT AUDIO CODEC - FRONTEND ###############
+        :audio_acodec_menu
+        title YT-DLP [SELECT AUDIO CODEC]
+        cls
+        echo %blue_fg_strong%/ Home / Editor / Edit Video Modules / SELECT AUDIO CODEC%reset%
+        echo -------------------------------------------------------------
+        echo Select Audio Codec:
+        echo 1. mp3
+        echo 2. wav
+        echo 3. flac
+        echo 4. opus
+        echo 5. vorbis
+        echo 6. aac
+        echo 7. mp4a
+        echo 8. ac4
+        set /p audio_acodec_choice=Choose Your Destiny: 
+
+        REM ############## SELECT AUDIO CODEC - BACKEND ################
+        if "%audio_acodec_choice%"=="1" (
+            set "audio_acodec=mp3"
+            goto :save_module_choise
+        ) else if "%audio_acodec_choice%"=="2" (
+            set "audio_acodec=wav"
+            goto :save_module_choise
+        ) else if "%audio_acodec_choice%"=="3" (
+            set "audio_acodec=flac"
+            goto :save_module_choise
+        ) else if "%audio_acodec_choice%"=="4" (
+            set "audio_acodec=opus"
+            goto :save_module_choise
+        ) else if "%audio_acodec_choice%"=="5" (
+            set "audio_acodec=vorbis"
+            goto :save_module_choise
+        ) else if "%audio_acodec_choice%"=="6" (
+            set "audio_acodec=aac"
+            goto :save_module_choise
+        ) else if "%audio_acodec_choice%"=="7" (
+            set "audio_acodec=mp4a"
+            goto :save_module_choise
+        ) else if "%audio_acodec_choice%"=="8" (
+            set "audio_acodec=ac4"
+            goto :save_module_choise
+        ) else (
+            echo [%DATE% %TIME%] [audio_acodec_menu] %log_invalidinput% >> %log_path%
+            echo %red_bg%[%time%] [audio_acodec_menu]%reset% %echo_invalidinput%
+            pause
+            goto :audio_acodec_menu
+        )
+
+    ) else if "%%i"=="5" (
+        if "%audio_metadata_trigger%"=="true" (
+            set "audio_metadata_trigger=false"
+        ) else (
+            set "audio_metadata_trigger=true"
+        )
+    ) else if "%%i"=="6" (
+        if "%audio_verbose_trigger%"=="true" (
+            set "audio_verbose_trigger=false"
+        ) else (
+            set "audio_verbose_trigger=true"
+        )
+
+    ) else if "%%i"=="00" (
+        goto :start_ytdlp_mp3
+
+    ) else if "%%i"=="0" (
+        goto :editor
+    )
+)
+
+REM Save the module flags to modules-audio
+echo audio_sponsorblock_trigger=%audio_sponsorblock_trigger%>%audio_modules_path%
+echo audio_format_trigger=%audio_format_trigger%>>%audio_modules_path%
+echo audio_quality_trigger=%audio_quality_trigger%>>%audio_modules_path%
+echo audio_acodec_trigger=%audio_acodec_trigger%>>%audio_modules_path%
+echo audio_metadata_trigger=%audio_metadata_trigger%>>%audio_modules_path%
+echo audio_verbose_trigger=%audio_verbose_trigger%>>%audio_modules_path%
+
+
+REM remove modules_enable
+set "modules_enable="
+
+REM Compile the Python command
+set "audio_command= "
+if "%audio_sponsorblock_trigger%"=="true" (
+    set "audio_command=%audio_command% --sponsorblock-remove all"
+)
+if "%audio_format_trigger%"=="true" (
+    set "audio_command=%audio_command% --audio-format %audio_format%"
+)
+if "%audio_quality_trigger%"=="true" (
+    set "audio_command=%audio_command% --audio-quality %audio_quality%"
+)
+if "%audio_acodec_trigger%"=="true" (
+    set "audio_command=%audio_command% -S acodec:%audio_acodec%"
+)
+if "%audio_metadata_trigger%"=="true" (
+    set "audio_command=%audio_command% --embed-metadata --embed-chapters --embed-thumbnail"
+)
+if "%audio_verbose_trigger%"=="true" (
+    set "audio_command=%audio_command% --verbose"
+)
+
+
+REM is modules_enable empty?
+if defined modules_enable (
+    REM remove last comma
+    set "modules_enable=%modules_enable:~0,-1%"
+)
+
+REM command completed
+if defined modules_enable (
+    set "audio_command=%audio_command% --enable-modules=%modules_enable%"
+)
+
+REM Save the constructed Python command to modules-audio for testing
+echo audio_start_command=%audio_command%>>%audio_modules_path%
+goto :edit_audio_modules
+
+
+
+REM ##################################################################################################################################################
+REM ##################################################################################################################################################
+REM ##################################################################################################################################################
+
+
+REM Function to print module options with color based on their status
+:printModule
+if "%2"=="true" (
+    echo %green_fg_strong%%1 [Enabled]%reset%
+) else (
+    echo %red_fg_strong%%1 [Disabled]%reset%
+)
+exit /b
+
+REM ############################################################
+REM ############## EDIT VIDEO MODULES - FRONTEND ###############
+REM ############################################################
+:edit_video_modules
+title YT-DLP [EDIT VIDEO MODULES]
+cls
+echo %blue_fg_strong%/ Home / Editor / Edit Video Modules%reset%
+echo -------------------------------------------------------------
+echo Choose Video modules to enable or disable.
+REM Read modules-video and find the video_start_command line
+set "video_start_command="
+for /F "tokens=*" %%a in ('findstr /I "video_start_command=" "%video_modules_path%"') do (
+    set "%%a"
+)
+set "video_start_command=%video_start_command:video_start_command=%"
+echo Preview: %cyan_fg_strong%%video_start_command%%reset%
+echo.
+
+REM Display module options with colors based on their status
+call :printModule "1. Sponsor Block (--sponsorblock-remove all)" %video_sponsorblock_trigger%
+call :printModule "2. Merge Output Format (--merge-output-format %mergeoutputformat%)" %video_mergeoutputformat_trigger%
+call :printModule "3. Resolution (-S res:%video_resolution%)" %video_resolution_trigger%
+call :printModule "4. Audio Codec (-S acodec:%video_acodec%)" %video_acodec_trigger%
+call :printModule "5. Video Codec (-S vcodec:%video_vcodec%)" %video_vcodec_trigger%
+call :printModule "6. Metadata (--embed-metadata --embed-chapters --embed-thumbnail)" %video_metadata_trigger%
+echo.
+echo 00. Quick Download Video
+echo 0. Back
+
+set "video_command="
+
+set /p video_module_choices=Choose modules to enable/disable: 
+
+REM Handle the user's module choices and construct the Python command
+for %%i in (%video_module_choices%) do (
+    if "%%i"=="1" (
+        if "%video_sponsorblock_trigger%"=="true" (
+            set "video_sponsorblock_trigger=false"
+        ) else (
+            set "video_sponsorblock_trigger=true"
+        )
+
+    ) else if "%%i"=="2" (
+        if "%video_mergeoutputformat_trigger%"=="true" (
+            set "video_mergeoutputformat_trigger=false"
+            goto :save_module_choise
+        ) else (
+            set "video_mergeoutputformat_trigger=true"
+        )
+        
+        REM ############## SELECT MERGE OUTPUT FORMAT - FRONTEND ###############
+        :mergoutputformat_menu
+        title YT-DLP [SELECT MERGE]
+        cls
+        echo %blue_fg_strong%/ Home / Editor / Edit Video Modules / SELECT FORMAT%reset%
+        echo -------------------------------------------------------------
+        echo Select a merge output format:
+        echo 1. mp4
+        echo 2. flv
+        echo 3. mkv
+        echo 4. mov
+        echo 5. avi
+        echo 6. webm
+        set /p mergeoutputformat_choice=Choose Your Destiny: 
+
+        REM ############## SELECT MERGE OUTPUT FORMAT - BACKEND ################
+        if "%mergeoutputformat_choice%"=="1" (
+            set "mergeoutputformat=mp4"
+            goto :save_module_choise
+        ) else if "%mergeoutputformat_choice%"=="2" (
+            set "mergeoutputformat=flv"
+            goto :save_module_choise
+        ) else if "%mergeoutputformat_choice%"=="3" (
+            set "mergeoutputformat=mkv"
+            goto :save_module_choise
+        ) else if "%mergeoutputformat_choice%"=="4" (
+            set "mergeoutputformat=mov"
+            goto :save_module_choise
+        ) else if "%mergeoutputformat_choice%"=="5" (
+            set "mergeoutputformat=avi"
+            goto :save_module_choise
+        ) else if "%mergeoutputformat_choice%"=="6" (
+            set "mergeoutputformat=webm"
+            goto :save_module_choise
+        ) else (
+            echo [%DATE% %TIME%] [mergoutputformat_menu] %log_invalidinput% >> %log_path%
+            echo %red_bg%[%time%] [mergoutputformat_menu]%reset% %echo_invalidinput%
+            pause
+            goto :mergoutputformat_menu
+        )
+
+    ) else if "%%i"=="3" (
+        if "%video_resolution_trigger%"=="true" (
+            set "video_resolution_trigger=false"
+            goto :save_module_choise
+        ) else (
+            set "video_resolution_trigger=true"
+        )
+
+        REM ############## SELECT RESOLUTION - FRONTEND ###############
+        :video_resolution_menu
+        title YT-DLP [SELECT RESOLUTION]
+        cls
+        echo %blue_fg_strong%/ Home / Editor / Edit Video Modules / SELECT RESOLUTION%reset%
+        echo -------------------------------------------------------------
+        echo Select Resolution:
+        echo 1. 4320p 8K
+        echo 2. 2160p 4K
+        echo 3. 1440p HD
+        echo 4. 1080p HD
+        echo 5. 720p
+        echo 6. 480p
+        echo 7. 360p
+        echo 8. 240p
+        echo 9. 144p
+        set /p video_resolution_choice=Choose Your Destiny: 
+
+        REM ############## SELECT RESOLUTION - BACKEND ################
+        if "%video_resolution_choice%"=="1" (
+            set "video_resolution=4320"
+            goto :save_module_choise
+        ) else if "%video_resolution_choice%"=="2" (
+            set "video_resolution=2160"
+            goto :save_module_choise
+        ) else if "%video_resolution_choice%"=="3" (
+            set "video_resolution=1440"
+            goto :save_module_choise
+        ) else if "%video_resolution_choice%"=="4" (
+            set "video_resolution=1080"
+            goto :save_module_choise
+        ) else if "%video_resolution_choice%"=="5" (
+            set "video_resolution=720"
+            goto :save_module_choise
+        ) else if "%video_resolution_choice%"=="6" (
+            set "video_resolution=480"
+            goto :save_module_choise
+        ) else if "%video_resolution_choice%"=="7" (
+            set "video_resolution=360"
+            goto :save_module_choise
+        ) else if "%video_resolution_choice%"=="8" (
+            set "video_resolution=240"
+            goto :save_module_choise
+        ) else if "%video_resolution_choice%"=="9" (
+            set "video_resolution=144"
+            goto :save_module_choise
+        ) else (
+            echo [%DATE% %TIME%] [video_resolution_menu] %log_invalidinput% >> %log_path%
+            echo %red_bg%[%time%] [video_resolution_menu]%reset% %echo_invalidinput%
+            pause
+            goto :video_resolution_menu
+        )
+
+    ) else if "%%i"=="4" (
+        if "%video_acodec_trigger%"=="true" (
+            set "video_acodec_trigger=false"
+            goto :save_module_choise
+        ) else (
+            set "video_acodec_trigger=true"
+        )
+
+        REM ############## SELECT AUDIO CODEC - FRONTEND ###############
+        :video_acodec_menu
+        title YT-DLP [SELECT AUDIO CODEC]
+        cls
+        echo %blue_fg_strong%/ Home / Editor / Edit Video Modules / SELECT AUDIO CODEC%reset%
+        echo -------------------------------------------------------------
+        echo Select Audio Codec:
+        echo 1. mp3
+        echo 2. wav
+        echo 3. flac
+        echo 4. opus
+        echo 5. vorbis
+        echo 6. aac
+        echo 7. mp4a
+        echo 8. ac4
+        set /p video_acodec_choice=Choose Your Destiny: 
+
+        REM ############## SELECT AUDIO CODEC - BACKEND ################
+        if "%video_acodec_choice%"=="1" (
+            set "video_acodec=mp3"
+            goto :save_module_choise
+        ) else if "%video_acodec_choice%"=="2" (
+            set "video_acodec=wav"
+            goto :save_module_choise
+        ) else if "%video_acodec_choice%"=="3" (
+            set "video_acodec=flac"
+            goto :save_module_choise
+        ) else if "%video_acodec_choice%"=="4" (
+            set "video_acodec=opus"
+            goto :save_module_choise
+        ) else if "%video_acodec_choice%"=="5" (
+            set "video_acodec=vorbis"
+            goto :save_module_choise
+        ) else if "%video_acodec_choice%"=="6" (
+            set "video_acodec=aac"
+            goto :save_module_choise
+        ) else if "%video_acodec_choice%"=="7" (
+            set "video_acodec=mp4a"
+            goto :save_module_choise
+        ) else if "%video_acodec_choice%"=="8" (
+            set "video_acodec=ac4"
+            goto :save_module_choise
+        ) else (
+            echo [%DATE% %TIME%] [video_acodec_menu] %log_invalidinput% >> %log_path%
+            echo %red_bg%[%time%] [video_acodec_menu]%reset% %echo_invalidinput%
+            pause
+            goto :video_acodec_menu
+        )
+
+    ) else if "%%i"=="5" (
+        if "%video_vcodec_trigger%"=="true" (
+            set "video_vcodec_trigger=false"
+            goto :save_module_choise
+        ) else (
+            set "video_vcodec_trigger=true"
+        )
+
+        REM ############## SELECT VIDEO CODEC - FRONTEND ###############
+        :video_vcodec_menu
+        title YT-DLP [SELECT VIDEO CODEC]
+        cls
+        echo %blue_fg_strong%/ Home / Editor / Edit Video Modules / SELECT VIDEO CODEC%reset%
+        echo -------------------------------------------------------------
+        echo Select Video Codec:
+        echo 1. h264
+        echo 2. h265
+        echo 3. h263
+        echo 4. av01
+        echo 5. vp9.2
+        echo 6. vp9
+        echo 7. vp8
+        echo 8. theora
+        set /p video_vcodec_choice=Choose Your Destiny: 
+
+        REM ############## SELECT VIDEO CODEC - BACKEND ################
+        if "%video_vcodec_choice%"=="1" (
+            set "video_vcodec=h264"
+            goto :save_module_choise
+        ) else if "%video_vcodec_choice%"=="2" (
+            set "video_vcodec=h265"
+            goto :save_module_choise
+        ) else if "%video_vcodec_choice%"=="3" (
+            set "video_vcodec=h263"
+            goto :save_module_choise
+        ) else if "%video_vcodec_choice%"=="4" (
+            set "video_vcodec=av01"
+            goto :save_module_choise
+        ) else if "%video_vcodec_choice%"=="5" (
+            set "video_vcodec=vp9.2"
+            goto :save_module_choise
+        ) else if "%video_vcodec_choice%"=="6" (
+            set "video_vcodec=vp9"
+            goto :save_module_choise
+        ) else if "%video_vcodec_choice%"=="7" (
+            set "video_vcodec=vp8"
+            goto :save_module_choise
+        ) else if "%video_vcodec_choice%"=="8" (
+            set "video_vcodec=theora"
+            goto :save_module_choise
+        ) else (
+            echo [%DATE% %TIME%] [video_vcodec_menu] %log_invalidinput% >> %log_path%
+            echo %red_bg%[%time%] [video_vcodec_menu]%reset% %echo_invalidinput%
+            pause
+            goto :video_vcodec_menu
+        )
+
+    ) else if "%%i"=="6" (
+        if "%video_metadata_trigger%"=="true" (
+            set "video_metadata_trigger=false"
+        ) else (
+            set "video_metadata_trigger=true"
+        )
+
+    ) else if "%%i"=="00" (
+        goto :start_ytdlp_mp4
+
+    ) else if "%%i"=="0" (
+        goto :editor
+    )
+)
+
+:save_module_choise
+REM Save the module flags to modules-video
+echo video_sponsorblock_trigger=%video_sponsorblock_trigger%>%video_modules_path%
+echo video_mergeoutputformat_trigger=%video_mergeoutputformat_trigger%>>%video_modules_path%
+echo video_resolution_trigger=%video_resolution_trigger%>>%video_modules_path%
+echo video_acodec_trigger=%video_acodec_trigger%>>%video_modules_path%
+echo video_vcodec_trigger=%video_vcodec_trigger%>>%video_modules_path%
+echo video_metadata_trigger=%video_metadata_trigger%>>%video_modules_path%
+
+
+REM remove modules_enable
+set "modules_enable="
+
+REM Compile the Python command
+set "video_command= "
+if "%video_sponsorblock_trigger%"=="true" (
+    set "video_command=%video_command% --sponsorblock-remove all"
+)
+if "%video_mergeoutputformat_trigger%"=="true" (
+    set "video_command=%video_command% --merge-output-format %mergeoutputformat%"
+)
+if "%video_resolution_trigger%"=="true" (
+    set "video_command=%video_command% -S res:%video_resolution%"
+)
+if "%video_acodec_trigger%"=="true" (
+    set "video_command=%video_command% -S acodec:%video_acodec%"
+)
+if "%video_vcodec_trigger%"=="true" (
+    set "video_command=%video_command% -S vcodec:%video_vcodec%"
+)
+if "%video_metadata_trigger%"=="true" (
+    set "video_command=%video_command% --embed-metadata --embed-chapters --embed-thumbnail"
+)
+
+
+REM is modules_enable empty?
+if defined modules_enable (
+    REM remove last comma
+    set "modules_enable=%modules_enable:~0,-1%"
+)
+
+REM command completed
+if defined modules_enable (
+    set "video_command=%video_command% --enable-modules=%modules_enable%"
+)
+
+REM Save the constructed Python command to modules-video for testing
+echo video_start_command=%video_command%>>%video_modules_path%
+goto :edit_video_modules
 
 :update_ytdlp
 REM Check if the file exists
