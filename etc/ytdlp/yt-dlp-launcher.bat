@@ -491,6 +491,14 @@ cls
 echo %blue_fg_strong%/ Home / Editor / Edit Audio Modules%reset%
 echo -------------------------------------------------------------
 echo Choose Audio modules to enable or disable
+REM Read modules-audio and find the audio_start_command line
+set "audio_start_command="
+for /F "tokens=*" %%a in ('findstr /I "audio_start_command=" "%audio_modules_path%"') do (
+    set "%%a"
+)
+set "audio_start_command=%audio_start_command:audio_start_command=%"
+echo Preview: %cyan_fg_strong%%audio_start_command%%reset%
+echo.
 
 REM Display module options with colors based on their status
 call :printModule "1. SponsorBlock (--sponsorblock-remove all)" %audio_sponsorblock_trigger%
@@ -500,6 +508,7 @@ call :printModule "4. Audio Codec (-S acodec:%audio_acodec%)" %audio_acodec_trig
 call :printModule "5. Metadata (--embed-metadata --embed-chapters --embed-thumbnail)" %audio_metadata_trigger%
 call :printModule "6. verbose (--verbose)" %audio_verbose_trigger%
 
+echo.
 echo 00. Quick Download Audio
 echo 0. Back
 
@@ -519,7 +528,7 @@ for %%i in (%audio_module_choices%) do (
     ) else if "%%i"=="2" (
         if "%audio_format_trigger%"=="true" (
             set "audio_format_trigger=false"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else (
             set "audio_format_trigger=true"
         )
@@ -544,28 +553,28 @@ for %%i in (%audio_module_choices%) do (
         REM ############## SELECT AUDIO FORMAT - BACKEND ################
         if "%audio_format_choice%"=="1" (
             set "audio_format=mp3"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_format_choice%"=="2" (
             set "audio_format=wav"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_format_choice%"=="3" (
             set "audio_format=flac"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_format_choice%"=="4" (
             set "audio_format=opus"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_format_choice%"=="5" (
             set "audio_format=vorbis"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_format_choice%"=="6" (
             set "audio_format=aac"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_format_choice%"=="7" (
             set "audio_format=m4a"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_format_choice%"=="8" (
             set "audio_format=alac"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else (
             echo [%DATE% %TIME%] [audio_format_menu] %log_invalidinput% >> %log_path%
             echo %red_bg%[%time%] [audio_format_menu]%reset% %echo_invalidinput%
@@ -577,7 +586,7 @@ for %%i in (%audio_module_choices%) do (
     ) else if "%%i"=="3" (
         if "%audio_quality_trigger%"=="true" (
             set "audio_quality_trigger=false"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else (
             set "audio_quality_trigger=true"
         )
@@ -605,37 +614,37 @@ for %%i in (%audio_module_choices%) do (
         REM ############## SELECT AUDIO QUALITY - BACKEND ################
         if "%audio_quality_choice%"=="1" (
             set "audio_quality=0"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_quality_choice%"=="2" (
             set "audio_quality=1"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_quality_choice%"=="3" (
             set "audio_quality=2"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_quality_choice%"=="4" (
             set "audio_quality=3"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_quality_choice%"=="5" (
             set "audio_quality=4"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_quality_choice%"=="6" (
             set "audio_quality=5"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_quality_choice%"=="7" (
             set "audio_quality=6"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_quality_choice%"=="8" (
             set "audio_quality=7"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_quality_choice%"=="9" (
             set "audio_quality=8"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_quality_choice%"=="10" (
             set "audio_quality=9"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_quality_choice%"=="11" (
             set "audio_quality=10"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else (
             echo [%DATE% %TIME%] [audio_quality_menu] %log_invalidinput% >> %log_path%
             echo %red_bg%[%time%] [audio_quality_menu]%reset% %echo_invalidinput%
@@ -646,7 +655,7 @@ for %%i in (%audio_module_choices%) do (
     ) else if "%%i"=="4" (
         if "%audio_acodec_trigger%"=="true" (
             set "audio_acodec_trigger=false"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else (
             set "audio_acodec_trigger=true"
         )
@@ -671,28 +680,28 @@ for %%i in (%audio_module_choices%) do (
         REM ############## SELECT AUDIO CODEC - BACKEND ################
         if "%audio_acodec_choice%"=="1" (
             set "audio_acodec=mp3"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_acodec_choice%"=="2" (
             set "audio_acodec=wav"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_acodec_choice%"=="3" (
             set "audio_acodec=flac"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_acodec_choice%"=="4" (
             set "audio_acodec=opus"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_acodec_choice%"=="5" (
             set "audio_acodec=vorbis"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_acodec_choice%"=="6" (
             set "audio_acodec=aac"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_acodec_choice%"=="7" (
             set "audio_acodec=mp4a"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else if "%audio_acodec_choice%"=="8" (
             set "audio_acodec=ac4"
-            goto :save_module_choise
+            goto :save_audio_module_choice
         ) else (
             echo [%DATE% %TIME%] [audio_acodec_menu] %log_invalidinput% >> %log_path%
             echo %red_bg%[%time%] [audio_acodec_menu]%reset% %echo_invalidinput%
@@ -721,6 +730,7 @@ for %%i in (%audio_module_choices%) do (
     )
 )
 
+:save_audio_module_choice
 REM Save the module flags to modules-audio
 echo audio_sponsorblock_trigger=%audio_sponsorblock_trigger%>%audio_modules_path%
 echo audio_format_trigger=%audio_format_trigger%>>%audio_modules_path%
@@ -831,7 +841,7 @@ for %%i in (%video_module_choices%) do (
     ) else if "%%i"=="2" (
         if "%video_mergeoutputformat_trigger%"=="true" (
             set "video_mergeoutputformat_trigger=false"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else (
             set "video_mergeoutputformat_trigger=true"
         )
@@ -854,22 +864,22 @@ for %%i in (%video_module_choices%) do (
         REM ############## SELECT MERGE OUTPUT FORMAT - BACKEND ################
         if "%mergeoutputformat_choice%"=="1" (
             set "mergeoutputformat=mp4"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%mergeoutputformat_choice%"=="2" (
             set "mergeoutputformat=flv"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%mergeoutputformat_choice%"=="3" (
             set "mergeoutputformat=mkv"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%mergeoutputformat_choice%"=="4" (
             set "mergeoutputformat=mov"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%mergeoutputformat_choice%"=="5" (
             set "mergeoutputformat=avi"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%mergeoutputformat_choice%"=="6" (
             set "mergeoutputformat=webm"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else (
             echo [%DATE% %TIME%] [mergoutputformat_menu] %log_invalidinput% >> %log_path%
             echo %red_bg%[%time%] [mergoutputformat_menu]%reset% %echo_invalidinput%
@@ -880,7 +890,7 @@ for %%i in (%video_module_choices%) do (
     ) else if "%%i"=="3" (
         if "%video_resolution_trigger%"=="true" (
             set "video_resolution_trigger=false"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else (
             set "video_resolution_trigger=true"
         )
@@ -906,31 +916,31 @@ for %%i in (%video_module_choices%) do (
         REM ############## SELECT RESOLUTION - BACKEND ################
         if "%video_resolution_choice%"=="1" (
             set "video_resolution=4320"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_resolution_choice%"=="2" (
             set "video_resolution=2160"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_resolution_choice%"=="3" (
             set "video_resolution=1440"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_resolution_choice%"=="4" (
             set "video_resolution=1080"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_resolution_choice%"=="5" (
             set "video_resolution=720"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_resolution_choice%"=="6" (
             set "video_resolution=480"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_resolution_choice%"=="7" (
             set "video_resolution=360"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_resolution_choice%"=="8" (
             set "video_resolution=240"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_resolution_choice%"=="9" (
             set "video_resolution=144"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else (
             echo [%DATE% %TIME%] [video_resolution_menu] %log_invalidinput% >> %log_path%
             echo %red_bg%[%time%] [video_resolution_menu]%reset% %echo_invalidinput%
@@ -941,7 +951,7 @@ for %%i in (%video_module_choices%) do (
     ) else if "%%i"=="4" (
         if "%video_acodec_trigger%"=="true" (
             set "video_acodec_trigger=false"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else (
             set "video_acodec_trigger=true"
         )
@@ -966,28 +976,28 @@ for %%i in (%video_module_choices%) do (
         REM ############## SELECT AUDIO CODEC - BACKEND ################
         if "%video_acodec_choice%"=="1" (
             set "video_acodec=mp3"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_acodec_choice%"=="2" (
             set "video_acodec=wav"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_acodec_choice%"=="3" (
             set "video_acodec=flac"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_acodec_choice%"=="4" (
             set "video_acodec=opus"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_acodec_choice%"=="5" (
             set "video_acodec=vorbis"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_acodec_choice%"=="6" (
             set "video_acodec=aac"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_acodec_choice%"=="7" (
             set "video_acodec=mp4a"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_acodec_choice%"=="8" (
             set "video_acodec=ac4"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else (
             echo [%DATE% %TIME%] [video_acodec_menu] %log_invalidinput% >> %log_path%
             echo %red_bg%[%time%] [video_acodec_menu]%reset% %echo_invalidinput%
@@ -998,7 +1008,7 @@ for %%i in (%video_module_choices%) do (
     ) else if "%%i"=="5" (
         if "%video_vcodec_trigger%"=="true" (
             set "video_vcodec_trigger=false"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else (
             set "video_vcodec_trigger=true"
         )
@@ -1023,28 +1033,28 @@ for %%i in (%video_module_choices%) do (
         REM ############## SELECT VIDEO CODEC - BACKEND ################
         if "%video_vcodec_choice%"=="1" (
             set "video_vcodec=h264"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_vcodec_choice%"=="2" (
             set "video_vcodec=h265"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_vcodec_choice%"=="3" (
             set "video_vcodec=h263"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_vcodec_choice%"=="4" (
             set "video_vcodec=av01"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_vcodec_choice%"=="5" (
             set "video_vcodec=vp9.2"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_vcodec_choice%"=="6" (
             set "video_vcodec=vp9"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_vcodec_choice%"=="7" (
             set "video_vcodec=vp8"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else if "%video_vcodec_choice%"=="8" (
             set "video_vcodec=theora"
-            goto :save_module_choise
+            goto :save_video_module_choice
         ) else (
             echo [%DATE% %TIME%] [video_vcodec_menu] %log_invalidinput% >> %log_path%
             echo %red_bg%[%time%] [video_vcodec_menu]%reset% %echo_invalidinput%
@@ -1067,7 +1077,7 @@ for %%i in (%video_module_choices%) do (
     )
 )
 
-:save_module_choise
+:save_video_module_choice
 REM Save the module flags to modules-video
 echo video_sponsorblock_trigger=%video_sponsorblock_trigger%>%video_modules_path%
 echo video_mergeoutputformat_trigger=%video_mergeoutputformat_trigger%>>%video_modules_path%
