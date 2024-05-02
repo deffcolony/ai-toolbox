@@ -6,8 +6,4 @@ SillyTavern-backups/
 xtts/
 modules.txt
 modules-xtts.txt
-etc/ytdlp/yt-dlp-downloads/settings/modules-audio.txt
-etc/ytdlp/yt-dlp-downloads/settings/modules-video.txt
-etc/ytdlp/yt-dlp-downloads/yt-dlp.exe
-etc/ytdlp/yt-dlp-downloads/logs.log
-/etc/ytdlp/yt-dlp-downloads
+etc/ytdlp/yt-dlp-downloads/
