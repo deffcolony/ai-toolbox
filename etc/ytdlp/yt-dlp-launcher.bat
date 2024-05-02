@@ -379,34 +379,33 @@ echo 0. Exit
 REM Get user choice
 set /p "choice=Choose Your Destiny: "
 
+REM Validate the input before proceeding
+if "%choice%"=="0" goto choice0
+if "%choice%"=="1" goto choice1
+if "%choice%"=="2" goto choice2
+if "%choice%"=="3" goto choice3
+if "%choice%"=="4" goto choice4
+if "%choice%"=="5" goto choice5
 
-REM Choice execution
-goto choice%choice%
-
-REM ################## HOME - BACKEND #########################
-
-REM Default choice if empty
-if not defined choice set "choice=1"
+echo [%DATE% %TIME%] %log_invalidinput% >> %log_path%
+echo %red_bg%[%time%]%reset% %echo_invalidinput%
+pause
+goto :home
 
 :choice1
 call :start_ytdlp_mp3
-goto home
 
 :choice2
 call :start_ytdlp_mp4
-goto home
 
 :choice3
 call :editor
-goto home
 
 :choice4
 call :update_ytdlp
-goto home
 
 :choice5
 call :uninstall_ytdlp
-goto home
 
 :choice0
 exit /b
@@ -423,7 +422,7 @@ if not defined MenuChoice%choice% (
     echo [%DATE% %TIME%] %log_invalidinput% >> %log_path%
     echo %red_bg%[%time%]%reset% %echo_invalidinput%
     pause
-    goto home
+    goto :home
 )
 
 
@@ -512,28 +511,26 @@ if not defined EditorChoice%editor_choice% (
     echo [%DATE% %TIME%] %log_invalidinput% >> %log_path%
     echo %red_bg%[%time%]%reset% %echo_invalidinput%
     pause
-    goto title YT-DLP [EDITOR]
+    goto :editor
 )
 
 REM Choice execution
-goto editor_choice%editor_choice%
+goto :editor_choice%editor_choice%
 
 :editor_choice1
 call :edit_audio_modules
-goto title YT-DLP [EDITOR]
 
 :editor_choice2
 call :edit_video_modules
-goto title YT-DLP [EDITOR]
 
 :editor_choice0
-goto home
+goto :home
 
 REM If invalid choice
 echo [%DATE% %TIME%] %log_invalidinput% >> %log_path%
 echo %red_bg%[%time%]%reset% %echo_invalidinput%
 pause
-goto title YT-DLP [EDITOR]
+goto :editor
 
 
 REM ##################################################################################################################################################
@@ -917,12 +914,22 @@ REM ############################################################
         cls
         echo %blue_fg_strong%/ Home / Editor / Edit Video Modules / SELECT VIDEO RESOLUTION%reset%
         echo -------------------------------------------------------------
-        set "resolutions=4320p 2160p 1440p 1080p 720p 480p 360p 240p 144p"
+        set "resolutions=4320 2160 1440 1080 720 480 360 240 144"
         echo 1. Disable this setting
         set /a count=2
 
         for %%r in (%resolutions%) do (
-            echo !count!. %%r
+            if "%%r"=="4320" (
+                echo !count!. %%rp 8K
+            ) else if "%%r"=="2160" (
+                echo !count!. %%rp 4K
+            ) else if "%%r"=="1440" (
+                echo !count!. %%rp HD
+            ) else if "%%r"=="1080" (
+                echo !count!. %%rp HD
+            ) else (
+                echo !count!. %%rp
+            )
             set /a count+=1
         )
 
@@ -944,7 +951,7 @@ REM ############################################################
                 if "!count!"=="!idx!" (
                     set "video_resolution_trigger=true"
                     set "video_resolution=%%r"
-                    echo Resolution set to: !video_resolution!
+                    echo Resolution set to: !video_resolution!p
                     pause
                     call :save_video_settings
                     goto :video-editor-menu
