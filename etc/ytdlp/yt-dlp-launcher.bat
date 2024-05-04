@@ -449,7 +449,10 @@ if errorlevel 1 (
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading audio...
 REM echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading... "%ytdlp_download_path%" --print filename -o "%(title)s.%(ext)s" %weburl%
-"%ytdlp_download_path%" -P "%ytdlp_audio_path%" %audio_start_command% -f ba/b -x --embed-metadata --embed-chapters --embed-thumbnail -o "%%(title)s.%%(ext)s" -w %weburl% && echo [%DATE% %TIME%] [AUDIO] - %weburl%>>"%log_path%"
+"%ytdlp_download_path%" -P "%ytdlp_audio_path%" %audio_start_command% -f ba/b -x -o "%%(title)s.%%(ext)s" -w %weburl% && echo [%DATE% %TIME%] [AUDIO] - %weburl%>>"%log_path%"
+
+REM Open the output folder when download is finished
+start "" "%ytdlp_audio_path%"
 pause
 goto :home
 
@@ -481,6 +484,9 @@ for /F "tokens=*" %%a in ('findstr /I "video_start_command=" "%video_modules_pat
 set "video_start_command=%video_start_command:video_start_command=%"
 
 "%ytdlp_download_path%" -P "%ytdlp_video_path%" %video_start_command% -o "%%(title)s.%%(ext)s" -w %weburl% && echo [%DATE% %TIME%] [VIDEO] - %weburl%>>"%log_path%"
+
+REM Open the output folder when download is finished
+start "" "%ytdlp_video_path%"
 pause
 goto :home
 
