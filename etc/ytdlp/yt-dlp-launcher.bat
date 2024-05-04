@@ -171,7 +171,7 @@ if %ff_path_exists% neq 0 (
     REM Update the PATH value in the registry
     reg add "HKCU\Environment" /v PATH /t REG_EXPAND_SZ /d "!new_path!" /f
 
-    REM Update the PATH value for the current session
+    REM Update the PATH value to activate the command on system level
     setx PATH "!new_path!" > nul
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%winget added to PATH.%reset%
 ) else (
@@ -214,6 +214,21 @@ if %errorlevel% neq 0 (
 )
 
 
+REM Update the PATH value to activate the command for the current session
+set PATH=%PATH%;%zip7_install_path%;%ffmpeg_path_bin%
+
+REM Check if 7-Zip is installed
+7z > nul 2>&1
+if %errorlevel% neq 0 (
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] 7z command not found in PATH.%reset%
+    echo %red_fg_strong%7-Zip is not installed or not found in the system PATH.%reset%
+    title YT-DLP [INSTALL-7Z]
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing 7-Zip...
+    winget install -e --id 7zip.7zip
+
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%7-Zip installed successfully.%reset%
+)
+
 rem Get the current PATH value from the registry
 for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v PATH') do set "current_path=%%B"
 
@@ -236,13 +251,15 @@ if %zip7_path_exists% neq 0 (
     REM Update the PATH value in the registry
     reg add "HKCU\Environment" /v PATH /t REG_EXPAND_SZ /d "!new_path!" /f
 
-    REM Update the PATH value for the current session
+    REM Update the PATH value to activate the command on system level
     setx PATH "!new_path!" > nul
+
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%7-zip added to PATH.%reset%
 ) else (
     set "new_path=%current_path%"
     echo %blue_fg_strong%[INFO] 7-Zip already exists in PATH.%reset%
 )
+
 
 
 rem Get the current PATH value from the registry
@@ -267,7 +284,7 @@ if %ff_path_exists% neq 0 (
     REM Update the PATH value in the registry
     reg add "HKCU\Environment" /v PATH /t REG_EXPAND_SZ /d "!new_path!" /f
 
-    REM Update the PATH value for the current session
+    REM Update the PATH value to activate the command on system level
     setx PATH "!new_path!" > nul
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%ffmpeg added to PATH.%reset%
 ) else (
@@ -275,20 +292,6 @@ if %ff_path_exists% neq 0 (
     echo %blue_fg_strong%[INFO] ffmpeg already exists in PATH.%reset%
 )
 
-
-REM Check if 7-Zip is installed
-7z > nul 2>&1
-if %errorlevel% neq 0 (
-    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] 7z command not found in PATH.%reset%
-    echo %red_fg_strong%7-Zip is not installed or not found in the system PATH.%reset%
-    title YT-DLP [INSTALL-7Z]
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing 7-Zip...
-    winget install -e --id 7zip.7zip
-
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%7-Zip installed successfully. Please restart yt-dlp-launcher%reset%
-    pause
-    exit
-)
 
 REM Check if ffmpeg is installed
 if not exist "%ffmpeg_extract_path%" (
@@ -315,7 +318,6 @@ if not exist "%ffmpeg_extract_path%" (
     del "%ffmpeg_download_path%"
 )
 
-
 REM Check if the file exists
 if not exist "%ytdlp_download_path%" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing yt-dlp...
@@ -339,12 +341,14 @@ if /i "%create_shortcut%"=="Y" (
         "$Shortcut.Description = '%comment%'; " ^
         "$Shortcut.Save()"
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Shortcut created on the desktop.%reset%
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%yt-dlp installed successfully. Please restart yt-dlp-launcher%reset%
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%yt-dlp installed successfully.%reset%
     pause
+    start "" yt-dlp-launcher.bat
     exit
 ) else (
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%yt-dlp installed successfully. Please restart yt-dlp-launcher%reset%
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%yt-dlp installed successfully.%reset%
     pause
+    start "" yt-dlp-launcher.bat
     exit
 )
 
