@@ -691,43 +691,52 @@ cls
 echo %blue_fg_strong%/ Home / Editor / Edit Audio Modules / SELECT AUDIO QUALITY%reset%
 echo -------------------------------------------------------------
 
+REM Define the available quality levels with explicit mapping to choice numbers
+set "quality0=0"
+set "quality1=1"
+set "quality2=2"
+set "quality3=3"
+set "quality4=4"
+set "quality5=5"
+set "quality6=6"
+set "quality7=7"
+set "quality8=8"
+set "quality9=9"
+set "quality10=10 [Worst Quality]"
+set /a count=1
+
 REM Display quality options from 0 (best) to 10 (worst)
 echo 1. [0] [Best Quality]
 for /L %%q in (1,1,9) do (
-    set /a p=%%q+1
-    echo !p!. [%%q]
+    set /a option=%%q+1
+    echo !option!. !quality%%q!
 )
 echo 11. [10] [Worst Quality]
-
-echo %red_fg_strong%00. Disable this module%reset%
+echo 00. Disable this module
 echo 0. Cancel
 set /p audio_quality_choice="Your choice: "
 
-REM Handle 'Cancel' selection
-if "!audio_quality_choice!"=="0" (
-    goto :audio-editor-menu
-)
-
-REM Handle 'Disable' selection
+REM Handle 'Cancel' and 'Disable' selection
+if "!audio_quality_choice!"=="0" goto audio-editor-menu
 if "!audio_quality_choice!"=="00" (
     set "audio_quality_trigger=false"
     call :save_audio_settings
     goto :audio-editor-menu
 )
 
-REM Set quality based on valid selection
-if "!audio_quality_choice!" geq "1" if "!audio_quality_choice!" leq "11" (
-    set /a audio_quality=!audio_quality_choice! - 1
+REM Set quality based on selection and enable the trigger
+set /a idx=!audio_quality_choice!-1
+if defined quality%idx% (
+    set "audio_quality=!quality%idx%!"
     set "audio_quality_trigger=true"
     call :save_audio_settings
-    goto :audio-editor-menu
+    goto :audio_editor_menu
 ) else (
     echo [%DATE% %TIME%] %log_invalidinput% >> %log_path%
-    echo %red_bg%[%time%]%reset% %echo_invalidinput%
+    echo %red_bg%[%time%]%reset% Invalid input. Please enter a valid number.
     pause
     goto :audio_quality_menu
 )
-
 
 :audio_acodec_menu
 title YT-DLP [SELECT AUDIO CODEC]
