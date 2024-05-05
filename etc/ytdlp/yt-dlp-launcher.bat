@@ -646,25 +646,25 @@ for %%a in (%formats%) do (
     echo !count!. %%a
     set /a count+=1
 )
-echo %red_fg_strong%0. Disable this module%reset%
-echo 00. Cancel
+echo %red_fg_strong%00. Disable this module%reset%
+echo 0. Cancel
 set /p audio_format_choice="Your choice: "
 
 REM Handle 'Cancel' selection
-if "!audio_format_choice!"=="00" (
+if "!audio_format_choice!"=="0" (
     goto :audio-editor-menu
 )
 
 REM Handle 'Disable' selection
-if "!audio_format_choice!"=="0" (
+if "!audio_format_choice!"=="00" (
     set "audio_format_trigger=false"
     call :save_audio_settings
     goto :audio-editor-menu
 )
 
 REM Adjust index to map to format list
-set /a idx=!audio_format_choice! - 1
-set /a validChoiceMax=count-1  
+set /a idx=!audio_format_choice! 
+set /a validChoiceMax=count 
 
 REM Set format based on selection and enable the trigger
 if "!audio_format_choice!" geq "1" if "!audio_format_choice!" leq "!validChoiceMax!" (
@@ -693,30 +693,31 @@ echo -------------------------------------------------------------
 
 REM Display quality options from 0 (best) to 10 (worst)
 echo 1. [0] [Best Quality]
-for /L %%q in (1,1,10) do (
-    echo %%q. [%%q]
+for /L %%q in (1,1,9) do (
+    set /a p=%%q+1
+    echo !p!. [%%q]
 )
-echo 10. [10] [Worst Quality]
+echo 11. [10] [Worst Quality]
 
-echo %red_fg_strong%0. Disable this module%reset%
-echo 00. Cancel
+echo %red_fg_strong%00. Disable this module%reset%
+echo 0. Cancel
 set /p audio_quality_choice="Your choice: "
 
 REM Handle 'Cancel' selection
-if "!audio_quality_choice!"=="00" (
+if "!audio_quality_choice!"=="0" (
     goto :audio-editor-menu
 )
 
 REM Handle 'Disable' selection
-if "!audio_quality_choice!"=="0" (
+if "!audio_quality_choice!"=="00" (
     set "audio_quality_trigger=false"
     call :save_audio_settings
     goto :audio-editor-menu
 )
 
 REM Set quality based on valid selection
-if "!audio_quality_choice!" geq "0" if "!audio_quality_choice!" leq "10" (
-    set "audio_quality=!audio_quality_choice!"
+if "!audio_quality_choice!" geq "1" if "!audio_quality_choice!" leq "11" (
+    set /a audio_quality=!audio_quality_choice! - 1
     set "audio_quality_trigger=true"
     call :save_audio_settings
     goto :audio-editor-menu
@@ -736,8 +737,7 @@ echo -------------------------------------------------------------
 
 REM Define the available codecs
 set "codecs=mp3 wav flac opus vorbis aac mp4a ac4"
-echo 1. Disable module
-set /a count=2
+set /a count=1
 
 REM Display codec options
 for %%a in (%codecs%) do (
@@ -745,7 +745,8 @@ for %%a in (%codecs%) do (
     set /a count+=1
 )
 
-echo 00. Cancel
+echo %red_fg_strong%00. Disable this module%reset%
+echo 0. Cancel
 set /p audio_acodec_choice="Your choice: "
 
 REM Handle 'Cancel' selection
@@ -754,18 +755,18 @@ if "!audio_acodec_choice!"=="0" (
 )
 
 REM Handle 'Disable' selection
-if "!audio_acodec_choice!"=="1" (
+if "!audio_acodec_choice!"=="00" (
     set "audio_acodec_trigger=false"
     call :save_audio_settings
     goto :audio-editor-menu
 )
 
 REM Adjust index to map to codec list
-set /a idx=!audio_acodec_choice! - 2
-set /a validChoiceMax=count-2  
+set /a idx=!audio_acodec_choice! 
+set /a validChoiceMax=count
 
 REM Set codec based on selection and enable the trigger
-if "!audio_acodec_choice!" geq "2" if "!audio_acodec_choice!" leq "!validChoiceMax!" (
+if "!audio_acodec_choice!" geq "1" if "!audio_acodec_choice!" leq "!validChoiceMax!" (
     set /a acount=1
     for %%a in (%codecs%) do (
         if "!acount!"=="!idx!" (
@@ -863,7 +864,8 @@ REM ############################################################
         echo %blue_fg_strong%/ Home / Editor / Edit Video Modules / SELECT MERGE OUTPUT FORMAT%reset%
         echo -------------------------------------------------------------
         set "formats=mp4 flv mkv mov avi webm"
-        set /a count=2
+        REM This is the main count offset
+        set /a count=1
 
         for %%f in (%formats%) do (
             echo !count!. %%f
@@ -882,7 +884,7 @@ REM ############################################################
             goto :edit_video_modules
         ) else if "!mergeoutputformat_choice!" geq "1" if "!mergeoutputformat_choice!" leq "6" (
             set "video_mergeoutputformat_trigger=true"
-            set /a idx=!mergeoutputformat_choice! - 1
+            set /a idx=!mergeoutputformat_choice! 
             set /a count=1
             for %%f in (%formats%) do (
                 if "!count!"=="!idx!" (
@@ -892,9 +894,7 @@ REM ############################################################
                 )
                 set /a count+=1
             )
-        ) else if "!mergeoutputformat_choice!"=="00" (
-            goto :edit_video_modules
-        )
+        ) 
 
         echo [%DATE% %TIME%] %log_invalidinput% >> %log_path%
         echo %red_bg%[%time%]%reset% %echo_invalidinput%
@@ -910,7 +910,7 @@ REM ############################################################
         echo %blue_fg_strong%/ Home / Editor / Edit Video Modules / SELECT VIDEO RESOLUTION%reset%
         echo -------------------------------------------------------------
         set "resolutions=4320 2160 1440 1080 720 480 360 240 144"
-        set /a count=2
+        set /a count=1
 
         for %%r in (%resolutions%) do (
             if "%%r"=="4320" (
@@ -927,19 +927,19 @@ REM ############################################################
             set /a count+=1
         )
 
-        echo %red_fg_strong%0. Disable this module%reset%
-        echo 00. Cancel
+        echo %red_fg_strong%00. Disable this module%reset%
+        echo 0. Cancel
         set /p video_resolution_choice="Your choice: "
 
-        if "!video_resolution_choice!"=="00" (
+        if "!video_resolution_choice!"=="0" (
             goto :edit_video_modules
-        ) else if "!video_resolution_choice!"=="0" (
+        ) else if "!video_resolution_choice!"=="00" (
             set "video_resolution_trigger=false"
             call :save_video_settings
             goto :edit_video_modules
         ) else (
-            set /a idx=video_resolution_choice - 2
-            set /a count=0
+            set /a idx=video_resolution_choice 
+            set /a count=1
             for %%r in (%resolutions%) do (
                 if "!count!"=="!idx!" (
                     set "video_resolution_trigger=true"
@@ -963,26 +963,26 @@ REM ############################################################
         echo %blue_fg_strong%/ Home / Editor / Edit Video Modules / SELECT AUDIO CODEC%reset%
         echo -------------------------------------------------------------
         set "codecs=mp3 wav flac opus vorbis aac mp4a ac4"
-        echo 1. Disable module
-        set /a count=2
+        
+        set /a count=1
 
         for %%c in (%codecs%) do (
             echo !count!. %%c
             set /a count+=1
         )
-
-        echo 00. Cancel
+        echo %red_fg_strong%00. Disable this module%reset%
+        echo 0. Cancel
         set /p video_acodec_choice="Your choice: "
 
         if "!video_acodec_choice!"=="0" (
             goto :edit_video_modules
-        ) else if "!video_acodec_choice!"=="1" (
+        ) else if "!video_acodec_choice!"=="00" (
             set "video_acodec_trigger=false"
             call :save_video_settings
             goto :edit_video_modules
         ) else (
-            set /a idx=!video_acodec_choice! - 2
-            set /a count=0
+            set /a idx=!video_acodec_choice! 
+            set /a count=1
             for %%c in (%codecs%) do (
                 if "!count!"=="!idx!" (
                     set "video_acodec_trigger=true"
@@ -1008,8 +1008,7 @@ REM ############################################################
 
         REM Define the available codecs
         set "codecs=h264 h265 h263 av01 vp9.2 vp9 vp8 theora"
-        echo 1. Disable module
-        set /a count=2
+        set /a count=1
 
         REM Display codec options
         for %%v in (%codecs%) do (
@@ -1017,7 +1016,8 @@ REM ############################################################
             set /a count+=1
         )
 
-        echo 00. Cancel
+        echo %red_fg_strong%00. Disable this module%reset%
+        echo 0. Cancel
         set /p video_vcodec_choice="Your choice: "
 
         REM Handle 'Cancel' selection
@@ -1026,15 +1026,15 @@ REM ############################################################
         )
 
         REM Handle 'Disable' selection
-        if "!video_vcodec_choice!"=="1" (
+        if "!video_vcodec_choice!"=="00" (
             set "video_vcodec_trigger=false"
             call :save_video_settings
             goto :edit_video_modules
         )
 
         REM Adjust index to map to codec list
-        set /a idx=!video_vcodec_choice! - 1
-        set /a validChoiceMax=!count! - 1 
+        set /a idx=!video_vcodec_choice! 
+        set /a validChoiceMax=!count! 
 
         REM Set codec based on selection and enable the trigger
         if "!video_vcodec_choice!" geq "1" if "!video_vcodec_choice!" leq "!validChoiceMax!" (
