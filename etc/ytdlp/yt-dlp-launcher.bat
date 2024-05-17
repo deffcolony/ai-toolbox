@@ -40,10 +40,10 @@ set "zip7_install_path=%ProgramFiles%\7-Zip"
 set "zip7_download_path=%TEMP%\%zip7_version%.exe"
 
 REM Environment Variables (FFmpeg)
-set "ffmpeg_url=https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z"
+set "ffmpeg_download_url=https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z"
 set "ffmpeg_download_path=%~dp0yt-dlp-downloads\ffmpeg.7z"
-set "ffmpeg_extract_path=C:\ffmpeg"
-set "ffmpeg_path_bin=%ffmpeg_extract_path%\bin"
+set "ffmpeg_install_path=C:\ffmpeg"
+set "ffmpeg_path_bin=%ffmpeg_install_path%\bin"
 
 REM Environment Variables (YT-DLP)
 set "ytdlp_download_url=https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe"
@@ -294,25 +294,25 @@ if %ff_path_exists% neq 0 (
 
 
 REM Check if ffmpeg is installed
-if not exist "%ffmpeg_extract_path%" (
+if not exist "%ffmpeg_install_path%" (
     title YT-DLP [INSTALL-FFMPEG]
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading FFmpeg archive...
-    curl -L -o "%ffmpeg_download_path%" "%ffmpeg_url%"
+    curl -L -o "%ffmpeg_download_path%" "%ffmpeg_download_url%"
 
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating ffmpeg directory if it doesn't exist...
-    if not exist "%ffmpeg_extract_path%" (
-        mkdir "%ffmpeg_extract_path%"
+    if not exist "%ffmpeg_install_path%" (
+        mkdir "%ffmpeg_install_path%"
     )
 
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Extracting FFmpeg archive...
-    7z x "%ffmpeg_download_path%" -o"%ffmpeg_extract_path%"
+    7z x "%ffmpeg_download_path%" -o"%ffmpeg_install_path%"
 
 
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Moving FFmpeg contents to C:\ffmpeg...
-    for /d %%i in ("%ffmpeg_extract_path%\ffmpeg-*-full_build") do (
-        xcopy "%%i\bin" "%ffmpeg_extract_path%\bin" /E /I /Y
-        xcopy "%%i\doc" "%ffmpeg_extract_path%\doc" /E /I /Y
-        xcopy "%%i\presets" "%ffmpeg_extract_path%\presets" /E /I /Y
+    for /d %%i in ("%ffmpeg_install_path%\ffmpeg-*-full_build") do (
+        xcopy "%%i\bin" "%ffmpeg_install_path%\bin" /E /I /Y
+        xcopy "%%i\doc" "%ffmpeg_install_path%\doc" /E /I /Y
+        xcopy "%%i\presets" "%ffmpeg_install_path%\presets" /E /I /Y
         rd "%%i" /S /Q
     )
     del "%ffmpeg_download_path%"
