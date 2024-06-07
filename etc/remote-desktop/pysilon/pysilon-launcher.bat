@@ -230,7 +230,7 @@ set retry_count=0
 
 :retry_install_pysilon
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning PySilon repository...
-git clone https://github.com/mategol/PySilon-malware.git
+git clone —depth 1 https://github.com/mategol/PySilon-malware.git
 
 if %errorlevel% neq 0 (
     set /A retry_count+=1
