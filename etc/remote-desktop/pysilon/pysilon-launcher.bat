@@ -252,7 +252,6 @@ call conda activate pysilon
 
 REM Install pip requirements
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements
-python -m pip install --upgrade pip
 pip install pillow
 pip install pyinstaller
 pip install -r requirements.txt
