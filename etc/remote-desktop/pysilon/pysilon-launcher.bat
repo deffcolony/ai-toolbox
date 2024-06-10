@@ -47,9 +47,9 @@ REM Define the paths and filenames for the shortcut creation
 set "shortcutTarget=%~dp0pysilon-launcher.bat"
 set "iconFile=%~dp0pysilon.ico"
 set "desktopPath=%userprofile%\Desktop"
-set "shortcutName=pysilon.lnk"
+set "shortcutName=PySilon Launcher.lnk"
 set "startIn=%~dp0"
-set "comment=pysilon"
+set "comment=PySilon Launcher to manage the app."
 
 cd /d "%~dp0"
 
@@ -230,7 +230,7 @@ set retry_count=0
 
 :retry_install_pysilon
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning PySilon repository...
-git clone —depth 1 https://github.com/mategol/PySilon-malware.git
+git clone https://github.com/mategol/PySilon-malware.git
 
 if %errorlevel% neq 0 (
     set /A retry_count+=1
