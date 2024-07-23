@@ -59,7 +59,7 @@
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>8</Order>
-					<Path>cmd.exe /c "&gt;&gt;"X:\diskpart.txt" echo SHRINK MINIMUM=1000"</Path>
+					<Path>cmd.exe /c "&gt;&gt;"X:\diskpart.txt" echo SHRINK MINIMUM=1024"</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>9</Order>
