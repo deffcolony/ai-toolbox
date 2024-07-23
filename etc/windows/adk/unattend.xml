@@ -339,6 +339,17 @@
 					</LocalAccount>
 				</LocalAccounts>
 			</UserAccounts>
+<!--            <OEMInformation> -->
+<!--                <Manufacturer>mycompany</Manufacturer> -->
+<!--                <Model>Computer</Model> -->
+<!--                <SupportHours>24/7</SupportHours> -->
+<!--                <SupportPhone>+31 123 4567 8901</SupportPhone> -->
+<!--                <SupportProvider>mycompany</SupportProvider> -->
+<!--                <SupportURL>https://www.mycompany.com</SupportURL> -->
+<!--            </OEMInformation> -->
+<!--            <OEMName>mycompany</OEMName> -->
+<!--            <RegisteredOrganization>mycompany</RegisteredOrganization> -->
+<!--            <RegisteredOwner>Admin</RegisteredOwner> -->
 			<AutoLogon>
 				<Username>admin</Username>
 				<Enabled>true</Enabled>
