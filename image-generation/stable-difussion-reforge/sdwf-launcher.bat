@@ -165,7 +165,7 @@ if "%choice%"=="1" (
 :install_sdwebuireforge
 title SDBWEUI REFORGE [INSTALL]
 cls
-echo %blue_fg_strong%/ Home / Toolbox / App Installer / Text Completion / Install Stable Diffusion web UI reForge%reset%
+echo %blue_fg_strong%/ Home / Install Stable Diffusion web UI reForge%reset%
 echo -------------------------------------------------------------
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Stable Diffusion web UI reForge...
 
@@ -213,7 +213,7 @@ pip install civitdl
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Stable Diffusion WebUI reForge installed Successfully.%reset%
 pause
-goto :install_sdwebuireforge_menu
+goto :home
 
 REM Ask if the user wants to create a shortcut
 set /p create_shortcut=Do you want to create a shortcut on the desktop? [Y/n] 
