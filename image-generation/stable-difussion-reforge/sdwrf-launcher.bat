@@ -11,7 +11,7 @@ REM report any issues or bugs on the GitHub repository.
 REM
 REM GitHub: https://github.com/deffcolony/ai-toolbox
 REM Issues: https://github.com/deffcolony/ai-toolbox/issues
-title SDWF Launcher
+title SDWRF Launcher
 setlocal
 
 REM ANSI Escape Code for Colors
@@ -113,7 +113,7 @@ if %errorlevel% neq 0 (
 
 REM home Frontend
 :home
-title SDWF [HOME]
+title SDWRF [HOME]
 cls
 echo %blue_fg_strong%/ Home %reset%
 echo -------------------------------------
@@ -283,7 +283,7 @@ start cmd /k "title painthua && cd /d %~dp0painthua-flask && python app.py --lis
 goto :home
 
 :start_sdwebuireforge
-title SDWF
+title SDWRF
 cls
 echo %blue_fg_strong%/ Home / Run  reForge%reset%
 echo ---------------------------------------------------------------
@@ -296,12 +296,12 @@ call conda activate sdwebuireforge
 
 REM Start sdwebuireforge clean
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% SD web UI reForge launched in a new window.
-start cmd /k "title SDWF && cd /d %sdwebuireforge_install_path% && python launch.py"
+start cmd /k "title SDWRF && cd /d %sdwebuireforge_install_path% && python launch.py"
 goto :home
 
 
 :start_sdwebuireforge_addons
-title SDWF [ADDONS]
+title SDWRF [ADDONS]
 cls
 echo %blue_fg_strong%/ Home / Start SD web UI reForge + addons%reset%
 echo ---------------------------------------------------------------
@@ -315,12 +315,12 @@ call conda activate sdwebuireforge
 
 REM Start sdwebuireforge with desired configurations
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% SD web UI reForge launched in a new window.
-start cmd /k "title SDWF ADDONS && cd /d %sdwebuireforge_install_path% && python launch.py --autolaunch --api --listen --port 7900 --opt-sdp-attention --theme dark --cors-allow-origins=http://127.0.0.1:7905"
+start cmd /k "title SDWRF ADDONS && cd /d %sdwebuireforge_install_path% && python launch.py --autolaunch --api --listen --port 7900 --opt-sdp-attention --theme dark --cors-allow-origins=http://127.0.0.1:7905"
 goto :home
 
 
 :start_sdwebuireforge_share
-title SDWF [SHARE]
+title SDWRF [SHARE]
 cls
 echo %blue_fg_strong%/ Home / Start SD web UI reForge + share%reset%
 echo ---------------------------------------------------------------
@@ -344,7 +344,7 @@ REM Prompt user for password creation
 powershell -command "$password = Read-Host 'Enter a password' -AsSecureString; $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password); $password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR); Write-Output $password" > temp_pass.txt
 set /p password=<temp_pass.txt
 del temp_pass.txt
-start cmd /k "title SDWF SHARE && cd /d %sdwebuireforge_install_path% && python launch.py --autolaunch --opt-sdp-attention --always-batch-cond-uncond --share --port 7900 --gradio-auth %username%:%password% --always-batch-cond-uncond --theme dark"
+start cmd /k "title SDWRF SHARE && cd /d %sdwebuireforge_install_path% && python launch.py --autolaunch --opt-sdp-attention --always-batch-cond-uncond --share --port 7900 --gradio-auth %username%:%password% --always-batch-cond-uncond --theme dark"
 goto :home
 
 :update_sdwebuireforge
@@ -378,7 +378,7 @@ goto :home
 
 REM Toolbox Frontend
 :toolbox
-title SDWF [TOOLBOX]
+title SDWRF [TOOLBOX]
 cls
 echo %blue_fg_strong%/ Home / Toolbox %reset%
 echo -------------------------------------
@@ -429,7 +429,7 @@ goto :toolbox
 
 
 :uninstall_sdwebuireforge
-title SDWF [UNINSTALL SDWEBUI REFORGE]
+title SDWRF [UNINSTALL SDWEBUI REFORGE]
 setlocal enabledelayedexpansion
 chcp 65001 > nul
 
