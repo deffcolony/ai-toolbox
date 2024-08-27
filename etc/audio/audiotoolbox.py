@@ -4,7 +4,7 @@ import random2 as random
 from datetime import timedelta
 import datetime
 import traceback
-from FreeSimpleGUI import FreeSimpleGUI as sg
+import FreeSimpleGUI as sg
 import webbrowser
 import json
 
