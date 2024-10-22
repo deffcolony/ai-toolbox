@@ -136,9 +136,8 @@ install_textgen() {
     # Create and activate the Conda environment
     conda config --set auto_activate_base false
     conda init bash
-    conda create -n textgen -y
+    conda create -n textgen python=3.10 git -y
     conda activate textgen
-    conda install python=3.10 git -y
 
     cd /d "$PWD/text-generation-webui/extensions/openai"
 

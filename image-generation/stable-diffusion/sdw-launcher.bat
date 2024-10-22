@@ -176,15 +176,11 @@ call "%miniconda_path%\Scripts\activate.bat"
 
 REM Create a Conda environment named sdwebui
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment sdwebui...
-call conda create -n sdwebui -y
+call conda create -n sdwebui python=3.10.6 -y
 
 REM Activate the sdwebui environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment sdwebui...
 call conda activate sdwebui
-
-REM Install Python 3.10.6 in the sdwebui environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
-call conda install python=3.10.6 -y
 
 REM Clone the stable-diffusion-webui Extras repository
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the stable-diffusion-webui repository...
@@ -252,15 +248,11 @@ cd /d "%~dp0painthua-flask"
 
 REM Create a Conda environment named painthua
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment painthua...
-call conda create -n painthua -y
+call conda create -n painthua python=3.10 -y
 
 REM Activate the painthua environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment painthua...
 call conda activate painthua
-
-REM Install Python 3.10 in the painthua environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python in the Conda environment...
-call conda install python=3.10 -y
 
 pip install requests
 

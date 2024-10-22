@@ -29,14 +29,19 @@ set "cyan_fg_strong=[96m"
 REM Normal Background Colors
 set "red_bg=[41m"
 set "blue_bg=[44m"
+set "yellow_bg=[43m"
+set "green_bg=[42m"
+
+set "audiobookmaker_install_path=%~dp0audiobook_maker"
+set "audiobookmaker_modules_tortoise_path=%~dp0audiobook_maker\modules\tortoise_tts_api"
 
 REM Environment Variables (winget)
 set "winget_path=%userprofile%\AppData\Local\Microsoft\WindowsApps"
 
-REM Environment Variables (TOOLBOX Install Extras)
+REM Environment Variables (Miniconda3)
 set "miniconda_path=%userprofile%\miniconda"
 
-REM Environment Variables (TOOLBOX FFmpeg)
+REM Environment Variables (FFmpeg)
 set "ffmpeg_url=https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z"
 set "ffdownload_path=%~dp0ffmpeg.7z"
 set "ffextract_path=C:\ffmpeg"
@@ -54,6 +59,8 @@ REM Define variables for logging
 set "log_path=%~dp0logs.log"
 set "log_invalidinput=[ERROR] Invalid input. Please enter a valid number."
 set "echo_invalidinput=%red_fg_strong%[ERROR] Invalid input. Please enter a valid number.%reset%"
+
+cd /d "%~dp0"
 
 REM Get the current PATH value from the registry
 for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v PATH') do set "current_path=%%B"
@@ -113,42 +120,103 @@ if %errorlevel% neq 0 (
 )
 
 
-REM home Frontend
+REM ############################################################
+REM ################## HOME - FRONTEND #########################
+REM ############################################################
 :home
 title Audiobook Maker [HOME]
 cls
-echo %blue_fg_strong%/ Home %reset%
-echo -------------------------------------
-echo What would you like to do?
-echo 1. Install Audiobook Maker
-echo 2. Run Audiobook Maker
-echo 3. Update
-echo 4. Uninstall Audiobook Maker
-echo 0. Exit
+echo %blue_fg_strong%^| ^> / Home                                                     ^|%reset%
+echo %blue_fg_strong% ==============================================================%reset%   
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^| What would you like to do?                                   ^|%reset%
+echo    1. Start Audiobook Maker
+echo    2. Installer
+echo    3. Update
+echo    4. Uninstall Audiobook Maker
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^| Menu Options:                                                ^|%reset%
+echo    0. Exit
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^|                                                              ^|%reset%
 
+:: Define a variable containing a single backspace character
+for /f %%A in ('"prompt $H &echo on &for %%B in (1) do rem"') do set "BS=%%A"
 
-set "choice="
-set /p "choice=Choose Your Destiny: "
+:: Set the prompt with spaces
+set /p "home_choice=%BS%   Choose Your Destiny: "
 
-REM Default to choice 1 if no input is provided
+REM Default to home_choice 1 if no input is provided
 REM Disable REM below to enable default choise
-REM if not defined choice set "choice=1"
+REM if not defined home_choice set "home_choice=1"
 
 REM home - Backend
-if "%choice%"=="1" (
-    call :install_audiobook_maker
-) else if "%choice%"=="2" (
-    call :run_audiobook_maker
-) else if "%choice%"=="3" (
+if "%home_choice%"=="1" (
+    call :start_audiobook_maker
+) else if "%home_choice%"=="2" (
+    call :abm_installer_menu
+) else if "%home_choice%"=="3" (
     call :update_audiobook_maker
-) else if "%choice%"=="4" (
+) else if "%home_choice%"=="4" (
     call :uninstall_audiobook_maker
-) else if "%choice%"=="0" (
+) else if "%home_choice%"=="0" (
     exit
 ) else (
     echo %red_bg%[%time%]%reset% %echo_invalidinput%
     pause
     goto :home
+)
+
+
+REM ############################################################
+REM ##### AUDIOBOOK MAKER INSTALLER - FRONTEND #################
+REM ############################################################
+:abm_installer_menu
+title Audiobook Maker [INSTALLER]
+
+cls
+echo %blue_fg_strong%^| ^> / Home / Installer                                         ^|%reset%
+echo %blue_fg_strong% ==============================================================%reset%
+echo    1. Install Audiobook Maker
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^| Text-to-Speech Engines                                       ^|%reset%
+echo    2. Install TortoiseTTS
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^| Speech-to-Speech Engines                                     ^|%reset%
+echo    3. Install RVC
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^| Additional packages                                          ^|%reset%
+echo    4. Install 7-Zip
+echo    5. Install FFmpeg
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^| Menu Options:                                                ^|%reset%
+echo    0. Back
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^|                                                              ^|%reset%
+
+:: Define a variable containing a single backspace character
+for /f %%A in ('"prompt $H &echo on &for %%B in (1) do rem"') do set "BS=%%A"
+
+:: Set the prompt with spaces
+set /p "abm_installer_choice=%BS%   Choose Your Destiny: "
+
+REM ######## APP INSTALLER IMAGE GENERATION - BACKEND #########
+if "%abm_installer_choice%"=="1" (
+    call :install_audiobook_maker
+) else if "%abm_installer_choice%"=="2" (
+    goto :install_tortoise_tts
+) else if "%abm_installer_choice%"=="3" (
+    goto :install_rvc
+) else if "%abm_installer_choice%"=="4" (
+    goto :install_7zip
+) else if "%abm_installer_choice%"=="5" (
+    goto :install_ffmpeg
+) else if "%abm_installer_choice%"=="0" (
+    goto :home
+) else (
+    echo %red_bg%[%time%]%reset% %echo_invalidinput%
+    pause
+    goto :abm_installer_menu
 )
 
 
@@ -175,6 +243,8 @@ if %errorlevel% neq 0 (
     pause
     goto :home
 )
+cd /d "%audiobookmaker_install_path%"
+
 
 echo %blue_fg_strong%[INFO]%reset% Installing 7-Zip...
 winget install -e --id 7zip.7zip
@@ -272,48 +342,19 @@ call "%miniconda_path%\Scripts\activate.bat"
 
 REM Create a Conda environment named audiobook-maker
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment audiobook-maker...
-call conda create -n audiobook-maker -y
+call conda create -n audiobook-maker python=3.11 -y
 
 REM Activate the audiobook-maker Maker environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment audiobook-maker...
 call conda activate audiobook-maker
 
-REM Install Python and Git in the audiobook-maker environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
-call conda install python=3.10 -y
+cd /d "%audiobookmaker_install_path%"
 
-REM Download rvc_lightweight 7z archive
-curl -L -o "%~dp0rvc_lightweight.7z" "https://huggingface.co/Jmica/rvc/resolve/main/rvc_lightweight.7z" || (
-    color 4
-    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Download failed. Please try again.%reset%
-    pause
-    goto :home
-)
-
-REM Extract rvc_lightweight 7z archive
-"%ProgramFiles%\7-Zip\7z.exe" x "%~dp0rvc_lightweight.7z" -o"%~dp0rvc_lightweight" || (
-    color 4
-    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Extraction failed. Please try again.%reset%
-    pause
-    goto :home
-)
-
-ren "%~dp0rvc_lightweight\rvc_lightweight" "rvc"
-
-REM Copy rvc folder to audiobook_maker
-xcopy /E /I /Y "%~dp0rvc_lightweight\rvc" "%~dp0audiobook_maker\rvc"
-
-REM Remove rvc_lightweight leftovers
-del "%~dp0rvc_lightweight.7z"
-rd /S /Q "%~dp0rvc_lightweight"
-
-cd /d "%~dp0audiobook_maker"
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
+REM Install pip requirements
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements
 pip install -r requirements.txt
-pip install -r rvc/requirements.txt
-pip install https://huggingface.co/Jmica/rvc/resolve/main/fairseq-0.12.2-cp310-cp310-win_amd64.whl
-pip install git+https://github.com/JarodMica/rvc-tts-pipeline.git@lightweight#egg=rvc_tts_pipe
-
+git submodule init
+git submodule update --remote
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Audiobook Maker successfully installed.%reset%
 
@@ -334,24 +375,71 @@ if /i "%create_shortcut%"=="Y" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Shortcut created on the desktop.%reset%
     pause
 )
-goto :home
+goto :abm_installer_menu
 
 
-:run_audiobook_maker
+
+:install_tortoise_tts
+REM Activate the audiobook-maker environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment: %cyan_fg_strong%audiobook-maker%reset%
+call conda activate audiobook-maker
+
+REM Install pip requirements
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements
+cd /d "%audiobookmaker_modules_tortoise_path%"
+git submodule init
+git submodule update --remote
+pip install modules\tortoise_tts
+pip install modules\dlas
+pip install .
+cd /d "%audiobookmaker_install_path%"
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Uninstalling Torch...
+pip uninstall torch -y
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installingen Torch...
+pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 --index-url https://download.pytorch.org/whl/cu121
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%TortoiseTTS successfully installed.%reset%
+pause
+goto :abm_installer_menu
+
+
+:install_rvc
+REM Activate the audiobook-maker environment
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment: %cyan_fg_strong%audiobook-maker%reset%
+call conda activate audiobook-maker
+
+REM Install pip requirements
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements
+cd /d "%audiobookmaker_install_path%"
+curl -L -o "%audiobookmaker_install_path%\fairseq-0.12.4-cp311-cp311-win_amd64.whl" "https://huggingface.co/Jmica/rvc/resolve/main/fairseq-0.12.4-cp311-cp311-win_amd64.whl" 
+pip install .\fairseq-0.12.4-cp311-cp311-win_amd64.whl
+pip install git+https://github.com/JarodMica/rvc-python
+pip show torch
+
+REM Cleanup the downloaded file
+del fairseq-0.12.4-cp311-cp311-win_amd64.whl
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%RVC successfully installed.%reset%
+pause
+goto :abm_installer_menu
+
+
+:start_audiobook_maker
 title Audiobook Maker
-cls
-echo %blue_fg_strong%/ Home / Run Audiobook Maker%reset%
-echo ---------------------------------------------------------------
+REM Check if the folder exists
+if not exist "%audiobookmaker_install_path%" (
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Audiobook Maker is not installed. Please install it first.%reset%
+    pause
+    goto :home
+)
 
-REM Run conda activate from the Miniconda installation
-call "%miniconda_path%\Scripts\activate.bat"
+cls
+echo %blue_fg_strong%/ Home / Start Audiobook Maker%reset%
+echo ---------------------------------------------------------------
 
 REM Activate the audiobook-maker environment
 call conda activate audiobook-maker
 
 REM Start Audiobook Maker
-cd /d "%~dp0audiobook_maker"
-start cmd /k python audio_book_app_2_0.py
+start cmd /k "title Audiobook Maker && cd /d %audiobookmaker_install_path% && python src\controller.py"
 goto :home
 
 
@@ -361,7 +449,7 @@ cls
 echo %blue_fg_strong%/ Home / Update%reset%
 echo ---------------------------------------------------------------
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Updating Audiobook Maker...
-cd /d "%~dp0audiobook_maker"
+cd /d "%audiobookmaker_install_path%"
 
 REM Check if git is installed
 git --version > nul 2>&1

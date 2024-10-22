@@ -179,15 +179,11 @@ call "%miniconda_path%\Scripts\activate.bat"
 
 REM Create a Conda environment named privategpt
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment privategpt...
-call conda create -n privategpt -y
+call conda create -n privategpt python=3.11 git -y
 
 REM Activate the privategpt environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment privategpt...
 call conda activate privategpt
-
-REM Install Python and Git in the privategpt environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
-call conda install python=3.11 git -y
 
 cd /d "%~dp0privateGPT"
 

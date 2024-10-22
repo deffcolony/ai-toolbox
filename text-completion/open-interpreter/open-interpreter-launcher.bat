@@ -139,15 +139,11 @@ call "%miniconda_path%\Scripts\activate.bat"
 
 REM Create a Conda environment named openinterpreter
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment openinterpreter...
-call conda create -n openinterpreter -y
+call conda create -n openinterpreter python=3.11 git -y
 
 REM Activate the openinterpreter environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment openinterpreter...
 call conda activate openinterpreter
-
-REM Install Python 3.11 and Git in the openinterpreter environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
-call conda install python=3.11 git -y
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip requirements...
 pip install llama-cpp-python

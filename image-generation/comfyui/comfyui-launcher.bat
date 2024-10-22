@@ -164,15 +164,11 @@ call "%miniconda_path%\Scripts\activate.bat"
 
 REM Create a Conda environment named comfyui
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment comfyui...
-call conda create -n comfyui -y
+call conda create -n comfyui python=3.11 -y
 
 REM Activate the comfyui environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment comfyui...
 call conda activate comfyui
-
-REM Install Python 3.11 and Git in the comfyui environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
-call conda install python=3.11 git -y
 
 REM Clone the ComfyUI repository
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cloning the ComfyUI repository...

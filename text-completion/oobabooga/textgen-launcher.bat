@@ -173,15 +173,11 @@ call "%miniconda_path%\Scripts\activate.bat"
 
 REM Create a Conda environment named textgen
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment textgen...
-call conda create -n textgen -y 
+call conda create -n textgen python=3.10 -y 
 
 REM Activate the textgen environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment textgen...
 call conda activate textgen
-
-REM Install Python in the textgen environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python in the Conda environment...
-call conda install python=3.10 -y
 
 cd /d "%~dp0text-generation-webui/extensions/openai"
 

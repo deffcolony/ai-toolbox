@@ -249,15 +249,11 @@ cd /d "%~dp0painthua-flask"
 
 REM Create a Conda environment named painthua
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment painthua...
-call conda create -n painthua -y
+call conda create -n painthua python=3.10 -y
 
 REM Activate the painthua environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment painthua...
 call conda activate painthua
-
-REM Install Python 3.10 in the painthua environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python in the Conda environment...
-call conda install python=3.10 -y
 
 pip install requests
 

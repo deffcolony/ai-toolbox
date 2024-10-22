@@ -170,15 +170,11 @@ call "%miniconda_path%\Scripts\activate.bat"
 
 REM Create a Conda environment named chatdev
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment chatdev...
-call conda create -n chatdev -y 
+call conda create -n chatdev python=3.9 git -y 
 
 REM Activate the chatdev environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment chatdev...
 call conda activate chatdev
-
-REM Install Python and Git in the chatdev environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
-call conda install python=3.9 git -y
 
 REM Navigate to the ChatDev directory
 cd "%~dp0ChatDev"

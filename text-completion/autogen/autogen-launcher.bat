@@ -155,15 +155,11 @@ call "%miniconda_path%\Scripts\activate.bat"
 
 REM Create a Conda environment named autogen
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment autogen...
-call conda create -n autogen -y 
+call conda create -n autogen python=3.11.4 git -y 
 
 REM Activate the autogen environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment autogen...
 call conda activate autogen
-
-REM Install Python and Git in the autogen environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
-call conda install python=3.11.4 git -y
 
 REM Create & Navigate to the autogen directory
 mkdir autogen && cd autogen

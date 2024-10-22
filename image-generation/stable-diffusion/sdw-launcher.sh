@@ -108,9 +108,8 @@ install_sdw() {
     # Create and activate the Conda environment
     conda config --set auto_activate_base false
     conda init bash
-    conda create -n stablediffusionwebui -y
+    conda create -n stablediffusionwebui python=3.10.6 git -y
     conda activate stablediffusionwebui
-    conda install python=3.10.6 git -y
 
     # Cleanup the Downloaded file
     rm -rf /tmp/$miniconda_installer

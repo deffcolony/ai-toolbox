@@ -182,15 +182,11 @@ call "%miniconda_path%\Scripts\activate.bat"
 
 REM Create a Conda environment named rvc
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment rvc...
-call conda create -n rvc -y
+call conda create -n rvc python=3.10.6 git -y
 
 REM Activate the rvc environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment rvc...
 call conda activate rvc
-
-REM Install Python 3.10.6 and Git in the rvc environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python and Git in the Conda environment...
-call conda install python=3.10.6 git -y
 
 REM Install pip packages that are not in requirements list
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pip modules for GUI

@@ -244,15 +244,11 @@ call "%miniconda_path%\Scripts\activate.bat"
 
 REM Create a Conda environment named audiocraft
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Creating Conda environment audiocraft...
-call conda create -n audiocraft -y
+call conda create -n audiocraft python=3.9.13 -y
 
 REM Activate the audiocraft environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment audiocraft...
 call conda activate audiocraft
-
-REM Install Python 3.9.13 and Git in the audiocraft environment
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python 3.9.13 in conda env: audiocraft
-call conda install python=3.9.13 -y
 
 cd /d "%~dp0audiocraft"
 
