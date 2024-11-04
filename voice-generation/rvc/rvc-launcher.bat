@@ -34,7 +34,7 @@ REM Environment Variables (winget)
 set "winget_path=%userprofile%\AppData\Local\Microsoft\WindowsApps"
 
 REM Environment Variables (TOOLBOX Install Extras)
-set "miniconda_path=%userprofile%\miniconda"
+set "miniconda_path=%userprofile%\miniconda3"
 
 REM Define the paths and filenames for the shortcut creation
 set "shortcutTarget=%~dp0rvc-launcher.bat"

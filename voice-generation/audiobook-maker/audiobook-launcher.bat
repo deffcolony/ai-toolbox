@@ -39,7 +39,7 @@ REM Environment Variables (winget)
 set "winget_path=%userprofile%\AppData\Local\Microsoft\WindowsApps"
 
 REM Environment Variables (Miniconda3)
-set "miniconda_path=%userprofile%\miniconda"
+set "miniconda_path=%userprofile%\miniconda3"
 
 REM Environment Variables (FFmpeg)
 set "ffmpeg_url=https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z"

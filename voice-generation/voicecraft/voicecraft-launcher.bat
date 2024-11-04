@@ -34,7 +34,7 @@ REM Environment Variables (winget)
 set "winget_path=%userprofile%\AppData\Local\Microsoft\WindowsApps"
 
 REM Environment Variables (miniconda3)
-set "miniconda_path=%userprofile%\miniconda"
+set "miniconda_path=%userprofile%\miniconda3"
 
 REM Define variables for install locations
 set "voicecraft_install_path=%~dp0VoiceCraft"

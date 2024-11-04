@@ -41,7 +41,7 @@ set "winpe_root=%~dp0WinPE_amd64"
 set "drivers_path=%winpe_root%\bootwimfiles\add_drivers"
 
 REM Environment Variables (TOOLBOX Install Extras)
-set "miniconda_path=%userprofile%\miniconda"
+set "miniconda_path=%userprofile%\miniconda3"
 
 REM Environment Variables (TOOLBOX 7-Zip)
 set "zip7version=7z2301-x64"
