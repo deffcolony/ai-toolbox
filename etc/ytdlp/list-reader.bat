@@ -61,9 +61,9 @@ set "list_file=%~dp0list.txt"
 
 REM Check if the list file exists
 if not exist "%list_file%" (
-    echo List file not found.
-    pause
-    exit /b
+    REM create the list file
+    echo. > "%list_file%"
+    echo Created list file: %list_file%
 )
 
 REM Count the number of lines in the list file
