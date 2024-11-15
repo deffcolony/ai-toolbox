@@ -104,17 +104,7 @@ if "%download_type%"=="1" (
 
 echo Download type: %download_type%
 
-@REM check for errors
-@REM echo %weburl% | findstr /R /C:"^https*://" /C:"^www\." > nul
-@REM if errorlevel 1 (
-@REM     echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Invalid input. Please enter a valid URL.%reset%
-@REM     echo %red_fg_strong%URL must start with one of the following: http://, https://, or www.%reset%
-@REM     pause
-@REM     goto :start_ytdlp_mp3
-@REM )
-
 @REM loop
-@REM https://music.youtube.com/watch?v=JO9h1fQU_-k
 
 for /f "tokens=*" %%a in ('type "%list_file%"') do (
     set "weburl=%%a"
@@ -139,6 +129,6 @@ for /f "tokens=*" %%a in ('type "%list_file%"') do (
 )
 
 echo Done.
-
+start "" "%output_file%"
 
 pause
