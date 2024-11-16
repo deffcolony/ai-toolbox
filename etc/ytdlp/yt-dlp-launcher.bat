@@ -31,6 +31,15 @@ set "red_bg=[41m"
 set "blue_bg=[44m"
 set "yellow_bg=[43m"
 
+REM Environment Variables (YT-DLP)
+set "ytdlp_path=%~dp0yt-dlp-downloads"
+set "ytdlp_list=%ytdlp_path%\settings\list.txt"
+set "ytdlp_download_url=https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe"
+set "ytdlp_download_path=%ytdlp_path%\yt-dlp.exe"
+set "ytdlp_audio_path=%ytdlp_path%\audio"
+set "ytdlp_video_path=%ytdlp_path%\video"
+set "ytdlp_settings_path=%ytdlp_path%\settings"
+
 REM Environment Variables (winget)
 set "winget_path=%userprofile%\AppData\Local\Microsoft\WindowsApps"
 
@@ -41,20 +50,12 @@ set "zip7_download_path=%TEMP%\%zip7_version%.exe"
 
 REM Environment Variables (FFmpeg)
 set "ffmpeg_download_url=https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z"
-set "ffmpeg_download_path=%~dp0yt-dlp-downloads\ffmpeg.7z"
+set "ffmpeg_download_path=%ytdlp_path%\ffmpeg.7z"
 set "ffmpeg_install_path=C:\ffmpeg"
 set "ffmpeg_path_bin=%ffmpeg_install_path%\bin"
 
-REM Environment Variables (YT-DLP)
-set "ytdlp_download_url=https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe"
-set "ytdlp_download_path=%~dp0yt-dlp-downloads\yt-dlp.exe"
-set "ytdlp_audio_path=%~dp0yt-dlp-downloads\audio"
-set "ytdlp_video_path=%~dp0yt-dlp-downloads\video"
-set "ytdlp_settings_path=%~dp0yt-dlp-downloads\settings"
-set "ytdlp_path=%~dp0yt-dlp-downloads"
-
 REM Define variables to track module status (audio)
-set "audio_modules_path=%~dp0yt-dlp-downloads\settings\modules-audio.txt"
+set "audio_modules_path=%ytdlp_path%\settings\modules-audio.txt"
 set "audio_sponsorblock_trigger=false"
 set "audio_format_trigger=false"
 set "audio_quality_trigger=false"
@@ -62,7 +63,7 @@ set "audio_acodec_trigger=false"
 set "audio_metadata_trigger=false"
 
 REM Define variables to track module status (video)
-set "video_modules_path=%~dp0yt-dlp-downloads\settings\modules-video.txt"
+set "video_modules_path=%ytdlp_path%\settings\modules-video.txt"
 set "video_sponsorblock_trigger=false"
 set "video_mergeoutputformat_trigger=false"
 set "video_resolution_trigger=false"
@@ -81,7 +82,7 @@ set "comment=yt-dlp-launcher"
 
 
 REM Define variables for logging
-set "log_path=%~dp0yt-dlp-downloads\logs.log"
+set "log_path=%ytdlp_path%\logs.log"
 set "log_invalidinput=[ERROR] Invalid input. Please enter a valid number."
 set "echo_invalidinput=%red_fg_strong%[ERROR] Invalid input. Please enter a valid number.%reset%"
 
@@ -124,6 +125,11 @@ REM Check if the folder exists
 if not exist "%ytdlp_settings_path%" (
     mkdir "%ytdlp_settings_path%"
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Created folder: "settings"  
+)
+REM Check if the file exists
+if not exist "%ytdlp_list%" (
+    type nul > "%ytdlp_list%"
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Created file: "list.txt"  
 )
 REM Create modules-audio if it doesn't exist
 if not exist %audio_modules_path% (
@@ -363,8 +369,8 @@ title YT-DLP [HOME]
 cls
 
 REM Dynamic Menu Choices Setup
-set "MenuChoice1=Download mp3 audio"
-set "MenuChoice2=Download mp4 video"
+set "MenuChoice1=Download audio"
+set "MenuChoice2=Download video"
 set "MenuChoice3=Editor"
 set "MenuChoice4=Update"
 set "MenuChoice5=Uninstall yt-dlp"
@@ -397,10 +403,10 @@ pause
 goto :home
 
 :choice1
-call :start_ytdlp_mp3
+call :download_audio_menu
 
 :choice2
-call :start_ytdlp_mp4
+call :download_video_menu
 
 :choice3
 call :editor
@@ -412,8 +418,7 @@ call :update_ytdlp
 call :uninstall_ytdlp
 
 :choice0
-exit /b
-goto :EOF
+call :exit_ytdlp
 
 REM Define a home menu function to be able to call from anywhere
 :main_home_menu
@@ -429,52 +434,236 @@ if not defined MenuChoice%choice% (
     goto :home
 )
 
-
-REM Start ytdlp mp3
-:start_ytdlp_mp3
-title YT-DLP [DOWNLOAD MP3]
+:exit_ytdlp
+title YT-DLP [EXIT]
 cls
-set /p weburl="(0 to cancel) Insert URL: "
+set /p "exit_choice=Are you sure you wanna exit yt-dlp-launcher? [Y/N]: "
+if /i "%exit_choice%"=="" set exit_choice=Y
+if /i "%exit_choice%"=="Y" (
+    exit
+) else (
+    goto :home
+)
 
-if "%weburl%"=="0" goto :home
+:download_audio_menu
+title YT-DLP [DOWNLOAD AUDIO]
+cls
 
-REM Check if the URL input starts with "http", "https", or "www"
-echo %weburl% | findstr /R /C:"^https*://" /C:"^www\." > nul
+REM Initialize line count to 0
+set "line_count=0"
+
+REM Count the number of lines in the list file
+for /f %%a in ('findstr /r /n "^" "%ytdlp_list%" ^| find /c ":"') do set "line_count=%%a"
+
+REM Check if the line count is 0
+if "%line_count%"=="0" (
+    goto :download_audio_manual
+)
+
+echo %blue_fg_strong%^| ^> / Home / Download audio / List                             ^|%reset%
+echo %blue_fg_strong% ==============================================================%reset%
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^| DEBUG                                                        ^|%reset%
+echo    Preview command: %audio_start_command%
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^| List.txt info                                                ^|%reset%
+echo    Total links queued for download: %line_count%
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^| Menu Options:                                                ^|%reset%
+echo    Y. Download all items
+echo    N. Cancel
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^|                                                              ^|%reset%
+
+REM  Define a variable containing a single backspace character
+for /f %%A in ('"prompt $H &echo on &for %%B in (1) do rem"') do set "BS=%%A"
+
+set /p "confirm_download_audio_list=%BS%   Download all audio items from list? [Y/N]: "
+
+if /i "%confirm_download_audio_list%"=="n" (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Download canceled. Returning to home.
+    pause
+    goto :home
+) else if /i not "%confirm_download_audio_list%"=="y" (
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR]%reset% Invalid choice. Please enter a valid choice.
+    pause
+    goto :download_audio_menu
+)
+
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Starting downloads from list...
+
+REM Process URLs from the list
+for /f "tokens=*" %%a in ('type "%ytdlp_list%"') do (
+    set "audio_url=%%a"
+    echo URL: !audio_url!
+
+    REM Validate the URL format
+    echo !audio_url! | findstr /R /C:"^https*://" /C:"^www\." > nul
+    if errorlevel 1 (
+        echo %red_fg_strong%Invalid URL in list: !audio_url!. Skipping...%reset%
+        echo URL must start with one of the following: http://, https://, or www.
+        echo.
+        continue
+    )
+
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading audio from !audio_url!...
+    "%ytdlp_download_path%" -P "%ytdlp_audio_path%" %audio_start_command% -f ba/b -x -o "%%(title)s.%%(ext)s" -w !audio_url! && echo [%DATE% %TIME%] [AUDIO] - !audio_url!>>"%log_path%"
+)
+
+REM Emty the list.txt
+type nul > "%ytdlp_list%"
+echo List cleared.
+
+REM Open the output folder when download is finished
+start "" "%ytdlp_audio_path%"
+
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Audio files downloaded successfully.%reset%
+pause
+goto :home
+
+:download_audio_manual
+echo %blue_fg_strong%^| ^> / Home / Download audio / Manual                           ^|%reset%
+echo %blue_fg_strong% ==============================================================%reset%
+echo    List is empty. Switching to manual input mode.
+echo    Insert a URL. To know which sites are supported visit the link below:
+echo    https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^| Menu Options:                                                ^|%reset%
+echo    0. Cancel
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^|                                                              ^|%reset%
+
+REM  Define a variable containing a single backspace character
+for /f %%A in ('"prompt $H &echo on &for %%B in (1) do rem"') do set "BS=%%A"
+
+set /p "audio_url=%BS%   Insert URL: "
+if "%audio_url%"=="0" goto :home
+
+REM Validate the manual input URL
+echo %audio_url% | findstr /R /C:"^https*://" /C:"^www\." > nul
 if errorlevel 1 (
     echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Invalid input. Please enter a valid URL.%reset%
     echo %red_fg_strong%URL must start with one of the following: http://, https://, or www.%reset%
     pause
-    goto :start_ytdlp_mp3
+    goto :download_audio_manual
 )
 
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading audio...
-REM echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading... "%ytdlp_download_path%" --print filename -o "%(title)s.%(ext)s" %weburl%
-"%ytdlp_download_path%" -P "%ytdlp_audio_path%" %audio_start_command% -f ba/b -x -o "%%(title)s.%%(ext)s" -w %weburl% && echo [%DATE% %TIME%] [AUDIO] - %weburl%>>"%log_path%"
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading audio from %audio_url%...
+REM echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading... "%ytdlp_download_path%" --print filename -o "%(title)s.%(ext)s" %audio_url%
+"%ytdlp_download_path%" -P "%ytdlp_audio_path%" %audio_start_command% -f ba/b -x -o "%%(title)s.%%(ext)s" -w %audio_url% && echo [%DATE% %TIME%] [AUDIO] - %audio_url%>>"%log_path%"
 
 REM Open the output folder when download is finished
 start "" "%ytdlp_audio_path%"
 pause
 goto :home
 
-REM Start ytdlp mp4
-:start_ytdlp_mp4
-title YT-DLP [DOWNLOAD MP4]
+
+
+:download_video_menu
+title YT-DLP [DOWNLOAD VIDEO]
 cls
-set /p weburl="(0 to cancel) Insert URL: "
 
-if "%weburl%"=="0" goto :home
+REM Initialize line count to 0
+set "line_count=0"
 
-REM Check if the URL input starts with "http", "https", or "www"
-echo %weburl% | findstr /R /C:"^https*://" /C:"^www\." > nul
+REM Count the number of lines in the list file
+for /f %%a in ('findstr /r /n "^" "%ytdlp_list%" ^| find /c ":"') do set "line_count=%%a"
+
+REM Check if the line count is 0
+if "%line_count%"=="0" (
+    goto :download_video_manual
+)
+
+echo %blue_fg_strong%^| ^> / Home / Download video / List                             ^|%reset%
+echo %blue_fg_strong% ==============================================================%reset%
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^| DEBUG                                                        ^|%reset%
+echo    Preview command: %video_start_command%
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^| List.txt info                                                ^|%reset%
+echo    Total links queued for download: %line_count%
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^| Menu Options:                                                ^|%reset%
+echo    Y. Download all items
+echo    N. Cancel
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^|                                                              ^|%reset%
+
+REM  Define a variable containing a single backspace character
+for /f %%A in ('"prompt $H &echo on &for %%B in (1) do rem"') do set "BS=%%A"
+
+set /p "confirm_download_video_list=%BS%   Download all video items from list? [Y/N]: "
+
+if /i "%confirm_download_video_list%"=="n" (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Download canceled. Returning to home.
+    pause
+    goto :home
+) else if /i not "%confirm_download_video_list%"=="y" (
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR]%reset% Invalid choice. Please enter a valid choice.
+    pause
+    goto :download_video_menu
+)
+
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Starting downloads from list...
+
+REM Process URLs from the list
+for /f "tokens=*" %%a in ('type "%ytdlp_list%"') do (
+    set "video_url=%%a"
+    echo URL: !video_url!
+
+    REM Validate the URL format
+    echo !video_url! | findstr /R /C:"^https*://" /C:"^www\." > nul
+    if errorlevel 1 (
+        echo %red_fg_strong%Invalid URL in list: !video_url!. Skipping...%reset%
+        echo URL must start with one of the following: http://, https://, or www.
+        echo.
+        continue
+    )
+
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading video from !video_url!...
+    "%ytdlp_download_path%" -P "%ytdlp_video_path%" %video_start_command% -o "%%(title)s.%%(ext)s" -w !video_url! && echo [%DATE% %TIME%] [VIDEO] - !video_url!>>"%log_path%"
+)
+
+REM Emty the list.txt
+type nul > "%ytdlp_list%"
+echo List cleared.
+
+REM Open the output folder when download is finished
+start "" "%ytdlp_video_path%"
+
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Video files downloaded successfully.%reset%
+pause
+goto :home
+
+:download_video_manual
+echo %blue_fg_strong%^| ^> / Home / Download video / Manual                           ^|%reset%
+echo %blue_fg_strong% ==============================================================%reset%
+echo    List is empty. Switching to manual input mode.
+echo    Insert a URL. To know which sites are supported visit the link below:
+echo    https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^| Menu Options:                                                ^|%reset%
+echo    0. Cancel
+echo %cyan_fg_strong% ______________________________________________________________%reset%
+echo %cyan_fg_strong%^|                                                              ^|%reset%
+
+REM  Define a variable containing a single backspace character
+for /f %%A in ('"prompt $H &echo on &for %%B in (1) do rem"') do set "BS=%%A"
+
+set /p "video_url=%BS%   Insert URL: "
+if "%video_url%"=="0" goto :home
+
+REM Validate the manual input URL
+echo %video_url% | findstr /R /C:"^https*://" /C:"^www\." > nul
 if errorlevel 1 (
     echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Invalid input. Please enter a valid URL.%reset%
     echo %red_fg_strong%URL must start with one of the following: http://, https://, or www.%reset%
     pause
-    goto :start_ytdlp_mp4
+    goto :download_video_manual
 )
 
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading video... 
-REM echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading... "%ytdlp_download_path%" --print filename -o "%(title)s.%(ext)s" %weburl%
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading video from %video_url%...
+REM echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading... "%ytdlp_download_path%" --print filename -o "%(title)s.%(ext)s" %video_url%
 
 REM Read modules-video and find the video_start_command line
 set "video_start_command="
@@ -483,7 +672,7 @@ for /F "tokens=*" %%a in ('findstr /I "video_start_command=" "%video_modules_pat
 )
 set "video_start_command=%video_start_command:video_start_command=%"
 
-"%ytdlp_download_path%" -P "%ytdlp_video_path%" %video_start_command% -o "%%(title)s.%%(ext)s" -w %weburl% && echo [%DATE% %TIME%] [VIDEO] - %weburl%>>"%log_path%"
+"%ytdlp_download_path%" -P "%ytdlp_video_path%" %video_start_command% -o "%%(title)s.%%(ext)s" -w %video_url% && echo [%DATE% %TIME%] [VIDEO] - %video_url%>>"%log_path%"
 
 REM Open the output folder when download is finished
 start "" "%ytdlp_video_path%"
@@ -504,10 +693,11 @@ echo What would you like to do?
 REM Dynamic Editor Menu Setup
 set "EditorChoice1=Edit Audio Modules"
 set "EditorChoice2=Edit Video Modules"
+set "EditorChoice3=Edit list.txt"
 set "EditorChoice0=Back to Home"
 
-REM Display editor menu dynamically
-for /L %%i in (1,1,2) do (
+REM Display editor menu dynamically - count up last number if you add a menu
+for /L %%i in (1,1,3) do (
     if defined EditorChoice%%i echo %%i. !EditorChoice%%i!
 )
 echo 0. Back to Home
@@ -532,6 +722,9 @@ call :edit_audio_modules
 
 :editor_choice2
 call :edit_video_modules
+
+:editor_choice3
+call :edit_list
 
 :editor_choice0
 goto :home
@@ -622,7 +815,7 @@ for %%i in (!audio_module_choices!) do (
             call :save_audio_settings
         )
     ) else if "%%i"=="00" (
-        goto :start_ytdlp_mp3
+        goto :download_audio_menu
     ) else if "%%i"=="0" (
         goto :main_home_menu
     )
@@ -837,7 +1030,7 @@ REM ############################################################
         if "%%i"=="4" call :video_audio_codec_menu
         if "%%i"=="5" call :video_codec_menu
         if "%%i"=="6" call :toggle_video_metadata
-        if "%%i"=="00" goto :start_ytdlp_mp4
+        if "%%i"=="00" goto :download_video_menu
         if "%%i"=="0" goto :main_home_menu
     )
 
@@ -1113,6 +1306,17 @@ REM ############################################################
         REM Save the constructed Python command to modules-video for testing
         echo video_start_command=%video_command%>>%video_modules_path%
         goto :edit_video_modules
+
+REM ##################################################################################################################################################
+REM ##################################################   EDIT LIST.TXT   #############################################################################
+REM ##################################################################################################################################################
+
+:edit_list
+title YT-DLP [EDIT LIST]
+cls
+echo %cyan_fg_strong%Please add links to the list then close Notepad to continue.%reset%
+start /wait notepad.exe "%ytdlp_list%"
+goto :editor
 
 REM ##################################################################################################################################################
 REM ##################################################   UPDATE AND UNISTALL MODULES   ###############################################################
