@@ -32,7 +32,7 @@ set "blue_bg=[44m"
 set "yellow_bg=[43m"
 set "green_bg=[42m"
 
-set "audiobookmaker_install_path=%~dp0"
+set "audiobookmaker_install_path=%~dp0\audiobook_maker"
 set "audiobookmaker_userdata_path=%~dp0userdata"
 set "audiobookmaker_modules_tortoise_path=%audiobookmaker_install_path%\modules\tortoise_tts_api"
 
@@ -316,7 +316,7 @@ if %zip7_path_exists% neq 0 (
 )
 
 rem Update the PATH value for the current session
-set PATH=%new_path%
+REM set PATH=%new_path%
 
 rem Check if 7z correctly was installed
 7z > nul 2>&1
@@ -327,8 +327,8 @@ if %errorlevel% neq 0 (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%7-Zip installed successfully.%reset%
 )
 
-
 rmdir /s /q "%ffmpeg_install_path%"
+
 REM Check if ffmpeg is installed
 if not exist "%ffmpeg_install_path%" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading FFmpeg archive...
@@ -384,7 +384,7 @@ if %ff_path_exists% neq 0 (
 )
 
 rem Update the PATH value for the current session
-set PATH=%new_path%
+REM set PATH=%new_path%
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading Miniconda...
 curl -L -o "%miniconda_download_path%" "%miniconda_download_url%" 
@@ -665,13 +665,16 @@ if /i "%confirmation%"=="Y" (
     call "%miniconda_install_path%\condabin\conda.bat" deactivate
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Cleaning up Conda package cache and temporary files...
     call "%miniconda_install_path%\_conda.exe" clean -a -y
+
+    REM Remove the folder audiobook_maker
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the audiobook_maker directory...
+    rmdir /s /q "%audiobookmaker_install_path%"
+
+    REM Remove the folder userdata
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing userdata directory: %cyan_fg_strong%%audiobookmaker_userdata_path%%reset%
     rmdir /s /q "%audiobookmaker_userdata_path%"
 
-    REM Remove the folder audiobook_maker
-REM    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Removing the audiobook_maker Maker directory...
-REM    cd /d "%~dp0"
-REM    rmdir /s /q audiobook_maker
+
 
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Audiobook Maker uninstalled successfully.%reset%
     pause
