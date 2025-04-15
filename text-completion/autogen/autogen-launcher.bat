@@ -50,48 +50,63 @@ set "log_invalidinput=[ERROR] Invalid input. Please enter a valid number."
 set "echo_invalidinput=%red_fg_strong%[ERROR] Invalid input. Please enter a valid number.%reset%"
 
 
-REM Get the current PATH value from the registry
-for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v PATH') do set "current_path=%%B"
-
-REM Check if the paths are already in the current PATH
-echo %current_path% | find /i "%winget_path%" > nul
-set "ff_path_exists=%errorlevel%"
-
 setlocal enabledelayedexpansion
 
-REM Append the new paths to the current PATH only if they don't exist
-if %ff_path_exists% neq 0 (
-    set "new_path=%current_path%;%winget_path%"
-    echo.
-    echo [DEBUG] "current_path is:%cyan_fg_strong% %current_path%%reset%"
-    echo.
-    echo [DEBUG] "winget_path is:%cyan_fg_strong% %winget_path%%reset%"
-    echo.
-    echo [DEBUG] "new_path is:%cyan_fg_strong% !new_path!%reset%"
-
-    REM Update the PATH value in the registry
-    reg add "HKCU\Environment" /v PATH /t REG_EXPAND_SZ /d "!new_path!" /f
-
-    REM Update the PATH value for the current session
-    setx PATH "!new_path!" > nul
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%winget added to PATH.%reset%
-) else (
-    set "new_path=%current_path%"
-    echo %blue_fg_strong%[INFO] winget already exists in PATH.%reset%
-)
-
-REM Check if Winget is installed; if not, then install it
+REM Check if Winget is installed; if not, then prompt the user to install it
 winget --version > nul 2>&1
 if %errorlevel% neq 0 (
     echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Winget is not installed on this system.%reset%
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Winget...
-    curl -L -o "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" "https://github.com/microsoft/winget-cli/releases/latest/download/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-    start "" "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Winget installed successfully. Please restart the Launcher.%reset%
-    pause
-    exit
+    set /p install_winget_choice="Install Winget? [Y/n]: "
+    if /i "%install_winget_choice%"=="" set install_winget_choice=Y
+    if /i "%install_winget_choice%"=="Y" (
+
+        REM Ensure the bin directory exists
+        if not exist "%bin_dir%" (
+            mkdir "%bin_dir%"
+            echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Created folder: "bin"
+        )
+
+        REM Download the Winget installer into the bin directory
+        powershell -Command "Invoke-RestMethod -Uri 'https://github.com/microsoft/winget-cli/releases/latest/download/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle' -OutFile '%bin_dir%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle'"
+
+        REM Install Winget
+        start /wait "%bin_dir%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+
+        REM Clean up the installer
+        del "%bin_dir%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+
+        REM Get the current PATH value from the registry
+        for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v PATH') do set "current_path=%%B"
+
+        REM Check if the winget path is already in the current PATH
+        echo %current_path% | find /i "%winget_path%" > nul
+        if %errorlevel% neq 0 (
+            set "new_path=%current_path%;%winget_path%"
+            echo.
+            echo [DEBUG] "current_path is:%cyan_fg_strong% %current_path%%reset%"
+            echo.
+            echo [DEBUG] "winget_path is:%cyan_fg_strong% %winget_path%%reset%"
+            echo.
+            echo [DEBUG] "new_path is:%cyan_fg_strong% %new_path%%reset%"
+
+            REM Update the PATH value in the registry
+            reg add "HKCU\Environment" /v PATH /t REG_EXPAND_SZ /d "%new_path%" /f
+
+            REM Update the PATH value for the current session
+            setx PATH "%new_path%" > nul
+            echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Winget added to PATH.%reset%
+        ) else (
+            echo [ %green_fg_strong%OK%reset% ] Found PATH: winget%reset%
+        )
+
+        echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Winget installed successfully. Please restart the Installer.%reset%
+        pause
+        exit
+    ) else (
+        echo %yellow_bg%[%time%]%reset% %yellow_fg_strong%[WARN] Winget installation skipped by user.%reset%
+    )
 ) else (
-    echo %blue_fg_strong%[INFO] Winget is already installed.%reset%
+    echo [ %green_fg_strong%OK%reset% ] Found app command: %cyan_fg_strong%winget%reset% from app: App Installer
 )
 
 
@@ -161,21 +176,39 @@ REM Activate the autogen environment
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Activating Conda environment autogen...
 call conda activate autogen
 
-REM Create & Navigate to the autogen directory
-mkdir autogen && cd autogen
+REM Install dependencies
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Python dependencies...
+pip install autogen-agentchat autogen-ext[openai] python-dotenv elevenlabs requests
 
-REM Install AutoGen packages from pip
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing AutoGen packages with pip...
-pip install -U "autogen-agentchat" "autogen-ext[openai]"
+REM Create & Navigate to the bin directory
+mkdir bin && cd bin
+
+REM Copy app.py template to bin folder
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying app.py template to bin folder...
+copy "%~dp0templates\app.py" "%~dp0bin\app.py" >nul 2>&1
+if %errorlevel% equ 0 (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%app.py copied successfully to bin folder.%reset%
+) else (
+    echo %yellow_fg_strong%[WARN]%reset% Could not find templates\app.py. Please place an app.py template in the bin folder manually to use it.
+)
+
+REM Copy .env.example to .env in bin folder
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Copying .env.example to .env in bin folder...
+copy "%~dp0templates\.env.example" "%~dp0bin\.env" >nul 2>&1
+if %errorlevel% equ 0 (
+    echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%.env copied successfully to bin folder.%reset%
+    echo %yellow_fg_strong%[NOTE]%reset% Please edit bin\.env to add your OpenAI, ElevenLabs, and Stability AI API keys.
+) else (
+    echo %yellow_fg_strong%[WARN]%reset% Could not find templates\.env.example. Please create a .env file in the bin folder with OPENAI_API_KEY, ELEVENLABS_API_KEY, and STABILITY_API_KEY.
+)
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%autogen Installed Successfully.%reset%
 
+echo %yellow_fg_strong%[NOTE]%reset% To use a template (e.g., app-template2.py), rename it to 'app.py' and move it into the 'bin' folder created in this directory.
 
 REM Ask if the user wants to create a shortcut
 set /p create_shortcut=Do you want to create a shortcut on the desktop? [Y/n] 
 if /i "%create_shortcut%"=="Y" (
-
-    REM Create the shortcut
     echo %blue_fg_strong%[INFO]%reset% Creating shortcut...
     %SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe -Command ^
         "$WshShell = New-Object -ComObject WScript.Shell; " ^
@@ -231,7 +264,7 @@ call conda activate autogen
 
 REM Start autogen
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% ChatDev launched in a new window.
-start cmd /k "title autogen && cd /d %~dp0autogen && python app.py"
+start cmd /k "title autogen && cd /d %~dp0bin && python app.py"
 goto :home
 
 
