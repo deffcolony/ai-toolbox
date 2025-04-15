@@ -164,11 +164,12 @@ call conda activate autogen
 REM Create & Navigate to the autogen directory
 mkdir autogen && cd autogen
 
-REM Install AutoGen package from pip
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing pyautogen with pip...
-pip install pyautogen
+REM Install AutoGen packages from pip
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing AutoGen packages with pip...
+pip install -U "autogen-agentchat" "autogen-ext[openai]"
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%autogen Installed Successfully.%reset%
+
 
 REM Ask if the user wants to create a shortcut
 set /p create_shortcut=Do you want to create a shortcut on the desktop? [Y/n] 
@@ -250,7 +251,7 @@ call conda activate autogen
 
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Updating autogen...
 cd /d "%~dp0autogen"
-pip install --upgrade pyautogen
+pip install -U "autogen-agentchat" "autogen-ext[openai]"
 pause
 goto :home
 
