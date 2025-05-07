@@ -270,7 +270,6 @@ if "%GPU_CHOICE%"=="1" (
     echo %blue_bg%[%time%]%reset% %cyan_fg_strong%[dia]%reset% %blue_fg_strong%[INFO]%reset% Installing AMD dependencies...
     pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm5.6
 )
-pause
 :install_dia_final
 
 
