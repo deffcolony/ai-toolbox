@@ -1,0 +1,1 @@
+The SillyTavern-Launcher has been moved to the official repo of SillyTavern: https://github.com/SillyTavern/SillyTavern-Launcher
