@@ -20,7 +20,7 @@ REM ANSI Escape Code for Colors
 set "reset=[0m"
 
 REM Strong Foreground Colors
-set "white_fg_strong=[90m"
+set "white_fg_strong=[90m"
 set "red_fg_strong=[91m"
 set "green_fg_strong=[92m"
 set "yellow_fg_strong=[93m"
@@ -100,7 +100,7 @@ if %errorlevel% neq 0 (
     curl -L -o "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" "https://github.com/microsoft/winget-cli/releases/latest/download/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
     start "" "%temp%\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% %green_fg_strong%Winget installed successfully. Please restart the Launcher.%reset%
-    pause
+    pause
     exit
 ) else (
     echo %blue_fg_strong%[INFO] Winget is already installed.%reset%

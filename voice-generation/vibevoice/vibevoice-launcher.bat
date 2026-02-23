@@ -33,17 +33,16 @@ if not exist "%settings_path%" mkdir "%settings_path%"
 REM Create modules file if it doesn't exist
 if not exist "%modules_path%" (
     echo vibevoice_model_7b_trigger=false> "%modules_path%"
+    echo vibevoice_streaming_trigger=false>> "%modules_path%"
     echo vibevoice_share_trigger=false>> "%modules_path%"
     echo vibevoice_disable_cloning_trigger=false>> "%modules_path%"
     echo vibevoice_checkpoint_path=none>> "%modules_path%"
-    echo vibevoice_start_command=pixi run python demo/gradio_demo.py --model_path vibevoice/VibeVoice-1.5B>> "%modules_path%"
+    echo vibevoice_api_port=7985>> "%modules_path%"
 )
 
 REM Load Settings
 if exist "%modules_path%" (
-    for /F "tokens=*" %%a in ('type "%modules_path%"') do (
-        set "%%a"
-    )
+    for /F "tokens=*" %%a in ('type "%modules_path%"') do set "%%a"
 )
 
 cd /d "%root_dir%"
@@ -59,10 +58,11 @@ echo %blue_fg_strong%^| ^> / Home                                               
 echo %blue_fg_strong% ==============================================================%reset%
 echo %cyan_fg_strong% ______________________________________________________________%reset%
 echo %cyan_fg_strong%^| What would you like to do?                                   ^|%reset%
-echo    1. Start VibeVoice
-echo    2. Install / Repair Environment
-echo    3. Editor
-echo    4. Toolbox
+echo    1. Start VibeVoice (Web UI)
+echo    2. Start API Server (For SillyTavern)
+echo    3. Install / Repair Environment
+echo    4. Editor (Config)
+echo    5. Toolbox
 echo %cyan_fg_strong% ______________________________________________________________%reset%
 echo %cyan_fg_strong%^| Menu Options:                                                ^|%reset%
 echo    0. Exit
@@ -77,9 +77,10 @@ REM Set the prompt with spaces
 set /p "choice=%BS%   Choose Your Destiny: "
 
 if "%choice%"=="1" goto :start_vibevoice
-if "%choice%"=="2" goto :install_vibevoice
-if "%choice%"=="3" goto :edit_vibevoice_modules
-if "%choice%"=="4" goto :toolbox
+if "%choice%"=="2" goto :start_api
+if "%choice%"=="3" goto :install_vibevoice
+if "%choice%"=="4" goto :edit_vibevoice_modules
+if "%choice%"=="5" goto :toolbox
 if "%choice%"=="0" exit
 
 echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Invalid input.%reset%
@@ -87,49 +88,77 @@ pause
 goto :home
 
 REM ==========================================
-REM 1. START VIBEVOICE
+REM 1. START VIBEVOICE UI
 REM ==========================================
 :start_vibevoice
-title VibeVoice [RUNNING]
+title VibeVoice [RUNNING UI]
 if not exist "%install_path%\.pixi" (
-    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Environment not found. Please run Option 2 first!%reset%
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Environment not found. Please run Option 3 first!%reset%
     pause
     goto :home
 )
 
 cd /d "%install_path%"
+for /F "tokens=*" %%a in ('type "%modules_path%"') do set "%%a"
 
-REM Reload settings to be sure
-if exist "%modules_path%" (
-    for /F "tokens=*" %%a in ('type "%modules_path%"') do (
-        set "%%a"
+REM Determine Model Path
+if "!vibevoice_streaming_trigger!"=="true" (
+    set "MODEL_ARG=microsoft/VibeVoice-Realtime-0.5B"
+) else (
+    if "!vibevoice_model_7b_trigger!"=="true" (
+        set "MODEL_ARG=vibevoice/VibeVoice-7B"
+    ) else (
+        set "MODEL_ARG=vibevoice/VibeVoice-1.5B"
     )
 )
 
-REM Parse command cleanly
-set "current_command="
-for /F "tokens=*" %%a in ('findstr /I "vibevoice_start_command=" "%modules_path%"') do (
-    set "%%a"
-)
-set "current_command=!vibevoice_start_command:vibevoice_start_command=!"
+set "vv_command=pixi run python demo/gradio_demo.py --model_path !MODEL_ARG!"
+if "!vibevoice_share_trigger!"=="true" set "vv_command=!vv_command! --share"
+if "!vibevoice_disable_cloning_trigger!"=="true" set "vv_command=!vv_command! --disable_prefill"
+if not "!vibevoice_checkpoint_path!"=="none" set "vv_command=!vv_command! --checkpoint_path "!vibevoice_checkpoint_path!""
 
-if "!current_command!"=="" (
-    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] No configuration found. Regenerating defaults...%reset%
-    call :save_vibevoice_settings
-    goto :start_vibevoice
-)
-
-echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% VibeVoice launching...
-echo %cyan_fg_strong%Command:%reset% !current_command!
-
-REM Launch in new window to keep launcher open
-start cmd /k "title VibeVoice Console && cd /d %install_path% && !current_command!"
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Launching Gradio UI...
+echo Model: %green_fg_strong%!MODEL_ARG!%reset%
+start cmd /k "title VibeVoice UI && cd /d %install_path% && !vv_command!"
 goto :home
 
 REM ==========================================
-REM 2. INSTALLER
+REM 2. START API SERVER
+REM ==========================================
+:start_api
+title VibeVoice [API]
+if not exist "%install_path%\.pixi" (
+    echo %red_bg%[%time%]%reset% %red_fg_strong%[ERROR] Environment not found.%reset%
+    pause
+    goto :home
+)
+
+cd /d "%install_path%"
+for /F "tokens=*" %%a in ('type "%modules_path%"') do set "%%a"
+
+REM Determine Model Path
+if "!vibevoice_streaming_trigger!"=="true" (
+    set "MODEL_ARG=microsoft/VibeVoice-Realtime-0.5B"
+) else (
+    if "!vibevoice_model_7b_trigger!"=="true" (
+        set "MODEL_ARG=vibevoice/VibeVoice-7B"
+    ) else (
+        set "MODEL_ARG=vibevoice/VibeVoice-1.5B"
+    )
+)
+
+set "api_command=pixi run python tts_server.py --port !vibevoice_api_port! --model_path !MODEL_ARG!"
+
+echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Launching API Server on Port !vibevoice_api_port!...
+echo Model: %green_fg_strong%!MODEL_ARG!%reset%
+start cmd /k "title VibeVoice API && cd /d %install_path% && !api_command!"
+goto :home
+
+REM ==========================================
+REM 3. INSTALLER
 REM ==========================================
 :install_vibevoice
+REM ... [SAME INSTALLER CODE] ...
 title VibeVoice [INSTALL]
 cls
 echo %blue_fg_strong%^| ^> / Home / Install VibeVoice                                 ^|%reset%
@@ -141,16 +170,7 @@ echo    2. AMD
 echo %cyan_fg_strong% ______________________________________________________________%reset%
 echo %cyan_fg_strong%^| Menu Options:                                                ^|%reset%
 echo    0. Cancel
-
-echo %cyan_fg_strong% ______________________________________________________________%reset%
-echo %cyan_fg_strong%^|                                                              ^|%reset%
-
-REM Define a variable containing a single backspace character
-for /f %%A in ('"prompt $H &echo on &for %%B in (1) do rem"') do set "BS=%%A"
-
-REM Set the prompt with spaces
 set /p "gpu_choice=%BS%   Choose Your GPU: "
-
 if "%gpu_choice%"=="1" goto :install_process
 if "%gpu_choice%"=="2" goto :install_process
 if "%gpu_choice%"=="0" goto :home
@@ -159,7 +179,6 @@ goto :install_vibevoice
 :install_process
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Preparing installation...
 cd /d "%voice_generation_dir%"
-
 if exist "VibeVoice" (
     echo %blue_fg_strong%[INFO] Updating Repository...%reset%
     cd VibeVoice
@@ -169,19 +188,14 @@ if exist "VibeVoice" (
     git clone https://github.com/vibevoice-community/VibeVoice.git
     cd VibeVoice
 )
-
-REM Pixi Check
 where pixi >nul 2>nul
 if %errorlevel% neq 0 (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing Pixi...
     powershell -Command "iwr -useb https://pixi.sh/install.ps1 | iex"
     set "PATH=%LocalAppData%\pixi\bin;%PATH%"
 )
-
-REM Write Configuration (pyproject.toml)
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Writing configuration file...
 if exist pixi.toml del pixi.toml
-
 (
 echo [build-system]
 echo requires = ["setuptools>=61.0"]
@@ -212,7 +226,11 @@ echo     "av",
 echo     "aiortc",
 echo     "setuptools>=80.9.0",
 echo     "flash-attn",
-echo     "triton-windows<3.4"
+echo     "triton-windows<3.4",
+echo     "fastapi",
+echo     "uvicorn",
+echo     "python-multipart",
+echo     "soundfile"
 echo ]
 echo.
 echo [tool.setuptools.packages.find]
@@ -237,23 +255,18 @@ echo python = "3.11.*"
 echo uv = ">=0.9.11,<0.10"
 echo git = ">=2.52.0,<3"
 ) > pyproject.toml
-
-REM Download Wheel
 if not exist "flash_attn-2.7.4+cu128torch2.7-cp311-cp311-win_amd64.whl" (
     echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Downloading Flash Attention Wheel...
     curl -L -o "flash_attn-2.7.4+cu128torch2.7-cp311-cp311-win_amd64.whl" "https://huggingface.co/Jmica/flash_attention/resolve/main/flash_attn-2.7.4%%2Bcu128torch2.7-cp311-cp311-win_amd64.whl"
 )
-
-REM Install
 echo %blue_bg%[%time%]%reset% %blue_fg_strong%[INFO]%reset% Installing environment...
 call pixi install
-
 echo %green_fg_strong%Installation Complete.%reset%
 pause
 goto :home
 
 REM ==========================================
-REM 3. EDITOR
+REM 4. EDITOR
 REM ==========================================
 :edit_vibevoice_modules
 title VibeVoice [EDITOR]
@@ -261,25 +274,22 @@ cls
 echo %blue_fg_strong%^| ^> / Home / Editor                                              ^|%reset%
 echo %blue_fg_strong% ==============================================================%reset%
 echo %cyan_fg_strong% ______________________________________________________________%reset%
-echo %cyan_fg_strong%^| DEBUG                                                        ^|%reset%
-REM Preview current command
-set "current_command="
-for /F "tokens=*" %%a in ('findstr /I "vibevoice_start_command=" "%modules_path%"') do (
-    set "%%a"
-)
-set "current_command=!vibevoice_start_command:vibevoice_start_command=!"
-echo    Preview: %current_command%
-echo %cyan_fg_strong% ______________________________________________________________%reset%
-echo %cyan_fg_strong%^| Modules Configuration                                        ^|%reset%
+echo %cyan_fg_strong%^| Configuration                                                ^|%reset%
 
-REM Display module options
-call :printModule "1. Use 7B Model (--model_path vibevoice/VibeVoice-7B)" !vibevoice_model_7b_trigger!
-call :printModule "2. Public Share Link (--share)" !vibevoice_share_trigger!
-call :printModule "3. Disable Voice Cloning (--disable_prefill)" !vibevoice_disable_cloning_trigger!
-echo    4. Set Checkpoint/LoRA Path [%green_fg_strong%!vibevoice_checkpoint_path!%reset%]
+if "!vibevoice_streaming_trigger!"=="true" (
+    echo    1. Use 7B Model [--IGNORED, Streaming Active]
+    echo    2. Use Streaming Model 0.5B [%green_fg_strong%Enabled%reset%]
+) else (
+    call :printModule "1. Use 7B Model (High Quality)" !vibevoice_model_7b_trigger!
+    echo    2. Use Streaming Model 0.5B [%red_fg_strong%Disabled%reset%]
+)
+
+call :printModule "3. Public Share Link (Gradio)" !vibevoice_share_trigger!
+call :printModule "4. Disable Voice Cloning (Prefill)" !vibevoice_disable_cloning_trigger!
+echo    5. Set Checkpoint/LoRA Path [%green_fg_strong%!vibevoice_checkpoint_path!%reset%]
+echo    6. Set API Port [%green_fg_strong%!vibevoice_api_port!%reset%]
 echo %cyan_fg_strong% ______________________________________________________________%reset%
 echo %cyan_fg_strong%^| Menu Options:                                                ^|%reset%
-echo    00. Quick Start VibeVoice
 echo    0. Back
 
 echo %cyan_fg_strong% ______________________________________________________________%reset%
@@ -291,43 +301,34 @@ for /f %%A in ('"prompt $H &echo on &for %%B in (1) do rem"') do set "BS=%%A"
 REM Set the prompt with spaces
 set /p "vv_module_choices=%BS%   Choose modules to enable/disable: "
 
-for %%i in (!vv_module_choices!) do (
-    if "%%i"=="1" call :toggle_model_7b
-    if "%%i"=="2" call :toggle_share
-    if "%%i"=="3" call :toggle_cloning
-    if "%%i"=="4" call :set_checkpoint
-    if "%%i"=="00" goto :start_vibevoice
-    if "%%i"=="0" goto :home
-)
+if "%vv_module_choices%"=="1" call :toggle_model_7b
+if "%vv_module_choices%"=="2" call :toggle_streaming
+if "%vv_module_choices%"=="3" call :toggle_share
+if "%vv_module_choices%"=="4" call :toggle_cloning
+if "%vv_module_choices%"=="5" call :set_checkpoint
+if "%vv_module_choices%"=="6" call :set_port
+if "%vv_module_choices%"=="0" goto :home
 
 goto :edit_vibevoice_modules
 
 REM --- Toggle Functions ---
-
 :toggle_model_7b
-if "!vibevoice_model_7b_trigger!"=="true" (
-    set "vibevoice_model_7b_trigger=false"
-) else (
-    set "vibevoice_model_7b_trigger=true"
-)
+if "!vibevoice_model_7b_trigger!"=="true" (set "vibevoice_model_7b_trigger=false") else (set "vibevoice_model_7b_trigger=true")
+call :save_vibevoice_settings
+exit /b
+
+:toggle_streaming
+if "!vibevoice_streaming_trigger!"=="true" (set "vibevoice_streaming_trigger=false") else (set "vibevoice_streaming_trigger=true")
 call :save_vibevoice_settings
 exit /b
 
 :toggle_share
-if "!vibevoice_share_trigger!"=="true" (
-    set "vibevoice_share_trigger=false"
-) else (
-    set "vibevoice_share_trigger=true"
-)
+if "!vibevoice_share_trigger!"=="true" (set "vibevoice_share_trigger=false") else (set "vibevoice_share_trigger=true")
 call :save_vibevoice_settings
 exit /b
 
 :toggle_cloning
-if "!vibevoice_disable_cloning_trigger!"=="true" (
-    set "vibevoice_disable_cloning_trigger=false"
-) else (
-    set "vibevoice_disable_cloning_trigger=true"
-)
+if "!vibevoice_disable_cloning_trigger!"=="true" (set "vibevoice_disable_cloning_trigger=false") else (set "vibevoice_disable_cloning_trigger=true")
 call :save_vibevoice_settings
 exit /b
 
@@ -339,47 +340,27 @@ if not "!user_ckpt!"=="" set "vibevoice_checkpoint_path=!user_ckpt!"
 call :save_vibevoice_settings
 exit /b
 
-REM ==========================================
-REM SAVE SETTINGS FUNCTION
-REM ==========================================
+:set_port
+echo.
+echo %cyan_fg_strong%Enter API Port (Default 7985):%reset%
+set /p user_port="Port: "
+if not "!user_port!"=="" set "vibevoice_api_port=!user_port!"
+call :save_vibevoice_settings
+exit /b
+
 :save_vibevoice_settings
-set "vv_command=pixi run python demo/gradio_demo.py"
-
-REM Model Logic
-if "!vibevoice_model_7b_trigger!"=="true" (
-    set "vv_command=!vv_command! --model_path vibevoice/VibeVoice-7B"
-) else (
-    set "vv_command=!vv_command! --model_path vibevoice/VibeVoice-1.5B"
-)
-
-REM Share Logic
-if "!vibevoice_share_trigger!"=="true" (
-    set "vv_command=!vv_command! --share"
-)
-
-REM Cloning Logic
-if "!vibevoice_disable_cloning_trigger!"=="true" (
-    set "vv_command=!vv_command! --disable_prefill"
-)
-
-REM Checkpoint Logic
-if not "!vibevoice_checkpoint_path!"=="none" (
-    set "vv_command=!vv_command! --checkpoint_path "!vibevoice_checkpoint_path!""
-)
-
-REM Write to file
 (
     echo vibevoice_model_7b_trigger=!vibevoice_model_7b_trigger!
+    echo vibevoice_streaming_trigger=!vibevoice_streaming_trigger!
     echo vibevoice_share_trigger=!vibevoice_share_trigger!
     echo vibevoice_disable_cloning_trigger=!vibevoice_disable_cloning_trigger!
     echo vibevoice_checkpoint_path=!vibevoice_checkpoint_path!
-    echo vibevoice_start_command=!vv_command!
+    echo vibevoice_api_port=!vibevoice_api_port!
 ) > "%modules_path%"
-
 exit /b
 
 REM ==========================================
-REM 4. TOOLBOX
+REM TOOLBOX
 REM ==========================================
 :toolbox
 title VibeVoice [TOOLBOX]
